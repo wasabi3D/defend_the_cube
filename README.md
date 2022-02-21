@@ -4,14 +4,14 @@
 
 #### Important concepts
 <ol>
-<li>_**top down shooter**_
-<li>_**Survival**_
-<li>_**Tower Defense**_
-<li>_**ressources**_
-<li>_**Randomly Generated</span>**_
-<li>_**inventory**_
-<li>_**quests**_
- </ol>
+<li> _**top down shooter**_
+<li> _**Survival**_
+<li> _**Tower Defense**_
+<li> _**ressources**_
+<li> _**Randomly Generated</span>**_
+<li> _**inventory**_
+<li> _**quests**_
+</ol>
  
 <br>
 
