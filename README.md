@@ -12,15 +12,15 @@ fruit<br>
 quests<br>
 ressources<br>
 capturing<br>
-top-down shooter<br>
+**top-down shooter**<br>
 Everything Is Connected<br>
 Zombie<br>
-Survival<br>
+**Survival**<br>
 Runner<br>
 Randomly Generated<br>
 You Are The Weapon<br>
 Treasure hunt<br>
 one life only<br>
 Hidden Object<br>
-Tower Defense<br>
+**Tower Defense**<br>
 Enemies as weapons<br>
