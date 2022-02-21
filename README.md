@@ -4,20 +4,20 @@
 
 magic spell<br>
 escape<br>
-_**inventory_**<br>
+_**inventory**_<br>
 destroy objects<br>
-_**top down shooter_**<br>
+_**top down shooter**_<br>
 bot<br>
 fruit<br>
-_**quests_**<br>
-_**ressources_**<br>
+_**quests**_<br>
+_**ressources**_<br>
 capturing<br>
-**top-down shooter**<br>
+_**top-down shooter**_<br>
 Everything Is Connected<br>
 Zombie<br>
-**Survival**<br>
+_**Survival**_<br>
 Runner<br>
-_**Randomly Generated_**<br>
+_**Randomly Generated**_<br>
 You Are The Weapon<br>
 Treasure hunt<br>
 one life only<br>
