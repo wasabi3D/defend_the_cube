@@ -17,7 +17,7 @@ Everything Is Connected<br>
 Zombie<br>
 _**Survival**_<br>
 Runner<br>
-<span style="color:blue">_**Randomly Generated**_<br></span>
+_**<span style="color:blue">Randomly Generated</span>**_<br>
 You Are The Weapon<br>
 Treasure hunt<br>
 one life only<br>
