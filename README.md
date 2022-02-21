@@ -36,5 +36,5 @@ Multiplayer
 <br>
 
 ## Refs
-[Amits game programming info](http://www-cs-students.stanford.edu/%7Eamitp/gameprog.html)
+[Amits game programming info](http://www-cs-students.stanford.edu/%7Eamitp/gameprog.html) <br>
 Voronoi diagram (terrain generation)
