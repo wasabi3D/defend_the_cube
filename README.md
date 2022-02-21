@@ -4,13 +4,13 @@
 
 #### Important concepts
 <ol>
- <li> _**top down shooter**_ </li>
-<li> _**Survival**_ </li>
-<li> _**Tower Defense**_ </li>
-<li> _**ressources**_ </li>
-<li> _**Randomly Generated</span>**_ </li>
-<li> _**inventory**_ </li>
-<li> _**quests**_ </li>
+ <li> top down shooter </li>
+<li> Survival </li>
+<li> Tower Defense </li>
+<li> ressources </li>
+<li> Randomly Generated </li>
+<li> inventory </li>
+<li> quests </li>
 </ol>
  
 <br>
