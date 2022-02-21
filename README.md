@@ -2,13 +2,15 @@
 
 ## Ideas
 
-_**top down shooter**_<br>
-_**Survival**_<br>
-_**Tower Defense**_<br>
-_**ressources**_<br>
-_**Randomly Generated</span>**_<br>
-_**inventory**_<br>
-_**quests**_<br>
+<ul>
+<li>_**top down shooter**_<br>
+<li>_**Survival**_<br>
+<li>_**Tower Defense**_<br>
+<li>_**ressources**_<br>
+<li>_**Randomly Generated</span>**_<br>
+<li>_**inventory**_<br>
+<li>_**quests**_<br>
+</ul>
 magic spell<br>
 escape<br>
 destroy objects<br>
