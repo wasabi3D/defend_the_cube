@@ -2,13 +2,13 @@
 
 ## Ideas
 
-magic spell\n
-escape\n
-inventory\n
-destroy objects\n
-top down shooter\n
-bot\n
-fruit\n
-quests\n
-ressources\n
-capturing\n
+magic spell<\br>
+escape<\br>
+inventory<\br>
+destroy objects<\br>
+top down shooter<\br>
+bot<\br>
+fruit<\br>
+quests<\br>
+ressources<\br>
+capturing<\br>
