@@ -32,3 +32,8 @@ Hidden Object<br>
 Enemies as weapons<br>
 
 Multiplayer
+
+<br>
+
+## Refs
+[Amits game programming info](http://www-cs-students.stanford.edu/%7Eamitp/gameprog.html)
