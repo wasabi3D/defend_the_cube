@@ -2,7 +2,7 @@
 
 ## Ideas
 
-magic spell<\br>
+magic spell<br>
 escape<\br>
 inventory<\br>
 destroy objects<\br>
