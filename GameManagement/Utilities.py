@@ -2,6 +2,18 @@ import pygame
 from pygame.sprite import Sprite
 from pygame.math import Vector2
 from typing import Union
+from GameManagement.locals import *
+import math
+
+
+def rad2deg(radian: float) -> float:
+    """
+    Convertit l'angle en radian en degré
+
+    :param radian: L'angle qu'on veut convertir en radian
+    :return: 180 * (radian / pi )
+    """
+    return RAD2DEG * radian
 
 
 class BaseObject:
@@ -46,6 +58,7 @@ class BaseObject:
             self.rotation += rotation
         else:
             self.rotation = rotation
+        self.rotation %= math.pi * 2
 
     def mscale(self, multiplier: Union[float, int]) -> None:
         """
@@ -83,6 +96,7 @@ class GameObject(BaseObject, Sprite):
         """
         super().__init__(pos, rotation, object_scale)
         self.image = image
+        self.copy_img = self.image.copy()
         self.rect = self.image.get_rect()
         self.children = None
         self.components = None
@@ -98,11 +112,32 @@ class GameObject(BaseObject, Sprite):
         screen.blit(self.image, self.rect)
 
     def translate(self, movement: Vector2, additive=True) -> None:
+        """
+        Fonction qui permet de modifier la position de l'objet.
+
+        :param movement: Un vecteur qui precise le mouvement(déplacement).
+        :param additive: Si True, la fonction additione la valeur du paramère au position actuelle. Sinon elle va
+            remplacer la position actuelle par la valeur donnée.
+        :return:
+        """
         super().translate(movement, additive)
         self.rect = self.image.get_rect(topleft=(self.pos.x, self.pos.y))
 
     def rotate(self, rotation: float, additive=True) -> None:
-        pass
+        """
+        Fonction qui permet de modifier la rotation de l'objet.
+
+        :param rotation: La rotation en radian.
+        :param additive: Si True, la fonction additione la valeur du paramère au rotation actuelle. Sinon elle va
+           remplacer la rotation actuelle par la valeur donnée.
+        :return:
+       """
+        b4_rct = self.image.get_rect(center=self.rect.center)
+        super().rotate(rotation, additive)
+        rotated = pygame.transform.rotate(self.copy_img, rad2deg(self.rotation))
+        rct = rotated.get_rect(center=b4_rct.center)
+        self.image = rotated
+        self.rect = rct
 
     def mscale(self, multiplier: Union[float, int]) -> None:
         pass
@@ -114,5 +149,8 @@ class GameObject(BaseObject, Sprite):
         pass
 
     def update(self):
+        pass
+
+    def children_update(self):
         pass
 
