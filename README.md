@@ -4,7 +4,7 @@
 
 #### Important concepts
 <ol>
- <li> top down shooter </li>
+<li> top down shooter </li>
 <li> Survival </li>
 <li> Tower Defense </li>
 <li> ressources </li>
