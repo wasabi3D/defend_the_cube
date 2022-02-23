@@ -111,6 +111,7 @@ class Terrain:
         self.create_terrain(self.per, size)
 
 
+# Test de la génération
 if __name__ == "__main__":
     screen = pygame.display.set_mode(SCREEN_SIZE)
     ter = Terrain(200, GRID_SIZE)
