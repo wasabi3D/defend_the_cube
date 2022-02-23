@@ -3,13 +3,13 @@ import pygame
 
 
 pygame.init()
-GRID_SIZE = 20
+GRID_SIZE = 5
 
 
 class Terrain:
     terrain = []
-    water_limit = 0.2
-    sand_limit = 0.25
+    water_limit = -0.5
+    sand_limit = -0.3
 
     def create_terrain(self, per: op.OpenSimplex, size: tuple[int, int]) -> None:
         def simple_curve(val: float) -> float:
@@ -37,7 +37,7 @@ class Terrain:
         self.seed = seed
         self.per = op.OpenSimplex(seed)
 
-        d = r"C:\Users\louis\PycharmProjects\NSI_projet2\resources\test\grid"
+        d = r"D:\Projects\Python\NSI_Projet2\resources\test\grid"
         self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grid_two.png"), (GRID_SIZE, GRID_SIZE))
         self.SAND = pygame.transform.scale(pygame.image.load(d + r"\grid_one.png"), (GRID_SIZE, GRID_SIZE))
         self.WATER = pygame.transform.scale(pygame.image.load(d + r"\grid_three.png"), (GRID_SIZE, GRID_SIZE))
@@ -46,10 +46,17 @@ class Terrain:
 
 
 if __name__ == "__main__":
-    screen = pygame.display.set_mode((500, 500))
+    screen = pygame.display.set_mode((700, 700))
+    ter = Terrain(100, (120, 120))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
         screen.fill((0, 0, 0))
+
+        for i, t in enumerate(ter.terrain):
+            for j, c in enumerate(t):
+                screen.blit(c, c.get_rect(topleft=(j * GRID_SIZE, i * GRID_SIZE)))
+
+
         pygame.display.update()
