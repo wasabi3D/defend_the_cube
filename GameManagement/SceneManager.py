@@ -7,6 +7,10 @@ class Scene:
     def __init__(self):
         self.gameObjects: list[GameManagement.Utilities.GameObject] = []
 
+    def start(self):
+        for g in self.gameObjects:
+            g.start()
+
     def start_of_frame(self):
         for g in self.gameObjects:
             g.early_update()
