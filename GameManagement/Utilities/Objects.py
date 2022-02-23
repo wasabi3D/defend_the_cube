@@ -1,19 +1,9 @@
 import pygame
-from pygame.sprite import Sprite
-from pygame.math import Vector2
 from typing import Union
-from GameManagement.locals import *
+from pygame.math import Vector2
+from pygame.sprite import Sprite
 import math
-
-
-def rad2deg(radian: float) -> float:
-    """
-    Convertit l'angle en radian en degré
-
-    :param radian: L'angle qu'on veut convertir en radian
-    :return: 180 * (radian / pi )
-    """
-    return RAD2DEG * radian
+from GameManagement.Utilities.funcs import rad2deg
 
 
 class BaseObject:
@@ -84,7 +74,7 @@ class GameObject(BaseObject, Sprite):
     La base de tous les objets utilisables dans le jeu.
     """
     def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface, enabled=True,
-                 name=""):
+                 name="", parent=None):
         """
 
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -97,11 +87,12 @@ class GameObject(BaseObject, Sprite):
         super().__init__(pos, rotation, object_scale)
         self.image = image
         self.copy_img = self.image.copy()
-        self.rect = self.image.get_rect()
-        self.children = None
+        self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y))
+        self.children: ChildrenHolder = ChildrenHolder()
         self.components = None
         self.enabled = enabled
         self.name = name
+        self.parent: Union[GameObject, None] = None
 
     def blit(self, screen: pygame.Surface) -> None:
         """
@@ -109,7 +100,13 @@ class GameObject(BaseObject, Sprite):
         :param screen: La fenêtre où on affiche l'objet.
         :return:
         """
-        screen.blit(self.image, self.rect)
+        if self.parent is None:
+            screen.blit(self.image, self.rect)
+        else:
+            at = self.get_real_pos()
+            screen.blit(self.image, self.image.get_rect(center=(at.x, at.y)))
+        for child in self.children.children.values():
+            child.blit(screen)
 
     def translate(self, movement: Vector2, additive=True) -> None:
         """
@@ -139,6 +136,9 @@ class GameObject(BaseObject, Sprite):
         self.image = rotated
         self.rect = rct
 
+        for child in self.children.children.values():
+            child.rotate(rotation, additive)
+
     def mscale(self, multiplier: Union[float, int]) -> None:
         pass
 
@@ -147,14 +147,40 @@ class GameObject(BaseObject, Sprite):
         pygame.transform.scale(self.image, (target_scale.x, target_scale.y), self.image)
 
     def start(self):
-        pass
+        for child in self.children.children.values():
+            child.start()
 
     def early_update(self):
-        pass
+        for child in self.children.children.values():
+            child.early_update()
 
     def update(self):
-        pass
+        for child in self.children.children.values():
+            child.update()
 
-    def children_update(self):
-        pass
+    def get_real_pos(self):
+        if self.parent is None:
+            return self.pos
+        else:
+            rel_pos = self.pos + self.parent.get_real_pos()
+            par_pos = self.parent.get_real_pos()
+            prot = self.parent.rotation
 
+            vec = Vector2(rel_pos.x - par_pos.x, rel_pos.y - par_pos.y)
+            vec.rotate_rad_ip(-prot)
+            return par_pos + vec
+
+
+class ChildrenHolder:
+    def __init__(self):
+        self.children: dict[str, GameObject] = {}
+
+    def add_gameobject(self, obj: GameObject, parent: GameObject) -> None:
+        obj.parent = parent
+        self.children.setdefault(obj.name, obj)
+
+    def get_child_by_name(self, name: str) -> Union[GameObject, None]:
+        if name in self.children.keys:
+            return self.children[name]
+        else:
+            return None
