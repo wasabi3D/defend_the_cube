@@ -48,9 +48,24 @@ class Terrain:
                         for j in range(y - BEACH_WIDTH, y + BEACH_WIDTH + 1):
                             if 0 <= i < size[0] and 0 <= j < size[1]:
                                 if self.terrain[j][i] == self.GRASS and \
-                                        self.get_distance_squared((x, y), (i, j)) <= random.uniform(0, BEACH_WIDTH) ** 2:
-                                    print("changed")
+                                        self.get_distance_squared((x, y), (i, j)) \
+                                        <= random.uniform(0,BEACH_WIDTH) ** 2:
                                     self.terrain[j][i] = self.SAND
+        # on enlève le sable qui n'est ni à côté de l'eau ou de plus de sable
+        for y, line in enumerate(self.terrain):
+            for x, el in enumerate(line):
+                if el == self.SAND:
+                    tmp_change = True
+                    for i in range(0, 3, 2):
+                        tmp_x, tmp_y = x + i - 1, y + i - 1
+                        if 0 <= tmp_x < size[0] and 0 <= tmp_y < size[1]:
+                            tmp_elx, tmp_ely = self.terrain[y][tmp_x], self.terrain[tmp_y][x]
+                            if (tmp_elx == self.SAND or tmp_elx == self.WATER or
+                                    tmp_elx == self.SAND or tmp_elx == self.WATER):
+                                tmp_change = False
+                                break
+                    if tmp_change:
+                        self.terrain[y][x] = self.GRASS
 
     def __init__(self, seed: int, size: tuple[int, int]) -> None:
         """
