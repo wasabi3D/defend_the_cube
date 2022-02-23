@@ -55,11 +55,11 @@ class TestScene(smg.Scene):
         test = TestObject(pygame.image.load(r"resources/test/grid/grid_one.png"))
         test2 = TestObject2(pygame.image.load(r"resources/test/grid/grid_two.png"), name="child")
         test3 = TestObject3(pygame.image.load(r"resources/test/grid/grid_three.png"), name="child of child")
-        test2.children.add_gameobject(test3, test2)
-        test.children.add_gameobject(test2, test)
+        test2.children.add_gameobject(test3)
+        test.children.add_gameobject(test2)
         self.gameObjects.append(test)
 
 
-root = mmg.GameRoot((300, 300), (30, 30, 30), fps_limit=150)
+root = mmg.GameRoot((300, 300), (30, 30, 30), "test game", fps_limit=150)
 root.register(TestScene())
 root.mainloop()

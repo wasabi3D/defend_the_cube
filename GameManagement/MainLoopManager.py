@@ -5,8 +5,10 @@ from GameManagement.Exceptions import *
 
 
 class GameRoot:
-    def __init__(self, screen_dimension: tuple[int, int], default_background_color: tuple[int, int, int], fps_limit=60):
+    def __init__(self, screen_dimension: tuple[int, int], default_background_color: tuple[int, int, int], title: str,
+                 fps_limit=60):
         self.display: pygame.Surface = pygame.display.set_mode(screen_dimension)
+        pygame.display.set_caption(title)
         self.scenes: list[SceneManager.Scene] = []
         self.background: tuple[int, int, int] = default_background_color
         self.fps_limit = fps_limit
