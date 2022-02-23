@@ -11,6 +11,7 @@ SIZE_BLOCK = 5
 SCREEN_SIZE = (GRID_SIZE[0] * SIZE_BLOCK, GRID_SIZE[1] * SIZE_BLOCK)
 
 BEACH_WIDTH = 3
+SCALE = 0.07
 
 
 class Terrain:
@@ -33,7 +34,7 @@ class Terrain:
             self.terrain.append([])
             for x in range(size[0]):
                 # ici on utilise les plages de valeurs pour définir ce qu'il y a sur chaque case (basé sur le Simplex)
-                tmp = per.noise2(x * 0.2, y * 0.2)
+                tmp = per.noise2(x * SCALE, y * SCALE)
                 if tmp < self.water_limit:
                     self.terrain[y].append(self.WATER)
                 else:
@@ -67,6 +68,9 @@ class Terrain:
                     if tmp_change:
                         self.terrain[y][x] = self.GRASS
 
+    def generate_mineral(self, m_type):
+        pass
+
     def __init__(self, seed: int, size: tuple[int, int]) -> None:
         """
         :param seed: graine du onde
@@ -87,7 +91,7 @@ class Terrain:
 
 if __name__ == "__main__":
     screen = pygame.display.set_mode(SCREEN_SIZE)
-    ter = Terrain(234, GRID_SIZE)
+    ter = Terrain(2, GRID_SIZE)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
