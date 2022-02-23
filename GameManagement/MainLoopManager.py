@@ -1,3 +1,4 @@
+from numpy import isin
 import pygame
 import GameManagement.SceneManager as SceneManager
 from GameManagement.Exceptions import *
@@ -19,11 +20,18 @@ class GameRoot:
 
     def mainloop(self):
         done = False
+
         if len(self.scenes) == 0:
             raise NoAvailableSceneException()
-        cur_scene: SceneManager.Scene = self.scenes[0]
-        delta = 0
 
+        cur_scene: SceneManager.Scene = self.scenes[0]
+
+        if not isinstance(cur_scene, SceneManager.Scene):
+            raise NotASceneObjectException(f"First scene is not a scene object but it's a\
+            {type(cur_scene)}.")
+
+        cur_scene.start()
+        delta = 0
         while not done:
             delta = pygame.time.get_ticks()
             # ___START___
@@ -42,4 +50,4 @@ class GameRoot:
             cur_scene.blit_objects(self.display)  # TMPPP
             pygame.display.update()
             self.clock.tick(self.fps_limit)
-            print(pygame.time.get_ticks() - delta)
+            # print(pygame.time.get_ticks() - delta)

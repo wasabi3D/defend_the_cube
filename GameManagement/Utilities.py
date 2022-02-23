@@ -27,7 +27,7 @@ class BaseObject:
         :param rotation: La rotation en radian initiale de l'objet. La valeur par défaut est 0.
         :param object_scale: L'échelle initiale de l'objet. La valeur par défaut est pygame.Vector2(1, 1).
         """
-        self.pos: Vector2 = pos
+        self.pos: Vector2 = pos  # Position du centre de l'image et non topleft
         self.rotation = rotation
         self.scale = object_scale
 
@@ -121,7 +121,7 @@ class GameObject(BaseObject, Sprite):
         :return:
         """
         super().translate(movement, additive)
-        self.rect = self.image.get_rect(topleft=(self.pos.x, self.pos.y))
+        self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y))
 
     def rotate(self, rotation: float, additive=True) -> None:
         """
@@ -143,6 +143,10 @@ class GameObject(BaseObject, Sprite):
         pass
 
     def scale_to(self, target_scale: Vector2) -> None:
+        super().scale_to(target_scale)
+        pygame.transform.scale(self.image, (target_scale.x, target_scale.y), self.image)
+
+    def start(self):
         pass
 
     def early_update(self):
