@@ -88,11 +88,11 @@ class GameObject(BaseObject, Sprite):
         self.image = image
         self.copy_img = self.image.copy()
         self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y))
-        self.children: ChildrenHolder = ChildrenHolder()
+        self.children: ChildrenHolder = ChildrenHolder(self)
         self.components = None
         self.enabled = enabled
         self.name = name
-        self.parent: Union[GameObject, None] = None
+        self.parent: Union[GameObject, None] = parent
 
     def blit(self, screen: pygame.Surface) -> None:
         """
@@ -105,7 +105,7 @@ class GameObject(BaseObject, Sprite):
         else:
             at = self.get_real_pos()
             screen.blit(self.image, self.image.get_rect(center=(at.x, at.y)))
-        for child in self.children.children.values():
+        for child in self.children.values():
             child.blit(screen)
 
     def translate(self, movement: Vector2, additive=True) -> None:
@@ -136,7 +136,7 @@ class GameObject(BaseObject, Sprite):
         self.image = rotated
         self.rect = rct
 
-        for child in self.children.children.values():
+        for child in self.children.values():
             child.rotate(rotation, additive)
 
     def mscale(self, multiplier: Union[float, int]) -> None:
@@ -146,19 +146,37 @@ class GameObject(BaseObject, Sprite):
         super().scale_to(target_scale)
         pygame.transform.scale(self.image, (target_scale.x, target_scale.y), self.image)
 
-    def start(self):
-        for child in self.children.children.values():
+    def start(self) -> None:
+        """
+        Fonction appellée avant l'execution de la première frame d'une scène.
+        :return:
+        """
+        for child in self.children.values():
             child.start()
 
-    def early_update(self):
-        for child in self.children.children.values():
+    def early_update(self) -> None:
+        """
+        Fonction appellée au début d'une frame, avant les events.
+        :return:
+        """
+        for child in self.children.values():
             child.early_update()
 
-    def update(self):
-        for child in self.children.children.values():
+    def update(self) -> None:
+        """
+        Fonction appellée après early_update() et les events.
+        :return:
+        """
+        for child in self.children.values():
             child.update()
 
-    def get_real_pos(self):
+    def get_real_pos(self) -> Vector2:
+        """
+        Renvoie la position réelle de l'objet sur l'écran. self.pos représente la position relative par rapport au
+        parent de l'objet mais cette fonction permet de savoir la position absolue en tenant compte la rotation de
+        son parent, position relative, etc...
+        :return: self.pos si l'objet n'a pas de parent, sinon sa position absolue.
+        """
         if self.parent is None:
             return self.pos
         else:
@@ -171,16 +189,38 @@ class GameObject(BaseObject, Sprite):
             return par_pos + vec
 
 
-class ChildrenHolder:
-    def __init__(self):
-        self.children: dict[str, GameObject] = {}
+class ChildrenHolder(dict):
+    """
+    Une classe qui permet de contenir les objets enfants d'un gameobject. Tous gameobjets ont au moins 1 instance de
+    ChildrenHolder.
+    Hérite la classe dict(dictionnaire) pour faciliter l'accès aux objets.
+    """
+    def __init__(self, parent: GameObject):
+        """
 
-    def add_gameobject(self, obj: GameObject, parent: GameObject) -> None:
-        obj.parent = parent
-        self.children.setdefault(obj.name, obj)
+        :param parent: Le parent objet qui possède cette instance.
+        """
+        super().__init__()
+        # self.children: dict[str, GameObject] = {}
+        self.parent: GameObject = parent
+
+    def add_gameobject(self, obj: GameObject) -> None:
+        """
+        Permet de ajouter un gameobject à un gameobject en tant que objet enfant.
+        :param obj: L'objet qu'on veut ajouter.
+        :return:
+        """
+        obj.parent = self.parent
+        self.setdefault(obj.name, obj)
 
     def get_child_by_name(self, name: str) -> Union[GameObject, None]:
-        if name in self.children.keys:
-            return self.children[name]
+        """
+        Retourne l'objet qui possède le nom donné.
+        Alias de ChildrenHolder()[name]
+        :param name: Nom de l'objet que l'utilisateur cherche.
+        :return: L'objet si il existe dans le dict sinon None.
+        """
+        if name in self.keys:
+            return self[name]
         else:
             return None
