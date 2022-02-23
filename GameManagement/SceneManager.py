@@ -1,11 +1,11 @@
 import pygame
 
-import GameManagement.Utilities
+from GameManagement.Utilities import Objects
 
 
 class Scene:
     def __init__(self):
-        self.gameObjects: list[GameManagement.Utilities.GameObject] = []
+        self.gameObjects: list[Objects.GameObject] = []
 
     def start(self):
         for g in self.gameObjects:
