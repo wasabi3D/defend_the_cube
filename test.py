@@ -11,8 +11,8 @@ class TestObject(utils.GameObject):
         super().__init__(image=img, pos=Vector2(50, 50), rotation=0, object_scale=Vector2(1, 1))
 
     def update(self):
-        self.rotate(math.pi / 48)
-        self.translate(Vector2(1, 1))
+        self.rotate(math.pi / 180)
+        self.translate(Vector2(0.2, 0.2))
         if self.pos.x > 300:
             self.translate(Vector2(0, self.pos.y), additive=False)
         if self.pos.y > 300:
@@ -26,6 +26,6 @@ class TestScene(smg.Scene):
         self.gameObjects.append(test)
 
 
-root = mmg.GameRoot((300, 300), (30, 30, 30))
+root = mmg.GameRoot((300, 300), (30, 30, 30), fps_limit=150)
 root.register(TestScene())
 root.mainloop()
