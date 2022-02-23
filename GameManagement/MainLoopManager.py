@@ -22,6 +22,7 @@ class GameRoot:
         if len(self.scenes) == 0:
             raise NoAvailableSceneException()
         cur_scene: SceneManager.Scene = self.scenes[0]
+        cur_scene.start()
         delta = 0
 
         while not done:
@@ -42,4 +43,4 @@ class GameRoot:
             cur_scene.blit_objects(self.display)  # TMPPP
             pygame.display.update()
             self.clock.tick(self.fps_limit)
-            print(pygame.time.get_ticks() - delta)
+            # print(pygame.time.get_ticks() - delta)
