@@ -38,3 +38,4 @@ Multiplayer
 ## Refs
 [Amits game programming info](http://www-cs-students.stanford.edu/%7Eamitp/gameprog.html) <br>
 Voronoi diagram (terrain generation)
+About python [circular import](https://youtu.be/UnKa_t-M_kM) <- very important

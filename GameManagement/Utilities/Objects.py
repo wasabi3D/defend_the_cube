@@ -1,9 +1,16 @@
+from __future__ import annotations  # Avoid circular import
+
+from typing import Union, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:  # Avoid circular import
+    from GameManagement.SceneManager import Scene
+
 import pygame
-from typing import Union
 from pygame.math import Vector2
 from pygame.sprite import Sprite
 import math
 from GameManagement.Utilities.funcs import rad2deg
+from GameManagement.Utilities.Components import BaseComponent
 
 
 class BaseObject:
@@ -73,8 +80,8 @@ class GameObject(BaseObject, Sprite):
     """
     La base de tous les objets utilisables dans le jeu.
     """
-    def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface, enabled=True,
-                 name="", parent=None):
+    def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface,
+                 components: list, enabled=True, name="", parent=None):
         """
 
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -85,28 +92,33 @@ class GameObject(BaseObject, Sprite):
         :param name: Le nom de l'objet.
         """
         super().__init__(pos, rotation, object_scale)
-        self.image = image
-        self.copy_img = self.image.copy()
-        self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y))
+        self.image: pygame.Surface = image
+        self.copy_img: pygame.Surface = self.image.copy()
+        self.rect: pygame.Rect = self.image.get_rect(center=(self.pos.x, self.pos.y))
         self.children: ChildrenHolder = ChildrenHolder(self)
-        self.components = None
-        self.enabled = enabled
-        self.name = name
+        self.components: dict[type, Type[BaseComponent]] = {}
+        self.enabled: bool = enabled
+        self.name: str = name
         self.parent: Union[GameObject, None] = parent
 
-    def blit(self, screen: pygame.Surface) -> None:
+        for c in components:
+            self.components.setdefault(type(c), c)
+
+    def blit(self, screen: pygame.Surface, camera_pos_modifier: Vector2) -> None:
         """
         Affiche l'objet sur la fenêtre.
+        :param camera_pos_modifier:
         :param screen: La fenêtre où on affiche l'objet.
         :return:
         """
         if self.parent is None:
-            screen.blit(self.image, self.rect)
+            modified_pos = self.pos + camera_pos_modifier
+            screen.blit(self.image, self.image.get_rect(center=(modified_pos.x, modified_pos.y)))
         else:
-            at = self.get_real_pos()
+            at = self.get_real_pos() + camera_pos_modifier
             screen.blit(self.image, self.image.get_rect(center=(at.x, at.y)))
         for child in self.children.values():
-            child.blit(screen)
+            child.blit(screen, camera_pos_modifier)
 
     def translate(self, movement: Vector2, additive=True) -> None:
         """
@@ -140,35 +152,46 @@ class GameObject(BaseObject, Sprite):
             child.rotate(rotation, additive)
 
     def mscale(self, multiplier: Union[float, int]) -> None:
+        """
+        Not available yet.
+        :param multiplier:
+        :return:
+        """
         pass
 
     def scale_to(self, target_scale: Vector2) -> None:
-        super().scale_to(target_scale)
-        pygame.transform.scale(self.image, (target_scale.x, target_scale.y), self.image)
+        """
+        Not available yet.
+        :param target_scale:
+        :return:
+        """
+        # super().scale_to(target_scale)
+        # pygame.transform.scale(self.image, (target_scale.x, target_scale.y), self.image)
+        return
 
-    def start(self) -> None:
+    def start(self, scene: Scene) -> None:
         """
         Fonction appellée avant l'execution de la première frame d'une scène.
         :return:
         """
         for child in self.children.values():
-            child.start()
+            child.start(scene)
 
-    def early_update(self) -> None:
+    def early_update(self, scene: Scene) -> None:
         """
         Fonction appellée au début d'une frame, avant les events.
         :return:
         """
         for child in self.children.values():
-            child.early_update()
+            child.early_update(scene)
 
-    def update(self) -> None:
+    def normal_update(self, scene: Scene) -> None:
         """
         Fonction appellée après early_update() et les events.
         :return:
         """
         for child in self.children.values():
-            child.update()
+            child.normal_update(scene)
 
     def get_real_pos(self) -> Vector2:
         """
@@ -187,6 +210,22 @@ class GameObject(BaseObject, Sprite):
             vec = Vector2(rel_pos.x - par_pos.x, rel_pos.y - par_pos.y)
             vec.rotate_rad_ip(-prot)
             return par_pos + vec
+
+    def add_component(self, component: Type[BaseComponent]) -> None:
+        self.components.setdefault(type(component), component)
+
+    def has_component(self, cls: type) -> bool:
+        if not isinstance(cls, type):
+            raise TypeError(f"Got {type(cls)} instead of type.")
+        return cls in self.components.keys()
+
+    def get_component(self, cls: type) -> Union[None, Type[BaseComponent]]:
+        if not isinstance(cls, type):
+            raise TypeError(f"Got {type(cls)} instead of type.")
+        if cls in self.components.keys():
+            return self.components[cls]
+        else:
+            return None
 
 
 class ChildrenHolder(dict):
