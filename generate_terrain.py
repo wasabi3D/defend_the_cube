@@ -133,7 +133,7 @@ class Terrain:
 # Test de la génération
 if __name__ == "__main__":
     screen = pygame.display.set_mode(SCREEN_SIZE)
-    ter = Terrain(200, GRID_SIZE)
+    ter = Terrain(202, GRID_SIZE)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
