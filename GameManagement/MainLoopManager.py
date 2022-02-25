@@ -1,9 +1,7 @@
-from numpy import isin
 import pygame
 import GameManagement.SceneManager as SceneManager
 from GameManagement.Exceptions import *
 import GameManagement.singleton as sing
-import typing
 
 
 class GameRoot:
@@ -18,6 +16,10 @@ class GameRoot:
         self.clock = pygame.time.Clock()
         self.delta = 0
         self.screen_dim = screen_dimension
+        self.key_ups = []
+        self.key_downs = []
+        self.mouse_ups: list[bool, bool, bool] = [False, False, False]
+        self.mouse_downs: list[bool, bool, bool] = [False, False, False]
 
     def register(self, scene: SceneManager.Scene, index=-1):
         if index < 0:
@@ -40,12 +42,28 @@ class GameRoot:
         cur_scene.start()
         self.delta = 0
         while not done:
-            self.delta = pygame.time.get_ticks()
+            t = pygame.time.get_ticks()
+            self.key_ups.clear()
+            self.key_downs.clear()
+            self.mouse_ups = [False, False, False]
+            self.mouse_downs = [False, False, False]
             # ___START___
             cur_scene.start_of_frame()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
+                elif event.type == pygame.KEYDOWN:
+                    self.key_downs.append(event.key)
+                elif event.type == pygame.KEYUP:
+                    self.key_ups.append(event.key)
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button > 3:  # MOUSE SCROLL
+                        continue
+                    self.mouse_ups[event.button - 1] = True
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button > 3:  # MOUSE SCROLL
+                        continue
+                    self.mouse_downs[event.button - 1] = True
             # ___________
 
             # ___MAIN UPDATE___
@@ -56,4 +74,5 @@ class GameRoot:
             self.display.fill(self.background)
             cur_scene.blit_objects(self.display)
             pygame.display.update()
+            self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)

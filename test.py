@@ -5,6 +5,8 @@ import GameManagement.Utilities.Components as cmps
 import GameManagement.Extra as ex
 import GameManagement.singleton as sing
 from GameManagement.Utilities.funcs import tuple2Vec2
+from GameManagement.locals import *
+from pygame.locals import *
 
 import pygame
 from pygame.math import Vector2
@@ -19,10 +21,15 @@ class TestObject(utils.GameObject):
     def normal_update(self, scene: smg.Scene):
         # self.rotate(math.pi / 360)
         # self.translate(Vector2(0.2, 0.2))
-        if self.pos.x > 300:
-            self.translate(Vector2(0, self.pos.y), additive=False)
-        if self.pos.y > 300:
-            self.translate(Vector2(self.pos.x, 0), additive=False)
+        # if self.pos.x > 300:
+        #     self.translate(Vector2(0, self.pos.y), additive=False)
+        # if self.pos.y > 300:
+        #     self.translate(Vector2(self.pos.x, 0), additive=False)
+
+        if K_LEFT in sing.ROOT.key_downs:
+            self.translate(Vector2(-10, 0))
+        if K_RIGHT in sing.ROOT.key_downs:
+            self.translate(Vector2(10, 0))
 
         super().normal_update(scene)
 
