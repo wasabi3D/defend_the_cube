@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing
 
 import pygame
-from GameManagement.Utilities.funcs import do_intersect
+from GameManagement.Utilities.funcs import tuple2Vec2
 
 if typing.TYPE_CHECKING:
     from GameManagement.SceneManager import Scene
@@ -32,6 +32,5 @@ class CameraComponent(BaseComponent):
         for obj in scene.gameObjects.values():
             # if not do_intersect(this.rect, obj.rect):
             #     continue
-
-            obj.blit(disp, this.pos)
+            obj.blit(disp, this.pos + (tuple2Vec2(this.rect.size) / 2))
 

@@ -3,6 +3,7 @@ import pygame
 import GameManagement.SceneManager as SceneManager
 from GameManagement.Exceptions import *
 import GameManagement.singleton as sing
+import typing
 
 
 class GameRoot:

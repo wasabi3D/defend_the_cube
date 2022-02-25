@@ -1,5 +1,6 @@
 from GameManagement.locals import *
 import pygame
+import typing
 
 
 def rad2deg(radian: float) -> float:
@@ -21,3 +22,7 @@ def do_intersect(rect1: pygame.Rect, rect2: pygame.Rect) -> bool:
     """
     return (rect1.x <= rect2.x <= rect1.width + rect1.x or rect2.x <= rect1.x <= rect2.x + rect2.width) and \
            (rect1.y <= rect2.y <= rect1.height + rect1.y or rect2.y <= rect1.y <= rect2.y + rect2.height)
+
+
+def tuple2Vec2(t: typing.Union[tuple[int, int], tuple[float, float]]) -> pygame.Vector2:
+    return pygame.Vector2(t[0], t[1])

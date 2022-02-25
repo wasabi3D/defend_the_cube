@@ -1,7 +1,10 @@
 import GameManagement.MainLoopManager as mmg
 import GameManagement.SceneManager as smg
 import GameManagement.Utilities.Objects as utils
+import GameManagement.Utilities.Components as cmps
 import GameManagement.Extra as ex
+import GameManagement.singleton as sing
+from GameManagement.Utilities.funcs import tuple2Vec2
 
 import pygame
 from pygame.math import Vector2
@@ -10,7 +13,7 @@ import math
 
 class TestObject(utils.GameObject):
     def __init__(self, img, name=""):
-        super().__init__(image=img, pos=Vector2(150, 150), rotation=0, object_scale=Vector2(1, 1), name=name,
+        super().__init__(image=img, pos=Vector2(0, 0), rotation=0, object_scale=Vector2(1, 1), name=name,
                          components=[])
 
     def normal_update(self, scene: smg.Scene):
@@ -63,7 +66,8 @@ class TestScene(smg.Scene):
         test.children.add_gameobject(test2)
         self.add_gameobject(test)
 
-        self.register_main_camera(ex.Camera(Vector2(0, 0), 0))
+        camera = ex.Camera(Vector2(0, 0), 0)
+        self.register_main_camera(camera)
 
 
 root = mmg.GameRoot((300, 300), (30, 30, 30), "test game", fps_limit=150)

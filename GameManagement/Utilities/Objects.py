@@ -1,6 +1,6 @@
 from __future__ import annotations  # Avoid circular import
 
-from typing import Union, Type, TYPE_CHECKING
+from typing import Union, Type, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:  # Avoid circular import
     from GameManagement.SceneManager import Scene
@@ -17,6 +17,7 @@ class BaseObject:
     """
     Définit la base de tous les objets du jeu(camera inclu).
     """
+
     def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2):
         """
 
@@ -80,6 +81,7 @@ class GameObject(BaseObject, Sprite):
     """
     La base de tous les objets utilisables dans le jeu.
     """
+
     def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface,
                  components: list, enabled=True, name="", parent=None):
         """
@@ -182,6 +184,9 @@ class GameObject(BaseObject, Sprite):
         Fonction appellée au début d'une frame, avant les events.
         :return:
         """
+        comp: BaseComponent
+        for comp in self.components.values():
+            comp.on_scene_early_update(this=self, scene=scene)
         for child in self.children.values():
             child.early_update(scene)
 
@@ -190,6 +195,9 @@ class GameObject(BaseObject, Sprite):
         Fonction appellée après early_update() et les events.
         :return:
         """
+        comp: BaseComponent
+        for comp in self.components.values():
+            comp.on_scene_update(this=self, scene=scene)
         for child in self.children.values():
             child.normal_update(scene)
 
@@ -200,11 +208,12 @@ class GameObject(BaseObject, Sprite):
         son parent, position relative, etc...
         :return: self.pos si l'objet n'a pas de parent, sinon sa position absolue.
         """
+
         if self.parent is None:
             return self.pos
         else:
-            rel_pos = self.pos + self.parent.get_real_pos()
             par_pos = self.parent.get_real_pos()
+            rel_pos = self.pos + par_pos
             prot = self.parent.rotation
 
             vec = Vector2(rel_pos.x - par_pos.x, rel_pos.y - par_pos.y)
@@ -234,6 +243,7 @@ class ChildrenHolder(dict):
     ChildrenHolder.
     Hérite la classe dict(dictionnaire) pour faciliter l'accès aux objets.
     """
+
     def __init__(self, parent: GameObject):
         """
 
