@@ -2,15 +2,18 @@ import GameManagement.MainLoopManager as mmg
 import GameManagement.SceneManager as smg
 import GameManagement.Utilities.Objects as utils
 import GameManagement.Utilities.Components as cmps
-import GameManagement.Extra as ex
+import GameManagement.Extra.rendering as ex
 import GameManagement.singleton as sing
 from GameManagement.Utilities.funcs import tuple2Vec2
 from GameManagement.locals import *
 from pygame.locals import *
+from GameManagement.UI.elements import TextLabel
+from GameManagement.Resources import load_font
 
 import pygame
 from pygame.math import Vector2
 import math
+import os
 
 
 class TestObject(utils.GameObject):
@@ -73,10 +76,15 @@ class TestScene(smg.Scene):
         test.children.add_gameobject(test2)
         self.add_gameobject(test)
 
+        lb = TextLabel(Vector2(50, 10), 0, Vector2(1, 1), load_font("resources/test/fonts/remachine.ttf", 24),
+                       "Test text", (200, 200, 200), [], anchor=NW)
+        self.add_gameobject(lb, name="test label")
+
         camera = ex.Camera(Vector2(0, 0), 0)
         self.register_main_camera(camera)
 
 
-root = mmg.GameRoot((300, 300), (30, 30, 30), "test game", fps_limit=150)
+root = mmg.GameRoot((300, 300), (30, 30, 30), "test game", fps_limit=150,
+                    resources_root_path=os.path.dirname(os.path.realpath(__file__)))
 root.register(TestScene())
 root.mainloop()

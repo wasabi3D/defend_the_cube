@@ -103,6 +103,7 @@ class GameObject(BaseObject, Sprite):
         self.name: str = name
         self.parent: Union[GameObject, None] = parent
 
+        self.rotate(rotation, False)
         for c in components:
             self.components.setdefault(type(c), c)
 
@@ -210,7 +211,7 @@ class GameObject(BaseObject, Sprite):
         """
 
         if self.parent is None:
-            return self.pos
+            return self.pos.copy()
         else:
             par_pos = self.parent.get_real_pos()
             rel_pos = self.pos + par_pos
