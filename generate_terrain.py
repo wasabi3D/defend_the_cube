@@ -6,8 +6,8 @@ import pygame
 
 pygame.init()
 
-GRID_SIZE = (100, 100)
-SIZE_BLOCK = 4
+GRID_SIZE = (600, 400)
+SIZE_BLOCK = 2
 SCREEN_SIZE = (GRID_SIZE[0] * SIZE_BLOCK, GRID_SIZE[1] * SIZE_BLOCK)
 
 
@@ -41,7 +41,7 @@ class Terrain:
         """
 
         self.seed = seed
-        random.seed(seed)
+
         self.per = op.OpenSimplex(seed)
 
         self.scale = scale
@@ -59,7 +59,6 @@ class Terrain:
         self.biome_chunk_size = biome_chunk_size
 
         d = os.getcwd() + r"\resources\test\grid"
-        print(d)
         self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grid_two.png"), (SIZE_BLOCK, SIZE_BLOCK))
         self.SAND = pygame.transform.scale(pygame.image.load(d + r"\grid_one.png"), (SIZE_BLOCK, SIZE_BLOCK))
         self.WATER = pygame.transform.scale(pygame.image.load(d + r"\grid_three.png"), (SIZE_BLOCK, SIZE_BLOCK))
@@ -98,6 +97,7 @@ class Terrain:
                     for x2 in range(x - self.beach_width, x + self.beach_width + 1):
                         for y2 in range(y - self.beach_width, y + self.beach_width + 1):
                             if 0 <= x2 < size[0] and 0 <= y2 < size[1]:
+                                random.seed(x2 + y2)
                                 if self.terrain[y2][x2] == self.GRASS and \
                                         self.get_distance_squared((x, y), (x2, y2)) \
                                         <= random.uniform(0, self.beach_width) ** 2:
@@ -136,6 +136,9 @@ class Voronoi:
     def __init__(self, seed: int, chunk_size: int, chunk_types: list, minkowski_exponent: float = 2):
         assert chunk_size > 0, "Les tronçons doivent éxister! (leur taille doit être superieure à 0)"
         assert len(chunk_types) > 0, "Il doit y avoir au mois un type de biome!"
+
+        self.seed = seed
+
         self.chunk_size = chunk_size
         self.chunk_types = chunk_types
         n_biomes = len(chunk_types)
@@ -143,52 +146,44 @@ class Voronoi:
 
         self.minkowski_exponent = minkowski_exponent
 
-        self.random_biome = op.OpenSimplex(seed + 4)
-
         self.rand_pos_x = op.OpenSimplex(seed)
         self.rand_pos_y = op.OpenSimplex(seed + 10)
 
     def noise2(self, x, y):
-        def minkowski_distance_exp(xs: list[int], ys: list[int]):
-            return sum([abs(i - j) ** self.minkowski_exponent for i, j in zip(xs, ys)])
+        def minkowski_distance_exp(x2: int, y2: int):
+            return abs(x - x2) ** self.minkowski_exponent + abs(y - y2) ** self.minkowski_exponent
         # On repère les coordonées du tronçon dans lequel le point se situe
         chunk_x = x // self.chunk_size
         chunk_y = y // self.chunk_size
 
-        print(chunk_y, chunk_x)
-
         # ici on définit les coordonées du point de chaque tronçon dans le tronçon ((0;0) étant en haut à gauche)
-        points = [
-            [
-                (
-                    int((self.rand_pos_x.noise2(
-                        chunk_x + i - 1,
-                        chunk_y + j - 1
-                    ) + 1) * self.chunk_size / 2),
-                    int((self.rand_pos_y.noise2(
-                        chunk_x + i - 1,
-                        chunk_y + j - 1
-                    ) + 1) * self.chunk_size / 2)
-                ) for i in range(chunk_x - 1, chunk_x + 2)]
-            for j in range(chunk_y - 1, chunk_y + 2)
-        ]
+        points = []
+        for j in range(chunk_y - 2, chunk_y + 3):
+            points.append([])
+            for i in range(chunk_x - 2, chunk_x + 3):
+                c_pos = (i, j)
+                if c_pos not in self.points:
+                    random.seed(c_pos[1] * c_pos[0] + self.seed + 20)
+                    self.points[c_pos] = (
+                        random.randint(0, self.chunk_size - 1),
+                        random.randint(0, self.chunk_size - 1)
+                    )
+                points[-1].append(self.points[c_pos])
 
-        closest_point_chunk = (0, 0)
-        dist = minkowski_distance_exp([x, self.chunk_size * (chunk_x - 1) + points[0][0][0]],
-                                      [y, self.chunk_size * (chunk_y - 1) + points[0][0][1]])
+        closest_point_chunk = (chunk_x - 2, chunk_y - 2)
+        dist = minkowski_distance_exp(self.chunk_size * (chunk_x - 2) + points[0][0][0],
+                                      self.chunk_size * (chunk_y - 2) + points[0][0][1])
         for i_y, line in enumerate(points):
-            print(line)
             for i_x, point in enumerate(line):
-                tmp_dist = minkowski_distance_exp([x, self.chunk_size * (chunk_x + i_x - 1) + point[0]],
-                                                  [y, self.chunk_size * (chunk_y + i_y - 1) + point[1]])
+                true_ix = self.chunk_size * (chunk_x + i_x - 1) + point[0]
+                true_iy = self.chunk_size * (chunk_y + i_y - 1) + point[1]
+                tmp_dist = minkowski_distance_exp(true_ix, true_iy)
                 if tmp_dist < dist:
-                    closest_point_chunk = (chunk_x + i_x - 1, chunk_y + i_y - 1)
+                    closest_point_chunk = (true_ix, true_iy)
                     dist = tmp_dist
-        chunk_type_noise = self.random_biome.noise2(*closest_point_chunk)
-        for i, lim in enumerate(self.chunk_type_limits[:-1]):
-            if lim > chunk_type_noise:
-                return self.chunk_types[i]
-        return self.chunk_types[-1]
+
+        random.seed(sum(closest_point_chunk) + self.seed)
+        return random.choice(self.chunk_types)
 
 
 _d = os.getcwd() + r"\resources\test\grid"
@@ -200,25 +195,26 @@ _LAVA = pygame.transform.scale(pygame.image.load(_d + r"\grid_four.png"), (SIZE_
 # Test de la génération
 if __name__ == "__main__":
     screen = pygame.display.set_mode(SCREEN_SIZE)
-    # ter = Terrain(202, GRID_SIZE)
-    v = Voronoi(2, 20, [_GRASS, _SAND, _WATER, _LAVA])
-    tab = [[v.noise2(j, i) for j in range(GRID_SIZE[0])]for i in range(GRID_SIZE[1])]
+
+    ter = Terrain(202, GRID_SIZE)
+    v = Voronoi(3, 20, [_GRASS, _SAND, _WATER, _LAVA], minkowski_exponent=4)
+    # tab = [[v.noise2(j, i) for j in range(GRID_SIZE[0])]for i in range(GRID_SIZE[1])]
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
         screen.fill((0, 0, 0))
 
-        # for i, t in enumerate(ter.terrain):
-        #     for j, c in enumerate(t):
-        #         screen.blit(c, c.get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK)))
-        #         if ter.over_terrain[i][j] == ter.TREE:
-        #             screen.blit(
-        #                 ter.over_terrain[i][j],
-        #                 ter.over_terrain[i][j].get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK))
-        #             )
-        for i, t in enumerate(tab):
+        for i, t in enumerate(ter.terrain):
             for j, c in enumerate(t):
                 screen.blit(c, c.get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK)))
+                if ter.over_terrain[i][j] == ter.TREE:
+                    screen.blit(
+                        ter.over_terrain[i][j],
+                        ter.over_terrain[i][j].get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK))
+                    )
+        # for i, t in enumerate(tab):
+        #     for j, c in enumerate(t):
+        #         screen.blit(c, c.get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK)))
 
         pygame.display.update()
