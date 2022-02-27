@@ -2,7 +2,6 @@ import GameManagement.Utilities.Objects as Obj
 import GameManagement.Utilities.Components as Comp
 import GameManagement.singleton as sing
 import pygame
-import math
 
 
 class Camera(Obj.GameObject):

@@ -1,3 +1,5 @@
+import typing
+
 import pygame
 import GameManagement.SceneManager as SceneManager
 from GameManagement.Exceptions import *
@@ -6,7 +8,8 @@ import GameManagement.singleton as sing
 
 class GameRoot:
     def __init__(self, screen_dimension: tuple[int, int], default_background_color: tuple[int, int, int], title: str,
-                 fps_limit=60):
+                 resources_root_path: str, fps_limit=60):
+        pygame.init()
         sing.ROOT = self
         self.display: pygame.Surface = pygame.display.set_mode(screen_dimension)
         pygame.display.set_caption(title)
@@ -16,10 +19,12 @@ class GameRoot:
         self.clock = pygame.time.Clock()
         self.delta = 0
         self.screen_dim = screen_dimension
+        self.resources_path = resources_root_path
         self.key_ups = []
         self.key_downs = []
         self.mouse_ups: list[bool, bool, bool] = [False, False, False]
         self.mouse_downs: list[bool, bool, bool] = [False, False, False]
+        self.cur_scene: typing.Optional[SceneManager.Scene] = None
 
     def register(self, scene: SceneManager.Scene, index=-1):
         if index < 0:
@@ -33,13 +38,13 @@ class GameRoot:
         if len(self.scenes) == 0:
             raise NoAvailableSceneException()
 
-        cur_scene: SceneManager.Scene = self.scenes[0]
+        self.cur_scene: SceneManager.Scene = self.scenes[0]
 
-        if not isinstance(cur_scene, SceneManager.Scene):
+        if not isinstance(self.cur_scene, SceneManager.Scene):
             raise NotASceneObjectException(f"First scene is not a scene object but it's a\
-            {type(cur_scene)}.")
+            {type(self.cur_scene)}.")
 
-        cur_scene.start()
+        self.cur_scene.start()
         self.delta = 0
         while not done:
             t = pygame.time.get_ticks()
@@ -48,7 +53,7 @@ class GameRoot:
             self.mouse_ups = [False, False, False]
             self.mouse_downs = [False, False, False]
             # ___START___
-            cur_scene.start_of_frame()
+            self.cur_scene.start_of_frame()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
@@ -67,12 +72,12 @@ class GameRoot:
             # ___________
 
             # ___MAIN UPDATE___
-            cur_scene.update()
+            self.cur_scene.update()
             # _________________
 
             # __ BLIT THINGS ON THE SCREEN __
             self.display.fill(self.background)
-            cur_scene.blit_objects(self.display)
+            self.cur_scene.blit_objects(self.display)
             pygame.display.update()
             self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)
