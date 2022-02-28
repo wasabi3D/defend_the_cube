@@ -39,3 +39,13 @@ Multiplayer
 [Amits game programming info](http://www-cs-students.stanford.edu/%7Eamitp/gameprog.html) <br>
 Voronoi diagram (terrain generation)
 About python [circular import](https://youtu.be/UnKa_t-M_kM) <- very important
+
+
+## Yes
+= Base? au milieu qu'on defend <br>
+
+= type de ressources: wood; stone; iron; <br>
+= wave system  <br>
+= food(pomme) <br>
+
+= biomes: forest, plain, 
