@@ -6,8 +6,8 @@ import pygame
 
 pygame.init()
 
-GRID_SIZE = (200, 200)
-SIZE_BLOCK = 4
+GRID_SIZE = (400, 400)
+SIZE_BLOCK = 2
 SCREEN_SIZE = (GRID_SIZE[0] * SIZE_BLOCK, GRID_SIZE[1] * SIZE_BLOCK)
 
 
@@ -137,9 +137,9 @@ class Terrain:
                         self.over_terrain[y][x] = self.TREE
 
 
-# Classe permettant de générer un bruit de Voronoi, bruit permettant de délimiter des zones dans notre cas
+# Classe permettant de générer un bruit de Voronoi qu'on utilise pour délimiter des zones
 class Voronoi:
-    points = {}
+    points = {}  # cette variable permet de rendre la génération de terrain plus rapide
 
     def __init__(self, seed: int, chunk_size: int, chunk_types: list, minkowski_exponent: float = 2):
         """
@@ -185,7 +185,7 @@ class Voronoi:
                 # On utilise un diccionnaire pour accélérer la génération
                 if c_pos not in self.points:
                     # les seed servent à avoir toujours la même chose même si on les répète plusieurs fois
-                    random.seed(c_pos[1] * c_pos[0] + self.seed + 20)
+                    random.seed(c_pos[1] * (c_pos[0] + 1) + self.seed + 20)
                     self.points[c_pos] = (
                         random.randint(0, self.chunk_size - 1),
                         random.randint(0, self.chunk_size - 1)
@@ -206,7 +206,7 @@ class Voronoi:
                     dist = tmp_dist
 
         # finalement on utilise les seed pour que tous les points dans la zone du tronçon soient du même type
-        random.seed(closest_point_chunk[0] * closest_point_chunk[1] + self.seed)
+        random.seed(closest_point_chunk[0] * (closest_point_chunk[1] + 1) + self.seed)
         return random.choice(self.chunk_types)
 
 
@@ -219,7 +219,12 @@ if __name__ == "__main__":
     _LAVA = pygame.transform.scale(pygame.image.load(_d + r"\grid_four.png"), (SIZE_BLOCK, SIZE_BLOCK))
     _DARK_GRASS = pygame.transform.scale(pygame.image.load(_d + r"\dark_grass.png"), (SIZE_BLOCK, SIZE_BLOCK))
 
-    ter = Terrain(202, size=GRID_SIZE, minkowski_exponent=4, biome_types=[_GRASS, _DARK_GRASS])
+    ter = Terrain(23452345,
+                  size=GRID_SIZE,
+                  minkowski_exponent=25,
+                  biome_types=[_GRASS, _DARK_GRASS],
+                  biome_chunk_size=30
+                  )
 
     screen = pygame.display.set_mode(SCREEN_SIZE)
 
