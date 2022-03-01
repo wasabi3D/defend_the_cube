@@ -7,8 +7,9 @@ import pygame
 
 class BaseUIObject(Obj.GameObject):
     def __init__(self, pos: pygame.Vector2, rotation: float, object_scale: pygame.Vector2, image: pygame.Surface,
+                 name: str,
                  components: list, anchor: str = NW):
-        super().__init__(pos, rotation, object_scale, image, components)
+        super().__init__(pos, rotation, object_scale, image, name, components)
         self.anchor = anchor
         self.mouse_in_rect = False
 

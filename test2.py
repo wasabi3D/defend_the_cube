@@ -7,7 +7,7 @@ import GameManagement.singleton as sing
 from GameManagement.Utilities.funcs import tuple2Vec2
 from GameManagement.locals import *
 from pygame.locals import *
-from GameManagement.UI.elements import TextLabel, Button
+from GameManagement.UI.elements import TextLabel, Button, Draggable
 from GameManagement.Resources import load_font, load_img
 from GameManagement.UI.events import UIEventHandler
 
@@ -33,11 +33,11 @@ class TestScene2(smg.Scene):
         test_obj = TestObject(img=load_img(r"resources/test/grid/grid_one.png"), name="test obj")
         self.add_gameobject(test_obj)
 
-        btn = Button(Vector2(50, 50), 0, Vector2(1, 1),
-                     pygame.transform.scale(load_img("resources/test/grid/dark_grass.png"), (80, 80)),
-                     [lambda sc, p, bt: test_obj.rotate(math.pi / 6)], [], anchor=NW)
+        btn = Draggable(Vector2(50, 50), 0, Vector2(1, 1),
+                        pygame.transform.scale(load_img("resources/test/grid/dark_grass.png"), (80, 80)), "test_drag",
+                        [lambda sc, p, bt: test_obj.rotate(math.pi / 6)], [], anchor=NW)
         lb = TextLabel(Vector2(0, 0), 0, Vector2(1, 1), load_font("resources/test/fonts/remachine.ttf", 45), "button",
-                       (200, 200, 200), [], anchor=CENTER)
+                       (200, 200, 200), "test_label", [], anchor=CENTER)
         btn.children.add_gameobject(lb)
 
         ui_ev.check_objects.append(btn)
@@ -51,4 +51,3 @@ root = mmg.GameRoot((300, 300), (30, 30, 30), "test game", fps_limit=150,
                     resources_root_path=os.path.dirname(os.path.realpath(__file__)))
 root.register(TestScene2())
 root.mainloop()
-

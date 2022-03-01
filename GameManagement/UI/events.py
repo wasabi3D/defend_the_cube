@@ -9,7 +9,7 @@ import typing
 
 class UIEventHandler(Obj.GameObject):
     def __init__(self, components: list):
-        super().__init__(pygame.Vector2(0, 0), 0, pygame.Vector2(1, 1), pygame.Surface((0, 0)), components)
+        super().__init__(pygame.Vector2(0, 0), 0, pygame.Vector2(1, 1), pygame.Surface((0, 0)), "UI_EV_HAN", components)
         self.check_objects: list[base.BaseUIObject] = []
 
     def get_real_pos(self) -> pygame.Vector2:

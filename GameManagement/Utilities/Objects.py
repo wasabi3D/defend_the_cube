@@ -19,9 +19,31 @@ class SurfaceModifier:
         self.g = g
         self.b = b
         self.a = a
+        self.correction()
 
     def to_tuple(self) -> tuple[int, int, int, int]:
+        self.correction()
         return self.r, self.g, self.b, self.a
+
+    def set_rgb(self, value: int) -> None:
+        self.r = self.g = self.b = value
+
+    def add_rgb(self, value: Union[int, float]) -> None:
+        self.r += value
+        self.g += value
+        self.b += value
+
+    def set_alpha(self, value: int) -> None:
+        self.a = value
+
+    def add_alpha(self, value: Union[int, float]) -> None:
+        self.a += value
+
+    def correction(self) -> None:
+        self.r = int(max(0, min(255, self.r)))
+        self.g = int(max(0, min(255, self.g)))
+        self.b = int(max(0, min(255, self.b)))
+        self.a = int(max(0, min(255, self.a)))
 
 
 class BaseObject:
@@ -93,8 +115,8 @@ class GameObject(BaseObject, Sprite):
     La base de tous les objets utilisables dans le jeu.
     """
 
-    def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface,
-                 components: list, enabled=True, name="", parent=None, alpha=255):
+    def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface, name: str,
+                 components: list, enabled=True, parent=None, alpha=255):
         """
 
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -113,7 +135,7 @@ class GameObject(BaseObject, Sprite):
         self.enabled: bool = enabled
         self.name: str = name
         self.parent: Union[GameObject, None] = parent
-        self.surf_mult = (255, 255, 255, int(min(255, max(0, alpha))))
+        self.surf_mult: SurfaceModifier = SurfaceModifier(255, 255, 255, alpha)
 
         self.rotate(rotation, False)
         for c in components:
@@ -254,7 +276,7 @@ class GameObject(BaseObject, Sprite):
 
     def alpha_converted(self) -> pygame.Surface:
         tmp = self.image.copy()
-        tmp.fill(self.surf_mult, None, pygame.BLEND_RGBA_MULT)
+        tmp.fill(self.surf_mult.to_tuple(), None, pygame.BLEND_RGBA_MULT)
         return tmp
 
 
