@@ -13,6 +13,17 @@ from GameManagement.Utilities.funcs import rad2deg
 from GameManagement.Utilities.Components import BaseComponent
 
 
+class SurfaceModifier:
+    def __init__(self, r, g, b, a):
+        self.r = r
+        self.g = g
+        self.b = b
+        self.a = a
+
+    def to_tuple(self) -> tuple[int, int, int, int]:
+        return self.r, self.g, self.b, self.a
+
+
 class BaseObject:
     """
     Définit la base de tous les objets du jeu(camera inclu).

@@ -19,12 +19,21 @@ class UIEventHandler(Obj.GameObject):
         return
 
     def early_update(self, scene: GameManagement.SceneManager.Scene) -> None:
-        for btn in range(0, 3):
-            if not sing.ROOT.mouse_downs[btn]:
+        for obj in self.check_objects:
+            mouse_pos = tuple2Vec2(pygame.mouse.get_pos())
+            if not is_included(mouse_pos, obj.image.get_rect(center=obj.get_screen_pos())):
+                if obj.mouse_in_rect:
+                    obj.on_mouse_rect_exit(scene, mouse_pos)
+                    obj.mouse_in_rect = False
                 continue
+            if not obj.mouse_in_rect:
+                obj.on_mouse_rect_enter(scene, mouse_pos)
+                obj.mouse_in_rect = True
 
-            for obj in self.check_objects:
-                if is_included(tuple2Vec2(pygame.mouse.get_pos()), obj.image.get_rect(center=obj.get_screen_pos())):
+            for btn in range(0, 3):
+                if sing.ROOT.mouse_downs[btn]:
+                    obj.on_mouse_click_down(scene, mouse_pos, btn)
+                if sing.ROOT.mouse_ups[btn]:
+                    obj.on_mouse_click_up(scene, mouse_pos, btn)
 
-                    obj.on_mouse_click_down(scene, tuple2Vec2(pygame.mouse.get_pos()), btn)
 

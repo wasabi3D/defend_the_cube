@@ -10,6 +10,7 @@ class BaseUIObject(Obj.GameObject):
                  components: list, anchor: str = NW):
         super().__init__(pos, rotation, object_scale, image, components)
         self.anchor = anchor
+        self.mouse_in_rect = False
 
     def get_real_pos(self) -> pygame.Vector2:
         pre = super().get_real_pos()
@@ -56,10 +57,10 @@ class BaseUIObject(Obj.GameObject):
     def on_mouse_click_up(self, scene: Sm.Scene, mouse_pos: pygame.Vector2, button: int):
         pass
 
-    def on_mouse_rect_enter(self, scene: Sm.Scene, mouse_pos: pygame.Vector2, button: int):
+    def on_mouse_rect_enter(self, scene: Sm.Scene, mouse_pos: pygame.Vector2):
         pass
 
-    def on_mouse_rect_exit(self, scene: Sm.Scene, mouse_pos: pygame.Vector2, button: int):
+    def on_mouse_rect_exit(self, scene: Sm.Scene, mouse_pos: pygame.Vector2):
         pass
 
 
