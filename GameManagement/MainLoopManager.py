@@ -53,7 +53,6 @@ class GameRoot:
             self.mouse_ups = [False, False, False]
             self.mouse_downs = [False, False, False]
             # ___START___
-            self.cur_scene.start_of_frame()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
@@ -70,6 +69,8 @@ class GameRoot:
                         continue
                     self.mouse_downs[event.button - 1] = True
             # ___________
+
+            self.cur_scene.start_of_frame()
 
             # ___MAIN UPDATE___
             self.cur_scene.update()

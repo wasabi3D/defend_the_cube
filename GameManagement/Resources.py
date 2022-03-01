@@ -6,7 +6,7 @@ import GameManagement.singleton as sing
 
 
 def load_img(filename: typing.Union[str, pathlib.Path]) -> pygame.Surface:
-    return pygame.image.load(os.path.join(sing.ROOT.resources_path, filename))
+    return pygame.image.load(os.path.join(sing.ROOT.resources_path, filename)).convert_alpha()
 
 
 def load_font(filename: typing.Union[str, pathlib.Path], font_size: int) -> pygame.font.Font:

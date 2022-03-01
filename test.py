@@ -8,7 +8,7 @@ from GameManagement.Utilities.funcs import tuple2Vec2
 from GameManagement.locals import *
 from pygame.locals import *
 from GameManagement.UI.elements import TextLabel
-from GameManagement.Resources import load_font
+from GameManagement.Resources import load_font, load_img
 
 import pygame
 from pygame.math import Vector2
@@ -57,21 +57,26 @@ class TestObject3(utils.GameObject):
         super().__init__(image=img, pos=Vector2(0, -30), rotation=0, object_scale=Vector2(1, 1), name=name,
                          components=[])
         self.mov = Vector2(0, 0.05)
+        self.a_mov = 1
 
     def normal_update(self, scene: smg.Scene):
         self.rotate(math.pi / 480)
         if self.pos.y > 50 or self.pos.y < -50:
             self.mov.y *= -1
 
+        if self.surf_mult[3] == 255 or self.surf_mult[3] == 0:
+            self.a_mov *= -1
+
+        self.set_alpha(self.a_mov, additive=True)
         self.translate(self.mov, True)
 
 
 class TestScene(smg.Scene):
     def __init__(self):
         super().__init__()
-        test = TestObject(pygame.image.load(r"resources/test/grid/grid_one.png"))
-        test2 = TestObject2(pygame.image.load(r"resources/test/grid/grid_two.png"), name="child")
-        test3 = TestObject3(pygame.image.load(r"resources/test/grid/grid_three.png"), name="child of child")
+        test = TestObject(load_img(r"resources/test/grid/grid_one.png"))
+        test2 = TestObject2(load_img(r"resources/test/grid/grid_two.png"), name="child")
+        test3 = TestObject3(load_img(r"resources/test/grid/grid_three.png"), name="child of child")
         test2.children.add_gameobject(test3)
         test.children.add_gameobject(test2)
         self.add_gameobject(test)

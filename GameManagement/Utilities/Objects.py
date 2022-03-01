@@ -83,7 +83,7 @@ class GameObject(BaseObject, Sprite):
     """
 
     def __init__(self, pos: Vector2, rotation: float, object_scale: Vector2, image: pygame.Surface,
-                 components: list, enabled=True, name="", parent=None):
+                 components: list, enabled=True, name="", parent=None, alpha=255):
         """
 
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -102,6 +102,7 @@ class GameObject(BaseObject, Sprite):
         self.enabled: bool = enabled
         self.name: str = name
         self.parent: Union[GameObject, None] = parent
+        self.surf_mult = (255, 255, 255, int(min(255, max(0, alpha))))
 
         self.rotate(rotation, False)
         for c in components:
@@ -116,10 +117,10 @@ class GameObject(BaseObject, Sprite):
         """
         if self.parent is None:
             modified_pos = self.pos + camera_pos_modifier
-            screen.blit(self.image, self.image.get_rect(center=(modified_pos.x, modified_pos.y)))
+            screen.blit(self.alpha_converted(), self.image.get_rect(center=(modified_pos.x, modified_pos.y)))
         else:
             at = self.get_real_pos() + camera_pos_modifier
-            screen.blit(self.image, self.image.get_rect(center=(at.x, at.y)))
+            screen.blit(self.alpha_converted(), self.image.get_rect(center=(at.x, at.y)))
         for child in self.children.values():
             child.blit(screen, camera_pos_modifier)
 
@@ -153,6 +154,9 @@ class GameObject(BaseObject, Sprite):
 
         for child in self.children.values():
             child.rotate(rotation, additive)
+
+    def set_alpha(self, alpha: int, additive=False) -> None:
+        self.surf_mult = self.surf_mult[0:3] + (int(min(255, max(0, alpha + self.surf_mult[3] if additive else 0))),)
 
     def mscale(self, multiplier: Union[float, int]) -> None:
         """
@@ -236,6 +240,11 @@ class GameObject(BaseObject, Sprite):
             return self.components[cls]
         else:
             return None
+
+    def alpha_converted(self) -> pygame.Surface:
+        tmp = self.image.copy()
+        tmp.fill(self.surf_mult, None, pygame.BLEND_RGBA_MULT)
+        return tmp
 
 
 class ChildrenHolder(dict):

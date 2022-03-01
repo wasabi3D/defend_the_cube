@@ -26,3 +26,7 @@ def do_intersect(rect1: pygame.Rect, rect2: pygame.Rect) -> bool:
 
 def tuple2Vec2(t: typing.Union[tuple[int, int], tuple[float, float]]) -> pygame.Vector2:
     return pygame.Vector2(t[0], t[1])
+
+
+def is_included(pos: pygame.Vector2, rect: pygame.Rect):
+    return (rect.x <= pos.x <= rect.x + rect.width) and (rect.y <= pos.y <= rect.y + rect.height)

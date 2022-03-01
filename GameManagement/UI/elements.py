@@ -1,5 +1,6 @@
 from GameManagement.UI.base import BaseUIObject
 import GameManagement.locals as loc
+import GameManagement.SceneManager as Sm
 import pygame
 import typing
 
@@ -23,6 +24,19 @@ class TextLabel(BaseUIObject):
         self.image = self.font.render(self.text, self.antialias, self.color)
 
 
+class Button(BaseUIObject):
+    def __init__(self, pos: pygame.Vector2, rotation: float, object_scale: pygame.Vector2, image: pygame.Surface,
+                 on_click_funcs: list, components: list, anchor=loc.NW):
+        super().__init__(pos, rotation, object_scale, image, components, anchor=anchor)
+        self.on_click = on_click_funcs
+
+    def on_mouse_click_down(self, scene: Sm.Scene, mouse_pos: pygame.Vector2, button: int):
+        for f in self.on_click:
+            f(scene, mouse_pos, button)
+
+    def get_screen_pos(self) -> pygame.Vector2:
+        a = super().get_screen_pos()
+        return a
 
 
 
