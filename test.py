@@ -44,7 +44,7 @@ if __name__ == "__main__":
     bs = 10
     biomes = [load_img("resources/test/grid/dark_grass.png", (bs, bs)),
               load_img("resources/test/grid/grid_two.png", (bs, bs))]
-    ter = Terrain(500, (200, 200), biomes, bs)
+    ter = Terrain(500, (50, 50), biomes, bs)
 
     root.add_gameObject(ter)
     root.add_gameObject(CameraMove())
