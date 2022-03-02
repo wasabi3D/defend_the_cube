@@ -4,6 +4,8 @@ import random
 import opensimplex as op
 import pygame
 
+from GameManagement.Utilities.Objects import GameObject
+
 pygame.init()
 
 GRID_SIZE = (400, 400)
@@ -11,7 +13,7 @@ SIZE_BLOCK = 2
 SCREEN_SIZE = (GRID_SIZE[0] * SIZE_BLOCK, GRID_SIZE[1] * SIZE_BLOCK)
 
 
-class Terrain:
+class Terrain(GameObject):
     terrain = []
     mineral_layer = []
     over_terrain = []
@@ -44,6 +46,7 @@ class Terrain:
         :param biome_chunk_size: Taille des tronçons (modifie la taille des biomes
         :param minkowski_exponent: exponentiel pour calculer les distances de Minkowski pour le bruit de Veronoi
         """
+        super().__init__(pygame.Vector2(0, 0), 0, pygame.Vector2(1, 1), pygame.Surface((0, 0)), "terrain", [])
 
         self.seed = seed
 
@@ -136,6 +139,15 @@ class Terrain:
                     ) > self.tree_dens_lim:
                         self.over_terrain[y][x] = self.TREE
 
+    def blit(self, screen: pygame.Surface, camera_pos_modifier: pygame.Vector2) -> None:
+        for i, t in enumerate(self.terrain):
+            for j, c in enumerate(t):
+                screen.blit(c, c.get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK)))
+                if self.over_terrain[i][j] is not None:
+                    screen.blit(
+                        self.over_terrain[i][j],
+                        self.over_terrain[i][j].get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK))
+                    )
 
 # Classe permettant de générer un bruit de Voronoi qu'on utilise pour délimiter des zones
 class Voronoi:
