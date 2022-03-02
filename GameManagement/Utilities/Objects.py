@@ -14,7 +14,17 @@ from GameManagement.Utilities.Components import BaseComponent
 
 
 class SurfaceModifier:
+    """
+    Classe qui permet de modifier la luminosité et l'alpha d'un sprite.
+    """
     def __init__(self, r, g, b, a):
+        """
+        Plus les valeurs de r, g, b sont faibles, plus le sprite est sombre.
+        :param r: L'intensité de rouge
+        :param g: L'intensité de vert
+        :param b: L'intensité de bleu
+        :param a: L'alpha du sprite
+        """
         self.r = r
         self.g = g
         self.b = b
@@ -22,24 +32,49 @@ class SurfaceModifier:
         self.correction()
 
     def to_tuple(self) -> tuple[int, int, int, int]:
+        """
+        Transforme les attributs en forme de tuple.
+        :return: (r, g, b, a)
+        """
         self.correction()
         return self.r, self.g, self.b, self.a
 
     def set_rgb(self, value: int) -> None:
+        """
+        Fonction qui permet de mettre à jour les valeurs de r, g et b.
+        :param value: La valeur que l'utilisateur souhaite mettre.
+        """
         self.r = self.g = self.b = value
 
     def add_rgb(self, value: Union[int, float]) -> None:
+        """
+        Fonction qui permet de ajouter une certaine valeur aux attributs r, g et b.
+        :param value: La valeur que l'utilisateur souhaite ajouter.
+        """
         self.r += value
         self.g += value
         self.b += value
 
     def set_alpha(self, value: int) -> None:
+        """
+        Fonction qui permet de mettre à jour l'alpha.
+        :param value: La valeur que l'utilisateur souhaite mettre.
+        """
         self.a = value
 
     def add_alpha(self, value: Union[int, float]) -> None:
+        """
+        Fonction qui permet de ajouter une certaine valeur à l'alpha.
+        :param value: La valeur que l'utilisateur souhaite ajouter.
+        """
         self.a += value
 
     def correction(self) -> None:
+        """
+        Fonction qui permet de rectifier les valeurs des attributs.
+        Les attributs doivent être un int compris entre 0 et 255
+        sinon pygame n'accepte pas.
+        """
         self.r = int(max(0, min(255, self.r)))
         self.g = int(max(0, min(255, self.g)))
         self.b = int(max(0, min(255, self.b)))
@@ -188,9 +223,6 @@ class GameObject(BaseObject, Sprite):
         for child in self.children.values():
             child.rotate(rotation, additive)
 
-    def set_alpha(self, alpha: int, additive=False) -> None:
-        self.surf_mult = self.surf_mult[0:3] + (int(min(255, max(0, alpha + self.surf_mult[3] if additive else 0))),)
-
     def mscale(self, multiplier: Union[float, int]) -> None:
         """
         Not available yet.
@@ -259,14 +291,27 @@ class GameObject(BaseObject, Sprite):
             return par_pos + vec
 
     def add_component(self, component: Type[BaseComponent]) -> None:
+        """
+        Permet de ajouter un "component"(comme une extension) à un objet.
+        """
         self.components.setdefault(type(component), component)
 
     def has_component(self, cls: type) -> bool:
+        """
+        Permet de verifier si l'objet possède un certain component.
+        :param cls: La classe(pas l'instance) du component.
+        :return: True si c'est le cas, False sinon
+        """
         if not isinstance(cls, type):
             raise TypeError(f"Got {type(cls)} instead of type.")
         return cls in self.components.keys()
 
     def get_component(self, cls: type) -> Union[None, Type[BaseComponent]]:
+        """
+        Permet de obtenir l'instance d'un certain component que l'objet possède.
+        :param cls: La classe(pas l'instance) du component.
+        :return: L'instance si ça existe  sinon None
+        """
         if not isinstance(cls, type):
             raise TypeError(f"Got {type(cls)} instead of type.")
         if cls in self.components.keys():
@@ -275,6 +320,10 @@ class GameObject(BaseObject, Sprite):
             return None
 
     def alpha_converted(self) -> pygame.Surface:
+        """
+        Permet de générer l'image combiné avec self.surf_mult
+        :return: L'image avec transparence.
+        """
         tmp = self.image.copy()
         tmp.fill(self.surf_mult.to_tuple(), None, pygame.BLEND_RGBA_MULT)
         return tmp
