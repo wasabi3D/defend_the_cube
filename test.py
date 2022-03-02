@@ -41,13 +41,13 @@ class CameraMove(GameObject):
 
 
 if __name__ == "__main__":
-    root = GameRoot((300, 300), (30, 30, 30), "test game", os.path.dirname(os.path.realpath(__file__)),
+    root = GameRoot((550, 550), (30, 30, 30), "test game", os.path.dirname(os.path.realpath(__file__)),
                     Vector2(0, 0), 150)
 
-    bs = 10
+    bs = 30
     biomes = [load_img("resources/test/grid/dark_grass.png", (bs, bs)),
-              load_img("resources/test/grid/grid_two.png", (bs, bs))]
-    ter = Terrain(500, (50, 50), biomes, bs)
+              load_img("resources/test/grid/grass.png", (bs, bs))]
+    ter = Terrain(500, (150, 150), biomes, bs)
 
     root.add_gameObject(ter)
     root.add_gameObject(CameraMove())

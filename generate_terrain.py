@@ -66,11 +66,11 @@ class Terrain(GameObject):
         self.tree_dens_lim = tree_dens_lim
 
         d = os.getcwd() + r"\resources\test\grid"
-        self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grid_two.png"),
+        self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grass.png"),
                                             (block_pixel_size, block_pixel_size))
-        self.SAND = pygame.transform.scale(pygame.image.load(d + r"\grid_one.png"),
+        self.SAND = pygame.transform.scale(pygame.image.load(d + r"\sand.png"),
                                            (block_pixel_size, block_pixel_size))
-        self.WATER = pygame.transform.scale(pygame.image.load(d + r"\grid_three.png"),
+        self.WATER = pygame.transform.scale(pygame.image.load(d + r"\water.png"),
                                             (block_pixel_size, block_pixel_size))
         self.TREE = pygame.transform.scale(pygame.image.load(d + r"\tree.png"),
                                            (block_pixel_size, block_pixel_size))
