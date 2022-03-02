@@ -73,3 +73,4 @@ class TextLabel(BaseUIObject):
         if antialias is not None and isinstance(antialias, bool):
             self.antialias = antialias
         self.image = self.font.render(self.text, self.antialias, self.color)
+        self.rect = self.image.get_rect(center=self.pos)

@@ -7,12 +7,6 @@ import pygame
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 
-pygame.init()
-
-GRID_SIZE = (400, 400)
-SIZE_BLOCK = 2
-SCREEN_SIZE = (GRID_SIZE[0] * SIZE_BLOCK, GRID_SIZE[1] * SIZE_BLOCK)
-
 
 class Terrain(GameObject):
     terrain = []
@@ -262,6 +256,11 @@ class Voronoi:
 
 # Test de la génération
 if __name__ == "__main__":
+    pygame.init()
+
+    GRID_SIZE = (400, 400)
+    SIZE_BLOCK = 2
+    SCREEN_SIZE = (GRID_SIZE[0] * SIZE_BLOCK, GRID_SIZE[1] * SIZE_BLOCK)
     _d = os.getcwd() + r"\resources\test\grid"
     _GRASS = pygame.transform.scale(pygame.image.load(_d + r"\grid_two.png"), (SIZE_BLOCK, SIZE_BLOCK))
     _SAND = pygame.transform.scale(pygame.image.load(_d + r"\grid_one.png"), (SIZE_BLOCK, SIZE_BLOCK))
