@@ -4,7 +4,7 @@ import pygame
 from pygame.math import Vector2
 from pygame.sprite import Sprite
 import math
-from GameManager.funcs import rad2deg, tuple2Vec2
+from GameManager.funcs import rad2deg, tuple2Vec2, is_included
 import GameManager.singleton as sing
 
 
@@ -99,11 +99,13 @@ class GameObject( Sprite):
         self.image: pygame.Surface = image
         self.copy_img: pygame.Surface = self.image.copy()
         self.rect: pygame.Rect = self.image.get_rect(center=(self.pos.x, self.pos.y))
-        self.children: ChildrenHolder = ChildrenHolder(self)
+        self.children: ChildrenHolder[str, GameObject] = ChildrenHolder(self)
         self.name: str = name
         self.parent: Union[GameObject, None] = parent
         self.surf_mult: SurfaceModifier = SurfaceModifier(255, 255, 255, alpha)
         self.enabled = enabled
+
+        self.mouse_in_rect = False
 
         self.rotate(rotation, False)
 
@@ -165,6 +167,25 @@ class GameObject( Sprite):
         Fonction appellée au début d'une frame, avant les events.
         :return:
         """
+        # print(pygame.mouse.get_pos(), self.image.get_rect(center=self.get_screen_pos()))
+        if is_included(tuple2Vec2(pygame.mouse.get_pos()), self.image.get_rect(center=self.get_screen_pos())):
+            if not self.mouse_in_rect:
+                self.on_mouse_rect_enter()
+                self.mouse_in_rect = True
+
+            for btn, state in enumerate(sing.ROOT.mouse_downs):
+
+                if state:
+                    self.on_mouse_down(btn)
+
+            for btn, state in enumerate(sing.ROOT.mouse_ups):
+                if state:
+                    self.on_mouse_up(btn)
+        else:
+            if self.mouse_in_rect:
+                self.on_mouse_rect_exit()
+                self.mouse_in_rect = False
+
         for child in self.children.values():
             child.early_update()
 
@@ -196,6 +217,10 @@ class GameObject( Sprite):
             print(par_pos + vec)
             return par_pos + vec
 
+    def get_screen_pos(self) -> Vector2:
+        rp = self.get_real_pos()
+        return rp + tuple2Vec2(sing.ROOT.screen_dim) / 2 - sing.ROOT.camera_pos
+
     def alpha_converted(self) -> pygame.Surface:
         """
         Permet de générer l'image combiné avec self.surf_mult
@@ -204,6 +229,18 @@ class GameObject( Sprite):
         tmp = self.image.copy()
         tmp.fill(self.surf_mult.to_tuple(), None, pygame.BLEND_RGBA_MULT)
         return tmp
+
+    def on_mouse_down(self, button: int):
+        pass
+
+    def on_mouse_up(self, button: int):
+        pass
+
+    def on_mouse_rect_enter(self):
+        pass
+
+    def on_mouse_rect_exit(self):
+        pass
 
 
 class ChildrenHolder(dict):

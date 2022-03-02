@@ -3,6 +3,8 @@ from GameManager.resources import load_font, load_img
 from GameManager.util import GameObject
 from GameManager.locals import *
 import GameManager.singleton as sing
+from GameExtensions.UI import TextLabel
+from GameExtensions.locals import *
 import pygame
 from pygame.math import Vector2
 from pygame.locals import *
@@ -15,9 +17,11 @@ class TestObject(GameObject):
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str):
         super().__init__(pos, rotation, image, name)
 
-    def update(self) -> None:
-        self.rotate(math.pi / 300)
-        super().update()
+    def on_mouse_down(self, button: int):
+        print("cc")
+
+    def on_mouse_rect_exit(self):
+        print("exit")
 
 
 class CameraMove(GameObject):
@@ -34,7 +38,6 @@ class CameraMove(GameObject):
             sing.ROOT.camera_pos += Vector2(2, 0)
         if pressed[K_LEFT]:
             sing.ROOT.camera_pos += Vector2(-2, 0)
-        print(sing.ROOT.delta)
 
 
 if __name__ == "__main__":
@@ -48,5 +51,8 @@ if __name__ == "__main__":
 
     root.add_gameObject(ter)
     root.add_gameObject(CameraMove())
+    root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
+    root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
+                                  "hello world", (200, 200, 200), "test_label", anchor=CENTER))
 
     root.mainloop()
