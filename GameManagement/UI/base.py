@@ -18,7 +18,8 @@ class BaseUIObject(Obj.GameObject):
         if self.parent is None:
             x_modif = sing.ROOT.screen_dim[0] / 2
             y_modif = sing.ROOT.screen_dim[1] / 2
-            pre += sing.ROOT.cur_scene.main_camera.pos + pygame.Vector2(x_modif, y_modif)
+            # sing.ROOT.cur_scene.main_camera.pos +
+            pre += pygame.Vector2(x_modif, y_modif)
         else:
             x_modif = self.parent.rect.width / 2
             y_modif = self.parent.rect.height / 2

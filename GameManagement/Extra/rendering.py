@@ -5,6 +5,6 @@ import pygame
 
 
 class Camera(Obj.GameObject):
-    def __init__(self, pos: pygame.Vector2, rotation: float):
+    def __init__(self, pos: pygame.Vector2, rotation: float, components: list):
         super().__init__(pos, rotation, pygame.Vector2(1, 1), pygame.Surface(sing.ROOT.screen_dim),
-                         "MAIN_CAMERA", [Comp.CameraComponent()])
+                         "MAIN_CAMERA", [Comp.CameraComponent()] + components)

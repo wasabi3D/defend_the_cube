@@ -5,6 +5,7 @@ import opensimplex as op
 import pygame
 
 from GameManagement.Utilities.Objects import GameObject
+import GameManagement.singleton as sing
 
 pygame.init()
 
@@ -21,6 +22,7 @@ class Terrain(GameObject):
     def __init__(self, seed: int,
                  size: tuple[int, int],
                  biome_types: list[pygame.Surface],
+                 block_pixel_size: int,
                  scale: float = 0.03,
                  forest_size_scale: float = 0.08,
                  forest_density_scale: float = 2.,
@@ -35,6 +37,7 @@ class Terrain(GameObject):
         :param seed: seed: graine du monde
         :param size: size: taille de la carte
         :param biome_types: types de biomes (image du carré)
+        :param block_pixel_size: La dimension d'un block en pixels.
         :param scale: scale: Échelle de bruit Simplex pour la génération de l'eau et l'herbe
         :param forest_size_scale: forest_size_scale: Échelle de bruit Simplex pour les zones de forêt
         :param forest_density_scale: forest_desity_scale: Échelle de bruit Simplex pour la densité des forêts
@@ -52,6 +55,10 @@ class Terrain(GameObject):
 
         self.per = op.OpenSimplex(seed)
 
+        self.block_px_size = block_pixel_size
+
+        self.size = size
+
         self.scale = scale
 
         # Variables en relation avec la forêt
@@ -65,10 +72,14 @@ class Terrain(GameObject):
         self.tree_dens_lim = tree_dens_lim
 
         d = os.getcwd() + r"\resources\test\grid"
-        self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grid_two.png"), (SIZE_BLOCK, SIZE_BLOCK))
-        self.SAND = pygame.transform.scale(pygame.image.load(d + r"\grid_one.png"), (SIZE_BLOCK, SIZE_BLOCK))
-        self.WATER = pygame.transform.scale(pygame.image.load(d + r"\grid_three.png"), (SIZE_BLOCK, SIZE_BLOCK))
-        self.TREE = pygame.transform.scale(pygame.image.load(d + r"\tree.png"), (SIZE_BLOCK, SIZE_BLOCK))
+        self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grid_two.png"),
+                                            (block_pixel_size, block_pixel_size))
+        self.SAND = pygame.transform.scale(pygame.image.load(d + r"\grid_one.png"),
+                                           (block_pixel_size, block_pixel_size))
+        self.WATER = pygame.transform.scale(pygame.image.load(d + r"\grid_three.png"),
+                                            (block_pixel_size, block_pixel_size))
+        self.TREE = pygame.transform.scale(pygame.image.load(d + r"\tree.png"),
+                                           (block_pixel_size, block_pixel_size))
 
         self.biome_types = biome_types
         self.voronoi = Voronoi(seed=seed + 11, chunk_size=biome_chunk_size,
@@ -139,15 +150,43 @@ class Terrain(GameObject):
                     ) > self.tree_dens_lim:
                         self.over_terrain[y][x] = self.TREE
 
-    def blit(self, screen: pygame.Surface, camera_pos_modifier: pygame.Vector2) -> None:
-        for i, t in enumerate(self.terrain):
-            for j, c in enumerate(t):
-                screen.blit(c, c.get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK)))
-                if self.over_terrain[i][j] is not None:
-                    screen.blit(
-                        self.over_terrain[i][j],
-                        self.over_terrain[i][j].get_rect(topleft=(j * SIZE_BLOCK, i * SIZE_BLOCK))
+    def blit(self, scr: pygame.Surface, camera_pos_modifier: pygame.Vector2) -> None:
+        rp = self.get_real_pos()
+        scr_dim_half_x, scr_dim_half_y = sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2
+        center_x, center_y = rp.x + camera_pos_modifier.x, rp.y + camera_pos_modifier.y
+        x_dim_half, y_dim_half = (self.block_px_size * self.size[0]) / 2, (self.block_px_size * self.size[1]) / 2
+        cm_pos_x = sing.ROOT.cur_scene.main_camera.get_real_pos().x
+        cm_pos_y = sing.ROOT.cur_scene.main_camera.get_real_pos().y
+
+        y_lim_top = (((rp.y + y_dim_half - cm_pos_y - scr_dim_half_y) * -1) // self.block_px_size) - 1
+        y_lim_bottom = y_lim_top + ((scr_dim_half_y * 2) // self.block_px_size) + 1
+
+        x_lim_left = (((rp.x + x_dim_half - cm_pos_x - scr_dim_half_x) * -1) // self.block_px_size) - 1
+        x_lim_right = x_lim_left + ((scr_dim_half_x * 2) // self.block_px_size) + 1
+
+        real_x_lim_left = int(max(0, x_lim_left))
+        real_y_lim_top = int(max(0, y_lim_top))
+        # print(rp.y, y_dim_half, cm_pos_y, scr_dim_half_y)
+        # print(real_y_lim_top, int(min(len(self.terrain) - 1, y_lim_bottom)))
+        # print(real_y_lim_top, int(min(len(self.terrain) - 1, y_lim_bottom)))
+
+        # self.terrain[int(max(0, y_lim_top)):int(min(len(self.terrain) - 1, y_lim_bottom))]
+        for i, t in enumerate(self.terrain[real_y_lim_top:int(min(len(self.terrain) - 1, y_lim_bottom))]):
+            new_i = i + real_y_lim_top
+            # t[int(max(0, x_lim_left)):int(min(len(t) - 1, x_lim_right))]
+            for j, c in enumerate(t[real_x_lim_left:int(min(self.size[0] - 1, x_lim_right))]):
+                new_j = j + real_x_lim_left
+                scr.blit(c, c.get_rect(topleft=(new_j * self.block_px_size + center_x - x_dim_half,
+                                                new_i * self.block_px_size + center_y - y_dim_half)))
+                if self.over_terrain[new_i][new_j] is not None:
+                    scr.blit(
+                        self.over_terrain[new_i][new_j],
+                        self.over_terrain[new_i][new_j].get_rect(topleft=(new_j * self.block_px_size
+                                                                          + center_x - x_dim_half,
+                                                                          new_i * self.block_px_size
+                                                                          + center_y - y_dim_half))
                     )
+
 
 # Classe permettant de générer un bruit de Voronoi qu'on utilise pour délimiter des zones
 class Voronoi:
@@ -177,6 +216,7 @@ class Voronoi:
         :param y: position y du point
         :return: type du point (donné dans la création de l'objet)
         """
+
         def minkowski_distance_exp(x2: int, y2: int):
             """ Calcule la distance avec la formule de Minkowski à la puissance
             :param x2: position x du point
@@ -184,6 +224,7 @@ class Voronoi:
             :return: la distance de Minkowski entre le point donné et le point de coordonées (x, y)
             """
             return abs(x - x2) ** self.minkowski_exponent + abs(y - y2) ** self.minkowski_exponent
+
         # On repère les coordonées du tronçon dans lequel le point se situe
         chunk_x = x // self.chunk_size
         chunk_y = y // self.chunk_size

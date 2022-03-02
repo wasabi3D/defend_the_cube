@@ -30,5 +30,5 @@ class CameraComponent(BaseComponent):
     @classmethod
     def blit_objects(cls, this: GameObject, scene: Scene, disp: pygame.Surface):
         for obj in scene.gameObjects.values():
-            obj.blit(disp, this.pos + (tuple2Vec2(this.rect.size) / 2))
+            obj.blit(disp, -this.pos + (tuple2Vec2(this.rect.size) / 2))
 
