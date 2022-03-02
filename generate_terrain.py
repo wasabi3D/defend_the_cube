@@ -4,8 +4,8 @@ import random
 import opensimplex as op
 import pygame
 
-from GameManagement.Utilities.Objects import GameObject
-import GameManagement.singleton as sing
+from GameManager.util import GameObject
+import GameManager.singleton as sing
 
 pygame.init()
 
@@ -49,7 +49,7 @@ class Terrain(GameObject):
         :param biome_chunk_size: Taille des tronçons (modifie la taille des biomes
         :param minkowski_exponent: exponentiel pour calculer les distances de Minkowski pour le bruit de Veronoi
         """
-        super().__init__(pygame.Vector2(0, 0), 0, pygame.Vector2(1, 1), pygame.Surface((0, 0)), "terrain", [])
+        super().__init__(pygame.Vector2(0, 0), 0, pygame.Surface((0, 0)), "terrain")
 
         self.seed = seed
 
@@ -150,41 +150,38 @@ class Terrain(GameObject):
                     ) > self.tree_dens_lim:
                         self.over_terrain[y][x] = self.TREE
 
-    def blit(self, scr: pygame.Surface, camera_pos_modifier: pygame.Vector2) -> None:
-        rp = self.get_real_pos()
-        scr_dim_half_x, scr_dim_half_y = sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2
-        center_x, center_y = rp.x + camera_pos_modifier.x, rp.y + camera_pos_modifier.y
-        x_dim_half, y_dim_half = (self.block_px_size * self.size[0]) / 2, (self.block_px_size * self.size[1]) / 2
-        cm_pos_x = sing.ROOT.cur_scene.main_camera.get_real_pos().x
-        cm_pos_y = sing.ROOT.cur_scene.main_camera.get_real_pos().y
+    def blit(self, scr: pygame.Surface) -> None:
+        center_x = self.get_real_pos().x
+        center_y = self.get_real_pos().y
+        x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
+        scr_width_half, scr_height_half = sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2
 
-        y_lim_top = (((rp.y + y_dim_half - cm_pos_y - scr_dim_half_y) * -1) // self.block_px_size) - 1
-        y_lim_bottom = y_lim_top + ((scr_dim_half_y * 2) // self.block_px_size) + 1
+        top_coord = center_y - y_dim_half
+        top_diff = sing.ROOT.camera_pos.y - scr_height_half - top_coord
+        top_start_index = int(top_diff // self.block_px_size - 1)
+        bottom_index = min(self.size[1] - 1, top_start_index + sing.ROOT.screen_dim[1] // self.block_px_size + 7)
+        top_start_index = max(0, top_start_index)
 
-        x_lim_left = (((rp.x + x_dim_half - cm_pos_x - scr_dim_half_x) * -1) // self.block_px_size) - 1
-        x_lim_right = x_lim_left + ((scr_dim_half_x * 2) // self.block_px_size) + 1
+        left_coord = center_x - x_dim_half
+        left_diff = sing.ROOT.camera_pos.x - scr_width_half - left_coord
+        left_start_index = int(left_diff // self.block_px_size - 1)
+        right_index = min(self.size[0] - 1, left_start_index + sing.ROOT.screen_dim[0] // self.block_px_size + 7)
+        left_start_index = max(0, left_start_index)
 
-        real_x_lim_left = int(max(0, x_lim_left))
-        real_y_lim_top = int(max(0, y_lim_top))
-        # print(rp.y, y_dim_half, cm_pos_y, scr_dim_half_y)
-        # print(real_y_lim_top, int(min(len(self.terrain) - 1, y_lim_bottom)))
-        # print(real_y_lim_top, int(min(len(self.terrain) - 1, y_lim_bottom)))
-
-        # self.terrain[int(max(0, y_lim_top)):int(min(len(self.terrain) - 1, y_lim_bottom))]
-        for i, t in enumerate(self.terrain[real_y_lim_top:int(min(len(self.terrain) - 1, y_lim_bottom))]):
-            new_i = i + real_y_lim_top
-            # t[int(max(0, x_lim_left)):int(min(len(t) - 1, x_lim_right))]
-            for j, c in enumerate(t[real_x_lim_left:int(min(self.size[0] - 1, x_lim_right))]):
-                new_j = j + real_x_lim_left
-                scr.blit(c, c.get_rect(topleft=(new_j * self.block_px_size + center_x - x_dim_half,
-                                                new_i * self.block_px_size + center_y - y_dim_half)))
+        # print("aa", top_diff)
+        # print("VERTICAL", top_start_index, bottom_index)
+        # print("HORIZONTAL", left_start_index, right_index)
+        for i, t in enumerate(self.terrain[top_start_index:bottom_index]):
+            new_i = i + top_start_index
+            y = new_i * self.block_px_size + center_y - y_dim_half - sing.ROOT.camera_pos.y + scr_height_half
+            for j, c in enumerate(t[left_start_index:right_index]):
+                new_j = j + left_start_index
+                x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
+                scr.blit(c, c.get_rect(topleft=(x, y)))
                 if self.over_terrain[new_i][new_j] is not None:
                     scr.blit(
                         self.over_terrain[new_i][new_j],
-                        self.over_terrain[new_i][new_j].get_rect(topleft=(new_j * self.block_px_size
-                                                                          + center_x - x_dim_half,
-                                                                          new_i * self.block_px_size
-                                                                          + center_y - y_dim_half))
+                        self.over_terrain[new_i][new_j].get_rect(topleft=(x, y))
                     )
 
 

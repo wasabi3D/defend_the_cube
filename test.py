@@ -5,6 +5,8 @@ from GameManager.locals import *
 import GameManager.singleton as sing
 import pygame
 from pygame.math import Vector2
+from pygame.locals import *
+from generate_terrain import Terrain
 import math
 import os
 
@@ -18,21 +20,33 @@ class TestObject(GameObject):
         super().update()
 
 
-class Test2(GameObject):
+class CameraMove(GameObject):
     def __init__(self):
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "test2")
 
     def update(self) -> None:
-        sing.ROOT.camera_pos += Vector2(0.1, 0.1)
+        pressed = pygame.key.get_pressed()
+        if pressed[K_UP]:
+            sing.ROOT.camera_pos += Vector2(0, -2)
+        if pressed[K_DOWN]:
+            sing.ROOT.camera_pos += Vector2(0, 2)
+        if pressed[K_RIGHT]:
+            sing.ROOT.camera_pos += Vector2(2, 0)
+        if pressed[K_LEFT]:
+            sing.ROOT.camera_pos += Vector2(-2, 0)
+        print(sing.ROOT.delta)
 
 
 if __name__ == "__main__":
     root = GameRoot((300, 300), (30, 30, 30), "test game", os.path.dirname(os.path.realpath(__file__)),
                     Vector2(0, 0), 150)
-    root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_square"))
-    root.game_objects["test_square"].children.add_gameobject(
-        TestObject(Vector2(0, 30), 0, load_img("resources/test/grid/grid_two.png"), "child"))
 
-    root.add_gameObject(Test2())
+    bs = 10
+    biomes = [load_img("resources/test/grid/dark_grass.png", (bs, bs)),
+              load_img("resources/test/grid/grid_two.png", (bs, bs))]
+    ter = Terrain(500, (200, 200), biomes, bs)
+
+    root.add_gameObject(ter)
+    root.add_gameObject(CameraMove())
 
     root.mainloop()
