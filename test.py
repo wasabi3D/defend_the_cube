@@ -9,6 +9,7 @@ import pygame
 from pygame.math import Vector2
 from pygame.locals import *
 from generate_terrain import Terrain
+from GameExtensions.player import Player
 import math
 import os
 
@@ -50,9 +51,9 @@ if __name__ == "__main__":
     ter = Terrain(500, (150, 150), biomes, bs)
 
     root.add_gameObject(ter)
-    root.add_gameObject(CameraMove())
-    root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
-    root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
-                                  "hello world", (200, 200, 200), "test_label", anchor=CENTER))
+    root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
+    # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
+    # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
+    #                               "hello world", (200, 200, 200), "test_label", anchor=CENTER))
 
     root.mainloop()

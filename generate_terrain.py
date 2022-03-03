@@ -72,7 +72,7 @@ class Terrain(GameObject):
                                            (block_pixel_size, block_pixel_size))
         self.WATER = pygame.transform.scale(pygame.image.load(d + r"\water.png"),
                                             (block_pixel_size, block_pixel_size))
-        self.TREE = pygame.transform.scale(pygame.image.load(d + r"\tree.png"),
+        self.TREE = pygame.transform.scale(pygame.image.load(d + r"\tree2.png"),
                                            (block_pixel_size, block_pixel_size))
 
         self.biome_types = biome_types
@@ -171,11 +171,11 @@ class Terrain(GameObject):
             for j, c in enumerate(t[left_start_index:right_index]):
                 new_j = j + left_start_index
                 x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
-                scr.blit(c, c.get_rect(topleft=(x, y)))
+                scr.blit(c, c.get_rect(center=(x, y)))
                 if self.over_terrain[new_i][new_j] is not None:
                     scr.blit(
                         self.over_terrain[new_i][new_j],
-                        self.over_terrain[new_i][new_j].get_rect(topleft=(x, y))
+                        self.over_terrain[new_i][new_j].get_rect(center=(x, y))
                     )
 
 
