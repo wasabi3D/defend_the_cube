@@ -7,7 +7,7 @@ from pygame.math import Vector2
 
 
 class Player(GameObject):
-    SPEED = 100
+    SPEED = 250
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         self.original = load_img("resources/player/tmp_player.png", (48, 48))

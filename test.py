@@ -1,16 +1,12 @@
 from GameManager.MainLoopManager import GameRoot
-from GameManager.resources import load_font, load_img
+from GameManager.resources import load_img
 from GameManager.util import GameObject
-from GameManager.locals import *
 import GameManager.singleton as sing
-from GameExtensions.UI import TextLabel
-from GameExtensions.locals import *
 import pygame
 from pygame.math import Vector2
 from pygame.locals import *
-from generate_terrain import Terrain
+from GameExtensions.generate_terrain import Terrain
 from GameExtensions.player import Player
-import math
 import os
 
 
@@ -48,7 +44,7 @@ if __name__ == "__main__":
     bs = 30
     biomes = [load_img("resources/test/grid/dark_grass.png", (bs, bs)),
               load_img("resources/test/grid/grass.png", (bs, bs))]
-    ter = Terrain(500, (150, 150), biomes, bs)
+    ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000)
 
     root.add_gameObject(ter)
     root.add_gameObject(Player(Vector2(0, 0), 0, "player"))

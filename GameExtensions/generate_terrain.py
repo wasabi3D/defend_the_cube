@@ -7,6 +7,8 @@ import pygame
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 
+from GameExtensions.resources import Tree
+
 
 class Terrain(GameObject):
     terrain = []
@@ -91,6 +93,8 @@ class Terrain(GameObject):
         :param per: L'objet nous permettant d'avoir les valeurs de chaque case (module opensimplex)
         :param size: taille de la carte (en blocks) en (x, y)
         """
+        x_half = (self.size[0] * self.block_px_size) / 2
+        y_half = (self.size[1] * self.block_px_size) / 2
 
         for y in range(size[1]):
             self.terrain.append([])
@@ -142,7 +146,9 @@ class Terrain(GameObject):
                     ) > self.tree_lim and tree_zones_noise.noise2(
                         x * self.forest_density_scale, y * self.forest_density_scale
                     ) > self.tree_dens_lim:
-                        self.over_terrain[y][x] = self.TREE
+                        self.over_terrain[y][x] = Tree(pygame.Vector2(x * self.block_px_size - x_half,
+                                                                      y * self.block_px_size - y_half),
+                                                       f"TREE {x} {y}")
 
     def blit(self, scr: pygame.Surface) -> None:
         center_x = self.get_real_pos().x
@@ -172,11 +178,21 @@ class Terrain(GameObject):
                 new_j = j + left_start_index
                 x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
                 scr.blit(c, c.get_rect(center=(x, y)))
+
+        for i, t in enumerate(self.over_terrain[top_start_index:bottom_index]):
+            new_i = i + top_start_index
+            y = new_i * self.block_px_size + center_y - y_dim_half - sing.ROOT.camera_pos.y + scr_height_half
+            for j, c in enumerate(t[left_start_index:right_index]):
+                new_j = j + left_start_index
+                x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
                 if self.over_terrain[new_i][new_j] is not None:
-                    scr.blit(
-                        self.over_terrain[new_i][new_j],
-                        self.over_terrain[new_i][new_j].get_rect(center=(x, y))
-                    )
+                    if isinstance(self.over_terrain[new_i][new_j], GameObject):
+                        self.over_terrain[new_i][new_j].blit(scr)
+                    else:
+                        scr.blit(
+                            self.over_terrain[new_i][new_j],
+                            self.over_terrain[new_i][new_j].get_rect(center=(x, y))
+                        )
 
 
 # Classe permettant de générer un bruit de Voronoi qu'on utilise pour délimiter des zones
