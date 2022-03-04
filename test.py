@@ -20,34 +20,33 @@ class TestObject(GameObject):
     def on_mouse_rect_exit(self):
         print("exit")
 
+    def get_collision_rect(self) -> pygame.Rect:
+        a = super().get_collision_rect()
+        return a
 
-class CameraMove(GameObject):
+
+class RenderOverTerrain(GameObject):
     def __init__(self):
-        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "test2")
+        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "RenderOverTerrain")
 
-    def update(self) -> None:
-        pressed = pygame.key.get_pressed()
-        if pressed[K_UP]:
-            sing.ROOT.camera_pos += Vector2(0, -2)
-        if pressed[K_DOWN]:
-            sing.ROOT.camera_pos += Vector2(0, 2)
-        if pressed[K_RIGHT]:
-            sing.ROOT.camera_pos += Vector2(2, 0)
-        if pressed[K_LEFT]:
-            sing.ROOT.camera_pos += Vector2(-2, 0)
+    def blit(self, screen: pygame.Surface) -> None:
+        sing.ROOT.game_objects["terrain"].blit_over_terrain(screen)
 
 
 if __name__ == "__main__":
     root = GameRoot((550, 550), (30, 30, 30), "test game", os.path.dirname(os.path.realpath(__file__)),
-                    Vector2(0, 0), 150)
+                    Vector2(0, 0), 1000)
 
     bs = 30
     biomes = [load_img("resources/test/grid/dark_grass.png", (bs, bs)),
               load_img("resources/test/grid/grass.png", (bs, bs))]
-    ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000)
+    ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
 
     root.add_gameObject(ter)
     root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
+    root.add_gameObject(TestObject(Vector2(100, 200), 0, load_img("resources/test/grid/grid_one.png"), "yay"))
+    root.add_collidable_object(root.game_objects["yay"])
+    root.add_gameObject(RenderOverTerrain())
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
     #                               "hello world", (200, 200, 200), "test_label", anchor=CENTER))

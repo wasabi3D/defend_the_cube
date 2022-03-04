@@ -10,28 +10,41 @@ class Player(GameObject):
     SPEED = 250
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
-        self.original = load_img("resources/player/tmp_player.png", (48, 48))
+        self.original = load_img("resources/player/tmp_player.png", (40, 40))
         super().__init__(pos, rotation, self.original.copy(), name)
         self.right_oriented = True
 
     def update(self) -> None:
         pressed = pygame.key.get_pressed()
-        mov = Vector2(0, 0)
+        dx, dy = 0, 0
         if pressed[K_UP]:
-            mov += Vector2(0, -1)
+            dy += -1
         if pressed[K_DOWN]:
-            mov += Vector2(0, 1)
+            dy += 1
         if pressed[K_RIGHT]:
             if not self.right_oriented:
                 self.image = self.original.copy()
             self.right_oriented = True
-            mov += Vector2(1, 0)
+            dx += 1
         if pressed[K_LEFT]:
             if self.right_oriented:
                 self.image = pygame.transform.flip(self.original.copy(), True, False)
             self.right_oriented = False
-            mov += Vector2(-1, 0)
+            dx += -1
 
+        # Check for collisions  https://youtu.be/m7GnJo_oZUU
+        rp = self.get_real_pos()
+        dx_tmp_rect = self.image.get_rect(center=rp + Vector2(dx, 0))
+        dy_tmp_rect = self.image.get_rect(center=rp + Vector2(0, dy))
+        obj_lst = tuple(map(lambda obj: obj.get_collision_rect(), sing.ROOT.collidable_objects))
+        # print(obj_lst)
+        # print(f"Player {dx_tmp_rect}")
+        if dx_tmp_rect.collidelist(obj_lst) != -1:
+            dx = 0
+        if dy_tmp_rect.collidelist(obj_lst) != -1:
+            dy = 0
+
+        mov = Vector2(dx, dy)
         if mov.length_squared() != 0:
             self.translate(mov.normalize() * sing.ROOT.delta * Player.SPEED)
             sing.ROOT.camera_pos = self.get_real_pos().copy()

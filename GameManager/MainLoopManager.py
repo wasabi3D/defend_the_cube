@@ -22,6 +22,7 @@ class GameRoot:
         self.mouse_downs: list[bool, bool, bool] = [False, False, False]
         self.camera_pos: pygame.Vector2 = camera_pos
         self.game_objects: dict[str, util.GameObject] = {}
+        self.collidable_objects: list[util.GameObject] = []
 
     def mainloop(self):
         done = False
@@ -69,3 +70,6 @@ class GameRoot:
 
     def add_gameObject(self, gameObject: util.GameObject):
         self.game_objects.setdefault(gameObject.name, gameObject)
+
+    def add_collidable_object(self, gameObject: util.GameObject):
+        self.collidable_objects.append(gameObject)

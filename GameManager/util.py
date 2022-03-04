@@ -242,6 +242,9 @@ class GameObject( Sprite):
     def on_mouse_rect_exit(self):
         pass
 
+    def get_collision_rect(self) -> pygame.Rect:
+        return self.image.get_rect(center=self.get_real_pos())
+
 
 class ChildrenHolder(dict):
     """

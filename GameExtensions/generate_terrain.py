@@ -146,11 +146,53 @@ class Terrain(GameObject):
                     ) > self.tree_lim and tree_zones_noise.noise2(
                         x * self.forest_density_scale, y * self.forest_density_scale
                     ) > self.tree_dens_lim:
-                        self.over_terrain[y][x] = Tree(pygame.Vector2(x * self.block_px_size - x_half,
+                        tr = Tree(pygame.Vector2(x * self.block_px_size - x_half,
                                                                       y * self.block_px_size - y_half),
                                                        f"TREE {x} {y}")
+                        self.over_terrain[y][x] = tr
+                        sing.ROOT.add_collidable_object(tr)
 
     def blit(self, scr: pygame.Surface) -> None:
+        center_x = self.get_real_pos().x
+        center_y = self.get_real_pos().y
+        x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
+        scr_width_half, scr_height_half = sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2
+        top_start_index, bottom_index, left_start_index, right_index = self.get_render_index()
+
+        # print("aa", top_diff)
+        # print("VERTICAL", top_start_index, bottom_index)
+        # print("HORIZONTAL", left_start_index, right_index)
+        for i, t in enumerate(self.terrain[top_start_index:bottom_index]):
+            new_i = i + top_start_index
+            y = new_i * self.block_px_size + center_y - y_dim_half - sing.ROOT.camera_pos.y + scr_height_half
+            for j, c in enumerate(t[left_start_index:right_index]):
+                new_j = j + left_start_index
+                x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
+                scr.blit(c, c.get_rect(center=(x, y)))
+
+    def blit_over_terrain(self, scr: pygame.Surface):
+        center_x = self.get_real_pos().x
+        center_y = self.get_real_pos().y
+        x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
+        scr_width_half, scr_height_half = sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2
+        top_start_index, bottom_index, left_start_index, right_index = self.get_render_index()
+
+        for i, t in enumerate(self.over_terrain[top_start_index:bottom_index]):
+            new_i = i + top_start_index
+            y = new_i * self.block_px_size + center_y - y_dim_half - sing.ROOT.camera_pos.y + scr_height_half
+            for j, c in enumerate(t[left_start_index:right_index]):
+                new_j = j + left_start_index
+                x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
+                if self.over_terrain[new_i][new_j] is not None:
+                    if isinstance(self.over_terrain[new_i][new_j], GameObject):
+                        self.over_terrain[new_i][new_j].blit(scr)
+                    else:
+                        scr.blit(
+                            self.over_terrain[new_i][new_j],
+                            self.over_terrain[new_i][new_j].get_rect(center=(x, y))
+                        )
+
+    def get_render_index(self):
         center_x = self.get_real_pos().x
         center_y = self.get_real_pos().y
         x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
@@ -167,32 +209,7 @@ class Terrain(GameObject):
         left_start_index = int(left_diff // self.block_px_size - 1)
         right_index = min(self.size[0] - 1, left_start_index + sing.ROOT.screen_dim[0] // self.block_px_size + 7)
         left_start_index = max(0, left_start_index)
-
-        # print("aa", top_diff)
-        # print("VERTICAL", top_start_index, bottom_index)
-        # print("HORIZONTAL", left_start_index, right_index)
-        for i, t in enumerate(self.terrain[top_start_index:bottom_index]):
-            new_i = i + top_start_index
-            y = new_i * self.block_px_size + center_y - y_dim_half - sing.ROOT.camera_pos.y + scr_height_half
-            for j, c in enumerate(t[left_start_index:right_index]):
-                new_j = j + left_start_index
-                x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
-                scr.blit(c, c.get_rect(center=(x, y)))
-
-        for i, t in enumerate(self.over_terrain[top_start_index:bottom_index]):
-            new_i = i + top_start_index
-            y = new_i * self.block_px_size + center_y - y_dim_half - sing.ROOT.camera_pos.y + scr_height_half
-            for j, c in enumerate(t[left_start_index:right_index]):
-                new_j = j + left_start_index
-                x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
-                if self.over_terrain[new_i][new_j] is not None:
-                    if isinstance(self.over_terrain[new_i][new_j], GameObject):
-                        self.over_terrain[new_i][new_j].blit(scr)
-                    else:
-                        scr.blit(
-                            self.over_terrain[new_i][new_j],
-                            self.over_terrain[new_i][new_j].get_rect(center=(x, y))
-                        )
+        return top_start_index, bottom_index, left_start_index, right_index
 
 
 # Classe permettant de générer un bruit de Voronoi qu'on utilise pour délimiter des zones
