@@ -5,10 +5,10 @@ import GameManager.util as util
 
 class GameRoot:
     def __init__(self, screen_dimension: tuple[int, int], default_background_color: tuple[int, int, int], title: str,
-                 resources_root_path: str, camera_pos: pygame.Vector2, fps_limit=60):
+                 resources_root_path: str, camera_pos: pygame.Vector2, fps_limit=60, display_flag=pygame.SCALED):
         pygame.init()
         sing.ROOT = self
-        self.display: pygame.Surface = pygame.display.set_mode(screen_dimension)
+        self.display: pygame.Surface = pygame.display.set_mode(screen_dimension, flags=display_flag)
         pygame.display.set_caption(title)
         self.background: tuple[int, int, int] = default_background_color
         self.fps_limit = fps_limit

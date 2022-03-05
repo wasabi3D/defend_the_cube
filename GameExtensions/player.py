@@ -9,7 +9,7 @@ from pygame.math import Vector2
 
 
 class Player(GameObject):
-    SPEED = 250
+    SPEED = 210
     RIGHT = "right"
     LEFT = "left"
     UP = "up"
