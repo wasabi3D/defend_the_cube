@@ -7,7 +7,7 @@ import pygame
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 
-from GameExtensions.resources import Tree
+from GameExtensions.resources import Tree, Rock
 
 
 class Terrain(GameObject):
@@ -67,6 +67,11 @@ class Terrain(GameObject):
         self.tree_lim = tree_lim
         self.tree_dens_lim = tree_dens_lim
 
+        self.rock_size_scale = 1000
+        self.rock_density_scale = 2000
+        self.rock_lim = 0.3
+        self.rock_dens_lim = 0.7
+
         d = os.getcwd() + r"\resources\test\grid"
         self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grass.png"),
                                             (block_pixel_size, block_pixel_size))
@@ -124,6 +129,7 @@ class Terrain(GameObject):
                                     self.terrain[y2][x2] = self.SAND
         # on en profite pour générer des arbres sur une liste différente au terrain (mais en s'y ajustant)
         tree_zones_noise = op.OpenSimplex(self.seed + 100)
+        rock_zones_noise = op.OpenSimplex(self.seed + 99)
         for y, line in enumerate(self.terrain):
             for x, el in enumerate(line):
                 # lissage des plages
@@ -149,6 +155,17 @@ class Terrain(GameObject):
                         tr = Tree(pygame.Vector2(x * self.block_px_size - x_half,
                                                                       y * self.block_px_size - y_half),
                                                        f"TREE {x} {y}")
+                        self.over_terrain[y][x] = tr
+                        sing.ROOT.add_collidable_object(tr)
+
+                    if rock_zones_noise.noise2(
+                            x * self.rock_size_scale, y * self.rock_size_scale
+                    ) > self.rock_lim and rock_zones_noise.noise2(
+                        x * self.rock_density_scale, y * self.rock_density_scale
+                    ) > self.rock_dens_lim and self.over_terrain[y][x] is None:
+                        tr = Rock(pygame.Vector2(x * self.block_px_size - x_half,
+                                                                      y * self.block_px_size - y_half),
+                                                       f"Rock {x} {y}")
                         self.over_terrain[y][x] = tr
                         sing.ROOT.add_collidable_object(tr)
 
