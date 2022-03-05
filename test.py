@@ -37,8 +37,8 @@ if __name__ == "__main__":
     root = GameRoot((550, 550), (30, 30, 30), "test game", os.path.dirname(os.path.realpath(__file__)),
                     Vector2(0, 0), 1000)
 
-    bs = 30
-    biomes = [load_img("resources/test/grid/dark_grass.png", (bs, bs)),
+    bs = 32
+    biomes = [load_img("resources/environment/terrain/light_grass_1.png", (bs, bs)),
               load_img("resources/test/grid/grass.png", (bs, bs))]
     ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
 

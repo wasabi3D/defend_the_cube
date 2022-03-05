@@ -84,10 +84,8 @@ class GameObject( Sprite):
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str, enabled=True,
                  parent=None, alpha=255):
         """
-
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
         :param rotation: La rotation en radian initiale de l'objet. La valeur par défaut est 0.
-        :param object_scale: L'échelle initiale de l'objet. La valeur par défaut est pygame.Vector2(1, 1).
         :param image: L'image de l'objet initiale.
         :param enabled: Si l'objet est active quand ce dernier est crée ou pas.
         :param name: Le nom de l'objet.
@@ -115,12 +113,8 @@ class GameObject( Sprite):
         :param screen: La fenêtre où on affiche l'objet.
         :return:
         """
-        if self.parent is None:
-            modified_pos = self.pos + tuple2Vec2(sing.ROOT.screen_dim) / 2 - sing.ROOT.camera_pos
-            screen.blit(self.alpha_converted(), self.image.get_rect(center=(modified_pos.x, modified_pos.y)))
-        else:
-            at = self.get_real_pos() + tuple2Vec2(sing.ROOT.screen_dim) / 2 - sing.ROOT.camera_pos
-            screen.blit(self.alpha_converted(), self.image.get_rect(center=(at.x, at.y)))
+        at = self.get_screen_pos()
+        screen.blit(self.alpha_converted(), self.image.get_rect(center=(at.x, at.y)))
         for child in self.children.values():
             child.blit(screen)
 
@@ -214,10 +208,14 @@ class GameObject( Sprite):
 
             vec = Vector2(rel_pos.x - par_pos.x, rel_pos.y - par_pos.y)
             vec.rotate_rad_ip(-prot)
-            print(par_pos + vec)
             return par_pos + vec
 
     def get_screen_pos(self) -> Vector2:
+        """
+        Renvoie la position qu'on voit sur l'écran. (0, 0) est le coin en haut à gauche de l'écran.
+
+        :return: La position.
+        """
         rp = self.get_real_pos()
         return rp + tuple2Vec2(sing.ROOT.screen_dim) / 2 - sing.ROOT.camera_pos
 

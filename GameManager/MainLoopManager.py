@@ -73,3 +73,6 @@ class GameRoot:
 
     def add_collidable_object(self, gameObject: util.GameObject):
         self.collidable_objects.append(gameObject)
+
+    def is_colliding(self, rect: pygame.Rect) -> int:
+        return rect.collidelist(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
