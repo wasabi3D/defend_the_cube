@@ -74,3 +74,18 @@ class TextLabel(BaseUIObject):
             self.antialias = antialias
         self.image = self.font.render(self.text, self.antialias, self.color)
         self.rect = self.image.get_rect(center=self.pos)
+
+
+class FPS_Label(TextLabel):
+    def __init__(self, pos: pygame.Vector2):
+        super().__init__(pos, 0, pygame.font.SysFont("Arial", 23, bold=True), "",
+                         (255, 50, 100), "fps_display")
+        self.tick_cnt = 0
+        self.sum = 0
+
+    def update(self) -> None:
+        self.tick_cnt += 1
+        self.sum += sing.ROOT.delta
+        if sing.ROOT.delta != 0 and self.tick_cnt % 60 == 0:
+            self.set_text(f"{int(1 / (self.sum / 60))} FPS")
+            self.sum = 0
