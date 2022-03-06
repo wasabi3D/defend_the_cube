@@ -67,7 +67,6 @@ class Player(GameObject):
                 obj = sing.ROOT.collidable_objects[hit]
                 if isinstance(obj, Resource):
                     obj.mine()
-                    sing.ROOT.game_objects["HPBar"].prop -= 0.05
 
         super().update()
 

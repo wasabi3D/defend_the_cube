@@ -9,3 +9,11 @@ SW: Final = "sw"
 W: Final = "w"
 NW: Final = "nw"
 CENTER: Final = "center"
+
+
+INV_IMG_SIZE: Final = (456, 348)
+INV_GRID_OFFSET_PROP_TO_W: Final = 1, 36
+INV_CELL_SIZE_PROP_TO_W: Final = 1, 8, 0
+INV_CELL_OFFSET_TO_W: Final = 1, 144, 0
+
+
