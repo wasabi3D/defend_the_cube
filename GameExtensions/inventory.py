@@ -53,9 +53,17 @@ class Inventory(GameObject):
 
         self.open_inv_key = open_inv_key
 
-    def add_obj(self, place: tuple[int, int], name: str, img: pygame.Surface) -> bool:
+    def add_obj_at_pos(self, place: tuple[int, int], name: str, img: pygame.Surface) -> bool:
         if self.objects[place[1]][place[0]] == self.empty_cell:
             self.objects[place[1]][place[0]] = InventoryObject(name, pygame.transform.scale(img, self.inv_img_size))
+
+    def add_obj(self, name: str, img: pygame.Surface) -> bool:
+        for y, line in enumerate(self.objects):
+            for x, el in enumerate(line):
+                if el == self.empty_cell:
+                    self.objects[y][x] = InventoryObject(name, pygame.transform.scale(img, self.inv_img_size))
+                    return True
+        return False
 
     def move_obj(self, place1: tuple[int, int], place2: tuple[int, int], swap: bool = True) -> None:
         if swap:

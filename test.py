@@ -51,8 +51,7 @@ if __name__ == "__main__":
     root.add_gameObject(RenderOverTerrain())
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     inventory = inv.Inventory((8, 6), Vector2(40, 40), load_img("resources/UI/inventory.png"), "inventory")
-    obj = inv.InventoryObject("sand", load_img("resources/test/grid/grid_one.png"))
-    inventory.add_obj((1, 1), "sand", load_img("resources/test/grid/grid_one.png"))
+    inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
     root.add_gameObject(inventory)
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
