@@ -1,7 +1,8 @@
 from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
-from GameExtensions.UI import FPS_Label
+from GameExtensions.UI import FPS_Label, HPBar
+from GameExtensions.locals import *
 import GameManager.singleton as sing
 import pygame
 from pygame.math import Vector2
@@ -49,6 +50,8 @@ if __name__ == "__main__":
     root.add_collidable_object(root.game_objects["yay"])
     root.add_gameObject(RenderOverTerrain())
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
+    root.add_gameObject(HPBar(Vector2(0, -20), S))
+
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
     #                               "hello world", (200, 200, 200), "test_label", anchor=CENTER))

@@ -1,6 +1,7 @@
 from GameManager.util import GameObject
 from GameExtensions.locals import N, NE, NW, S, SE, SW, E, W, CENTER
 import GameManager.singleton as sing
+from GameManager.resources import load_img
 from pygame.math import Vector2
 import pygame
 import typing
@@ -89,3 +90,30 @@ class FPS_Label(TextLabel):
         if sing.ROOT.delta != 0 and self.tick_cnt % 60 == 0:
             self.set_text(f"{int(1 / (self.sum / 60))} FPS")
             self.sum = 0
+
+
+class HPBar(BaseUIObject):
+    SIZE = (480, 48)
+
+    class RedFill(BaseUIObject):
+        def __init__(self, prop: float):
+            super().__init__(Vector2(0, 0), 0, load_img("resources/UI/hp_bar_fill.png", HPBar.SIZE), "red",
+                             anchor=CENTER)
+            self.prop = prop
+
+        def blit(self, screen: pygame.Surface) -> None:
+            rect = self.image.get_rect(center=self.get_real_pos())
+            rect.update(rect.left, rect.top, rect.width * self.prop, rect.height)
+            screen.blit(self.image, rect.topleft, (0, 0, rect.width, rect.height))
+
+    def __init__(self, pos: Vector2, anchor: str, proportion=1):
+        super().__init__(pos, 0, load_img("resources/UI/hp_bar_frame.png", HPBar.SIZE), "HPBar", anchor=anchor)
+
+        self.prop = proportion
+        self.children.add_gameobject(HPBar.RedFill(self.prop))
+
+    def blit(self, screen: pygame.Surface) -> None:
+        self.children["red"].prop = self.prop
+        super().blit(screen)
+
+
