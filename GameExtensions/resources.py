@@ -6,13 +6,15 @@ from pygame.math import Vector2
 import pygame
 from random import randint, choice
 from random import random
+from abc import ABCMeta, abstractmethod
 
 
-class Resource:
+class Resource(metaclass=ABCMeta):
     """
     Classe qui représente tous les ressources dont on peut les miner.
     """
 
+    @abstractmethod
     def mine(self):
         """
         Fonction qui doit être appellée quand un joueur mine un objet ressource.

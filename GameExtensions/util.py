@@ -1,6 +1,8 @@
+import typing
 from typing import Union
 import math
 import pygame
+from GameManager.resources import load_img
 
 
 class ShakeGenerator:
@@ -77,3 +79,46 @@ class ShakeGenerator:
                                   self.cur_y_int * self.f(self.time * self.y_cycle + self.y_offset))
         else:
             return pygame.Vector2(0, 0)
+
+
+class Animation:
+    def __init__(self, frames: list[pygame.Surface], frame_interval: float):
+        self.frames = frames
+        self.interval = frame_interval
+
+
+class Animator:
+    def __init__(self):
+        self.animations: dict[str, Animation] = {}
+        self.current: typing.Optional[str] = None
+        self.cur_frame = 0
+        self.timer = 0
+
+    def register_anim(self, name: str, anim: Animation) -> None:
+        self.animations.setdefault(name, anim)
+
+    def start_anim(self, name: str):
+        self.current = name
+        self.cur_frame = 0
+        self.timer = 0
+
+    def update(self, delta: float):
+        if self.current is None:
+            return
+        self.timer += delta
+        if self.animations[self.current].interval <= self.timer:
+            self.cur_frame += 1
+            self.cur_frame %= len(self.animations[self.current].frames)
+            self.timer = 0
+
+    def get_cur_frame(self) -> pygame.Surface:
+        return self.animations[self.current].frames[self.cur_frame]
+
+    @staticmethod
+    def load_frames_by_pattern(base_file_name: str, suffix: str, start_i: int, end_i: int, conv=lambda s: s,
+                               override_size: typing.Optional[tuple[int, int]] = None):
+        lst = []
+        for i in range(start_i, end_i + 1):
+            lst.append(conv(load_img(f"{base_file_name}{i}{suffix}", override_size)))
+        return lst
+

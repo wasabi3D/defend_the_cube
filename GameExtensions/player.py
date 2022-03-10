@@ -1,6 +1,7 @@
 from GameManager.util import GameObject
 from GameManager.resources import load_img
 from GameExtensions.resources import Resource
+from GameExtensions.util import Animation, Animator
 from GameManager.locals import MOUSE_LEFT
 import pygame
 from pygame.locals import *
@@ -14,36 +15,66 @@ class Player(GameObject):
     LEFT = "left"
     UP = "up"
     DOWN = "down"
+    SPRITE_SIZE = (40, 40)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
-        self.original = load_img("resources/player/tmp_player.png", (40, 40))
-        super().__init__(pos, rotation, self.original.copy(), name)
+        super().__init__(pos, rotation, pygame.Surface(Player.SPRITE_SIZE), name)
         self.right_oriented = True
         self.punch_hitbox = pygame.Surface((15, 15))
         self.facing = Player.RIGHT
+        self.idle = True
+        self.animator = Animator()
+        right_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
+                                                               1, 4, override_size=Player.SPRITE_SIZE), 0.3)
+        left_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
+                                                              1, 4,
+                                                              conv=lambda s: pygame.transform.flip(s, True, False),
+                                                              override_size=Player.SPRITE_SIZE), 0.3)
+        running_right = Animation([load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE)], 0.3)
+        running_left = Animation(
+            [pygame.transform.flip(load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE), True, False)], 0.3)
+
+        self.animator.register_anim("right_idle", right_idle)
+        self.animator.register_anim("left_idle", left_idle)
+        self.animator.register_anim("running_right", running_right)
+        self.animator.register_anim("running_left", running_left)
+        self.animator.start_anim("right_idle")
 
     def update(self) -> None:
+        self.animator.update(sing.ROOT.delta)
+
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0
+        prev_idle = self.idle
+        self.idle = True
         if pressed[K_UP]:
+            self.idle = False
             dy += -1
             self.facing = Player.UP
         if pressed[K_DOWN]:
+            self.idle = False
             dy += 1
             self.facing = Player.DOWN
         if pressed[K_RIGHT]:
-            if not self.right_oriented:
-                self.image = self.original.copy()
+            self.idle = False
+            if not self.right_oriented or not prev_idle:
+                self.animator.start_anim("running_right")
             self.right_oriented = True
             dx += 1
             self.facing = Player.RIGHT
         if pressed[K_LEFT]:
-            if self.right_oriented:
-                self.image = pygame.transform.flip(self.original.copy(), True, False)
+            self.idle = False
+            if self.right_oriented or not prev_idle:
+                self.animator.start_anim("running_left")
             self.right_oriented = False
             dx += -1
             self.facing = Player.LEFT
+
+        if not prev_idle and self.idle:
+            self.animator.start_anim("right_idle" if self.right_oriented else "left_idle")
+
+        self.image = self.animator.get_cur_frame()
 
         # Check for collisions  https://youtu.be/m7GnJo_oZUU
         rp = self.get_real_pos()
