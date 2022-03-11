@@ -19,12 +19,6 @@ class InventoryObject:
         return self.name
 
 
-# classe pour les objets utilisables (affiché même quand l'invemtaire est fermé)
-class Hotbar:
-    def __init__(self, img):
-        pass
-
-
 # classe s'occupant de l'organiastion de l'inventaire
 class Inventory(GameObject):
     is_pressed = {"bool": False, "inv_place": (0, 0)}
@@ -35,9 +29,11 @@ class Inventory(GameObject):
                  grid_size: tuple[int, int],
                  pos: pygame.Vector2,
                  image: pygame.Surface,
+                 hot_bar_img: pygame.Surface,
                  name: str,
                  open_inv_key: int = pygame.K_e):
         self.size = loc.INV_IMG_SIZE
+        self.h_size = loc.HOTBAR_IMG_SIZE
         super().__init__(pos, 0, pygame.transform.scale(image, self.size).convert_alpha(), name)
         self.pos = pos
         self.cell_offset = tuple([
@@ -54,12 +50,13 @@ class Inventory(GameObject):
                                   for _ in range(2)])
         self.total_offset = (self.side_offset[0] + pos.x,
                              self.side_offset[1] + pos.y)
-        self.grid_size = grid_size
+        self.grid_size = grid_size[0], grid_size[1]
         self.inv_img_size = (self.cell_size[0] - 2 * self.cell_offset[0] + 1,
                              self.cell_size[0] - 2 * self.cell_offset[0] + 1)
 
         self.empty_cell = InventoryObject("empty", pygame.Surface((0, 0)))
         self.objects = [[self.empty_cell for _ in range(grid_size[0])] for _ in range(grid_size[1])]
+        self.hotbar = [self.empty_cell for _ in range(grid_size[0])]
 
         self.open_inv_key = open_inv_key
 
@@ -70,9 +67,17 @@ class Inventory(GameObject):
         :param img: image de l'objet
         :return: si la place était occupée ou non (dans quel cas il ne serait pas ajouté)
         """
-        if self.objects[place[1]][place[0]] == self.empty_cell:
-            self.objects[place[1]][place[0]] = InventoryObject(name, pygame.transform.scale(img, self.inv_img_size))
-            return True
+        if place[0] < self.grid_size[0]:
+            if self.objects[place[1]][place[0]] == self.empty_cell:
+                self.objects[place[1]][place[0]] = InventoryObject(
+                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha()
+                )
+                return True
+        elif place[0] == self.grid_size[0]:
+            if self.hotbar[place[0]] == self.empty_cell:
+                self.hotbar[place[0]] = InventoryObject(
+                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha()
+                )
         else: return False
 
     def add_obj(self, name: str, img: pygame.Surface) -> bool:
@@ -81,6 +86,9 @@ class Inventory(GameObject):
         :param img: image de l'objet
         :return: si il a trouvé une place
         """
+        for i, el in enumerate(self.hotbar):
+            if el == self.empty_cell:
+                self.hotbar[i] = InventoryObject(name, pygame.transform.scale(img, self.inv_img_size).convert_alpha())
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
                 if el == self.empty_cell:

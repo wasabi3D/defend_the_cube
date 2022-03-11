@@ -6,6 +6,7 @@ import GameExtensions.inventory as inv
 from GameExtensions.locals import *
 import GameManager.singleton as sing
 import pygame
+import random
 from pygame.math import Vector2
 from pygame.locals import *
 from GameExtensions.generate_terrain import Terrain
@@ -53,8 +54,15 @@ if __name__ == "__main__":
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     root.add_gameObject(HPBar(Vector2(0, -20), S))
 
-    inventory = inv.Inventory((8, 6), Vector2(40, 40), load_img("resources/UI/inventory.png"), "inventory")
-    inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
+    inventory = inv.Inventory(
+        (8, 6), Vector2(40, 40),
+        load_img("resources/UI/inventory.png"), load_img("resources/UI/inventory.png"),
+        "inventory"
+    )
+    for _ in range(8 * 6):
+        inventory.add_obj(
+            "sand", load_img(f"resources/test/grid/grid_{random.choice(['one', 'two', 'three', 'four'])}.png")
+        )
     root.add_gameObject(inventory)
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
