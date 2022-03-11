@@ -62,6 +62,7 @@ if __name__ == "__main__":
         "inventory"
     )
     inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
+    inventory.add_obj("frog", load_img("resources/test/frog.png"))
     inventory.add_obj_ins(Apple())
     root.add_gameObject(inventory)
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
