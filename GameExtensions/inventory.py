@@ -37,18 +37,25 @@ class Inventory(GameObject):
                  open_inv_key: int = pygame.K_e):
         self.size = loc.INV_IMG_SIZE
         self.h_size = loc.HOTBAR_IMG_SIZE
+        self.hotbar_img = pygame.transform.scale(hot_bar_img, self.h_size).convert_alpha()
         super().__init__(pos, 0, pygame.transform.scale(image, self.size).convert_alpha(), name)
+
         self.pos = pos
+        self.hotbar_pos = pos + pygame.Vector2(abs(self.h_size[0] - self.size[0]) / 2 + loc.HOTBAR_POS_OFFSET[0],
+                                               loc.HOTBAR_POS_OFFSET[1])
+
         self.cell_offset = tuple([
             self.size[0] * loc.INV_CELL_OFFSET_TO_W[0] / loc.INV_CELL_OFFSET_TO_W[1]
             + loc.INV_CELL_OFFSET_TO_W[2]
             for _ in range(2)
         ])
+
         self.cell_size = tuple([
             self.size[0] * loc.INV_CELL_SIZE_PROP_TO_W[0] / loc.INV_CELL_SIZE_PROP_TO_W[1] - self.cell_offset[0]
             + loc.INV_CELL_SIZE_PROP_TO_W[2]
             for _ in range(2)
         ])
+
         self.side_offset = tuple([self.size[0] * loc.INV_GRID_OFFSET_PROP_TO_W[0] / loc.INV_GRID_OFFSET_PROP_TO_W[1]
                                   for _ in range(2)])
         self.total_offset = (self.side_offset[0] + pos.x,
@@ -102,6 +109,7 @@ class Inventory(GameObject):
         for i, el in enumerate(self.hotbar):
             if el == self.empty_cell:
                 self.hotbar[i] = item
+                return True
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
                 if el == self.empty_cell:
@@ -115,14 +123,26 @@ class Inventory(GameObject):
         :param place2: position (x, y) de la place que l'objet veut occuper
         :param swap: si un objet occupe déjà la place les échanger ou ne pas le faire
         """
-        if swap:
-            (self.objects[place1[1]][place1[0]],
-             self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
-                                                    self.objects[place1[1]][place1[0]])
-        elif self.objects[place2[1]][place2[0]] == self.empty_cell:
-            (self.objects[place1[1]][place1[0]],
-             self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
-                                                    self.objects[place1[1]][place1[0]])
+        if swap or (self.objects[place2[1]][place2[0]] == self.empty_cell if place2[1] < self.grid_size[1] else
+                    self.hotbar[place2[0]] == self.empty_cell):
+            if place1[1] < self.grid_size[1]:
+                if place2[1] < self.grid_size[1]:
+                    (self.objects[place1[1]][place1[0]],
+                     self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
+                                                            self.objects[place1[1]][place1[0]])
+                else:
+                    (self.objects[place1[1]][place1[0]],
+                     self.hotbar[place2[0]]) = (self.hotbar[place2[0]],
+                                                self.objects[place1[1]][place1[0]])
+            else:
+                if place2[1] < self.grid_size[1]:
+                    (self.hotbar[place1[0]],
+                     self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
+                                                            self.hotbar[place1[0]])
+                else:
+                    (self.hotbar[place1[0]],
+                     self.hotbar[place2[0]]) = (self.hotbar[place2[0]],
+                                                self.hotbar[place1[0]])
 
     def get_obj(self, pos: tuple[int, int]) -> typing.Union[InventoryObject, None]:
         """ Nous donne l'objet présent dans la place donnée
@@ -134,6 +154,11 @@ class Inventory(GameObject):
                 return
             else:
                 return self.objects[pos[1]][pos[0]]
+        elif 0 <= pos[0] < self.grid_size[0] and pos[1] == self.grid_size[1]:
+            if self.hotbar[pos[0]] == self.empty_cell:
+                return
+            else:
+                return self.hotbar[pos[0]]
         else:
             raise IndexError("The position was out of the inventory capacity")
 
@@ -158,12 +183,20 @@ class Inventory(GameObject):
 
                 # on convertis les coordonnées de la souris en coordonnées de l'inventaire
                 get_grid_mouse_co = mouse_pos - self.side_offset - self.pos
-                grid_cell = int(get_grid_mouse_co.x // self.cell_size[0]), int(get_grid_mouse_co.y // self.cell_size[1])
+                get_hotbar_mouse_co = get_grid_mouse_co - loc.HOTBAR_POS_OFFSET
+                grid_cell = (int(get_grid_mouse_co.x // self.cell_size[0]),
+                             int(get_grid_mouse_co.y // self.cell_size[1]))
+                hotbar_cell = (int(get_hotbar_mouse_co.x // self.cell_size[0]),
+                               int(get_hotbar_mouse_co.y // self.cell_size[1]))
 
                 # au final on ne vérifie plus que si les coordonnées de reçues font partie de l'inventaire
                 if 0 <= grid_cell[0] < self.grid_size[0] and 0 <= grid_cell[1] < self.grid_size[1]:
                     if self.get_obj(grid_cell) is not None:
                         self.is_pressed["inv_place"] = grid_cell
+                        self.is_pressed["bool"] = True
+                elif 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
+                    if self.get_obj((hotbar_cell[0], self.grid_size[1])) is not None:
+                        self.is_pressed["inv_place"] = hotbar_cell[0], self.grid_size[1]
                         self.is_pressed["bool"] = True
 
             # si on arrète d'appuyer sur le click gauche (et qu'on avait un objet)
@@ -171,10 +204,18 @@ class Inventory(GameObject):
             elif not mouse_but[0] and self.is_pressed["bool"]:
                 mouse_pos = pygame.Vector2(pygame.mouse.get_pos())
                 get_grid_mouse_co = mouse_pos - self.side_offset - self.pos
-                grid_cell = int(get_grid_mouse_co.x // self.cell_size[0]), int(get_grid_mouse_co.y // self.cell_size[1])
+                get_hotbar_mouse_co = get_grid_mouse_co - loc.HOTBAR_POS_OFFSET
+                grid_cell = (int(get_grid_mouse_co.x // self.cell_size[0]),
+                             int(get_grid_mouse_co.y // self.cell_size[1]))
+                hotbar_cell = (int(get_hotbar_mouse_co.x // self.cell_size[0]),
+                               int(get_hotbar_mouse_co.y // self.cell_size[1]))
+
                 if 0 <= grid_cell[0] < self.grid_size[0] and 0 <= grid_cell[1] < self.grid_size[1]:
                     self.is_pressed["bool"] = False
                     self.move_obj(self.is_pressed["inv_place"], grid_cell)
+                elif 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
+                    self.is_pressed["bool"] = False
+                    self.move_obj(self.is_pressed["inv_place"], (hotbar_cell[0], self.grid_size[1]))
 
     def blit_cell(self, screen: pygame.Surface, pos: tuple[int, int], el: InventoryObject) -> None:
         """ Faire afficher un objet à se place dans la grille
@@ -183,17 +224,33 @@ class Inventory(GameObject):
         :param el: l'element qu'on veut faire apparaitre
         """
         x, y = pos
-        screen.blit(
-            el.get_img(),
-            el.get_img().get_rect(topleft=(
-                x * self.cell_size[0] + self.total_offset[0] + self.cell_offset[0],
-                y * self.cell_size[1] + self.total_offset[1] + self.cell_offset[1]))
-        )
+        if y != self.grid_size[1]:
+            screen.blit(
+                el.get_img(),
+                el.get_img().get_rect(topleft=(
+                    x * self.cell_size[0] + self.total_offset[0] + self.cell_offset[0],
+                    y * self.cell_size[1] + self.total_offset[1] + self.cell_offset[1]))
+            )
+        else:
+            screen.blit(
+                el.get_img(),
+                el.get_img().get_rect(topleft=(
+                    x * self.cell_size[0] + self.total_offset[0] +
+                    self.cell_offset[0] + loc.HOTBAR_CELL_IMPERFECTION[0] + loc.HOTBAR_POS_OFFSET[0],
+                    loc.HOTBAR_POS_OFFSET[1] + self.cell_size[0] + loc.HOTBAR_CELL_IMPERFECTION[1]
+                ))
+            )
 
     def blit(self, screen: pygame.Surface) -> None:
         """ affiche l'onventaire
         :param screen: fenêtre du jeu
         """
+        screen.blit(self.hotbar_img, self.hotbar_img.get_rect(topleft=self.hotbar_pos))
+        for i, el in enumerate(self.hotbar):
+            if el != self.empty_cell and not (self.is_pressed["inv_place"] == (i, self.grid_size[1])
+                                              and self.is_pressed["bool"]):
+                self.blit_cell(screen, (i, self.grid_size[1]), el)
+
         if self.is_shown:
             screen.blit(self.image, self.image.get_rect(topleft=self.pos))
             for y, line in enumerate(self.objects):
@@ -204,5 +261,5 @@ class Inventory(GameObject):
                             self.blit_cell(screen, (x, y), el)
             # on affiche l'objet déplacé ici pour qu'il se retrouve devant
             if self.is_pressed["bool"]:
-                el = self.objects[self.is_pressed["inv_place"][1]][self.is_pressed["inv_place"][0]]
+                el = self.get_obj(self.is_pressed["inv_place"])
                 screen.blit(el.get_img(), el.get_img().get_rect(center=pygame.mouse.get_pos()))
