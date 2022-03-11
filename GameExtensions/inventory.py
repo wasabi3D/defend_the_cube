@@ -18,6 +18,9 @@ class InventoryObject:
     def get_name(self):
         return self.name
 
+    def on_use(self):
+        pass
+
 
 # classe pour les objets utilisables (affiché même quand l'invemtaire est fermé)
 class Hotbar:
@@ -73,7 +76,8 @@ class Inventory(GameObject):
         if self.objects[place[1]][place[0]] == self.empty_cell:
             self.objects[place[1]][place[0]] = InventoryObject(name, pygame.transform.scale(img, self.inv_img_size))
             return True
-        else: return False
+        else:
+            return False
 
     def add_obj(self, name: str, img: pygame.Surface) -> bool:
         """ Rajoute un objet dans la première place disponoible
@@ -81,11 +85,20 @@ class Inventory(GameObject):
         :param img: image de l'objet
         :return: si il a trouvé une place
         """
+        return self.add_obj_ins(InventoryObject(name, pygame.transform.scale(img, self.inv_img_size).convert_alpha()))
+
+    def add_obj_ins(self, item: InventoryObject):
+        """ Rajoute un objet dans la première place disponoible
+        :param item: instance d'un objet
+        :return: si il a trouvé une place
+        """
+        if not isinstance(item, InventoryObject):
+            raise TypeError("Not an instance of inventory object.")
+
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
                 if el == self.empty_cell:
-                    self.objects[y][x] = InventoryObject(name,
-                                                         pygame.transform.scale(img, self.inv_img_size).convert_alpha())
+                    self.objects[y][x] = item
                     return True
         return False
 
@@ -110,8 +123,10 @@ class Inventory(GameObject):
         :return: l'objet présent à pos
         """
         if 0 <= pos[0] < self.objects[0].__len__() and 0 <= pos[1] < self.objects.__len__():
-            if self.objects[pos[1]][pos[0]] == self.empty_cell: return
-            else: return self.objects[pos[1]][pos[0]]
+            if self.objects[pos[1]][pos[0]] == self.empty_cell:
+                return
+            else:
+                return self.objects[pos[1]][pos[0]]
         else:
             raise IndexError("The position was out of the inventory capacity")
 

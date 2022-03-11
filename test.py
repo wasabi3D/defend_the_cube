@@ -2,6 +2,7 @@ from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
 from GameExtensions.UI import FPS_Label, HPBar
+from GameExtensions.items import Apple
 import GameExtensions.inventory as inv
 from GameExtensions.locals import *
 import GameManager.singleton as sing
@@ -55,6 +56,7 @@ if __name__ == "__main__":
 
     inventory = inv.Inventory((8, 6), Vector2(40, 40), load_img("resources/UI/inventory.png"), "inventory")
     inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
+    inventory.add_obj_ins(Apple())
     root.add_gameObject(inventory)
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
