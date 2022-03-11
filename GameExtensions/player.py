@@ -15,7 +15,7 @@ class Player(GameObject):
     LEFT = "left"
     UP = "up"
     DOWN = "down"
-    SPRITE_SIZE = (40, 40)
+    SPRITE_SIZE = (32, 32)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         super().__init__(pos, rotation, pygame.Surface(Player.SPRITE_SIZE), name)

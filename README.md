@@ -1,5 +1,12 @@
 # NSI_projet2
 
+## ===Requirements===
+<ul>
+<li>Python >=3.9 </li>
+<li>Pygame (>=2.1.2)</li>
+<li>Opensimplex (>=0.4.2)</li>
+</ul>
+
 ## Ideas
 
 #### Important concepts
