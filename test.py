@@ -55,7 +55,11 @@ if __name__ == "__main__":
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     root.add_gameObject(HPBar(Vector2(0, -20), S))
 
-    inventory = inv.Inventory((8, 6), Vector2(40, 40), load_img("resources/UI/inventory.png"), "inventory")
+    inventory = inv.Inventory(
+        (8, 6), Vector2(40, 40),
+        load_img("resources/UI/inventory.png"), load_img("resources/UI/hotbar.png"),
+        "inventory"
+    )
     inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
     inventory.add_obj_ins(Apple())
     root.add_gameObject(inventory)

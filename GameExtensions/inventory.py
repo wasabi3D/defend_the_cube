@@ -101,7 +101,7 @@ class Inventory(GameObject):
 
         for i, el in enumerate(self.hotbar):
             if el == self.empty_cell:
-                self.hotbar[i] = InventoryObject(name, pygame.transform.scale(img, self.inv_img_size).convert_alpha())
+                self.hotbar[i] = item
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
                 if el == self.empty_cell:
