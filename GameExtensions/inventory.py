@@ -27,12 +27,14 @@ class Inventory(GameObject):
     is_pressed = {"bool": False, "inv_place": (0, 0)}
     is_shown = False
     was_open_inv_pressed = False
+    selected = 0
 
     def __init__(self,
                  grid_size: tuple[int, int],
                  pos: pygame.Vector2,
                  image: pygame.Surface,
                  hot_bar_img: pygame.Surface,
+                 selected_img: pygame.Surface,
                  name: str,
                  open_inv_key: int = pygame.K_e):
         self.size = loc.INV_IMG_SIZE
@@ -55,6 +57,12 @@ class Inventory(GameObject):
             + loc.INV_CELL_SIZE_PROP_TO_W[2]
             for _ in range(2)
         ])
+
+        self.selected_img = InventoryObject("selected", pygame.transform.scale(
+            selected_img, (self.cell_size[0] +
+                           2 * self.cell_offset[0],
+                           self.cell_size[1] +
+                           2 * self.cell_offset[1])).convert_alpha())
 
         self.side_offset = tuple([self.size[0] * loc.INV_GRID_OFFSET_PROP_TO_W[0] / loc.INV_GRID_OFFSET_PROP_TO_W[1]
                                   for _ in range(2)])
@@ -106,6 +114,7 @@ class Inventory(GameObject):
         if not isinstance(item, InventoryObject):
             raise TypeError("Not an instance of inventory object.")
 
+        # on remarquera que l'ordre de recherche est hotbar (gauhe-droite) puis inventaire (gauche-droite puis haut-bas)
         for i, el in enumerate(self.hotbar):
             if el == self.empty_cell:
                 self.hotbar[i] = item
@@ -123,6 +132,7 @@ class Inventory(GameObject):
         :param place2: position (x, y) de la place que l'objet veut occuper
         :param swap: si un objet occupe déjà la place les échanger ou ne pas le faire
         """
+        # si il y a autant de conditions c'est parce qu'il y a toutes les combinations hotbar - inventaire
         if swap or (self.objects[place2[1]][place2[0]] == self.empty_cell if place2[1] < self.grid_size[1] else
                     self.hotbar[place2[0]] == self.empty_cell):
             if place1[1] < self.grid_size[1]:
@@ -167,7 +177,7 @@ class Inventory(GameObject):
 
         # Détéction de si on appuie sur le click gauche
         pressed_keys = pygame.key.get_pressed()
-        mouse_but = pygame.mouse.get_pressed()
+        mouse_but = pygame.mouse.get_pressed(5)
         if not self.was_open_inv_pressed and pressed_keys[self.open_inv_key]:
             self.is_shown = not self.is_shown
             self.was_open_inv_pressed = True
@@ -217,6 +227,24 @@ class Inventory(GameObject):
                     self.is_pressed["bool"] = False
                     self.move_obj(self.is_pressed["inv_place"], (hotbar_cell[0], self.grid_size[1]))
 
+        if not self.is_shown:
+            # for event in pygame.event.get():
+            #     if event.type == pygame.MOUSEBUTTONDOWN:
+            #         if event.button == 4:
+            #             self.selected = self.selected + 1 if self.selected + 1 < self.grid_size[0] else 0
+            #         if event.button == 5:
+            #             self.selected = self.selected - 1 if self.selected - 1 >= 0 else self.grid_size[0] - 1
+            if mouse_but[0] and not self.is_pressed["bool"]:
+                mouse_pos = pygame.Vector2(*pygame.mouse.get_pos())
+
+                # on convertis les coordonnées de la souris en coordonnées de l'inventaire
+                get_hotbar_mouse_co = mouse_pos - self.side_offset - self.pos - loc.HOTBAR_POS_OFFSET
+                hotbar_cell = (int(get_hotbar_mouse_co.x // self.cell_size[0]),
+                               int(get_hotbar_mouse_co.y // self.cell_size[1]))
+
+                if 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
+                    self.selected = hotbar_cell[0]
+
     def blit_cell(self, screen: pygame.Surface, pos: tuple[int, int], el: InventoryObject) -> None:
         """ Faire afficher un objet à se place dans la grille
         :param screen: fenêtre du jeu
@@ -224,6 +252,8 @@ class Inventory(GameObject):
         :param el: l'element qu'on veut faire apparaitre
         """
         x, y = pos
+
+        # si la cellule est dans l'inventaire
         if y != self.grid_size[1]:
             screen.blit(
                 el.get_img(),
@@ -231,6 +261,8 @@ class Inventory(GameObject):
                     x * self.cell_size[0] + self.total_offset[0] + self.cell_offset[0],
                     y * self.cell_size[1] + self.total_offset[1] + self.cell_offset[1]))
             )
+
+        # si la cellule est dans la hotbar
         else:
             screen.blit(
                 el.get_img(),
@@ -242,10 +274,18 @@ class Inventory(GameObject):
             )
 
     def blit(self, screen: pygame.Surface) -> None:
-        """ affiche l'onventaire
+        """ affiche l'inventaire
         :param screen: fenêtre du jeu
         """
+
+        # Affichage de la hotbar
         screen.blit(self.hotbar_img, self.hotbar_img.get_rect(topleft=self.hotbar_pos))
+        screen.blit(self.selected_img.get_img(),
+                    self.selected_img.get_img().get_rect(topleft=(
+                        self.selected * self.cell_size[0] + self.total_offset[0]
+                        + loc.HOTBAR_CELL_IMPERFECTION[0] + loc.HOTBAR_POS_OFFSET[0] - self.cell_offset[0],
+                        loc.HOTBAR_POS_OFFSET[1] + self.cell_size[1] - 2 * self.cell_offset[1] + 0.3
+                    )))
         for i, el in enumerate(self.hotbar):
             if el != self.empty_cell and not (self.is_pressed["inv_place"] == (i, self.grid_size[1])
                                               and self.is_pressed["bool"]):

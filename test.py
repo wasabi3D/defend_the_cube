@@ -57,7 +57,8 @@ if __name__ == "__main__":
 
     inventory = inv.Inventory(
         (8, 6), Vector2(40, 40),
-        load_img("resources/UI/inventory.png"), load_img("resources/UI/hotbar.png"),
+        load_img("resources/UI/inventory.png"),
+        load_img("resources/UI/hotbar.png"), load_img("resources/UI/selected_item.png"),
         "inventory"
     )
     inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
