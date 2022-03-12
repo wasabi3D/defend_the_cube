@@ -52,7 +52,7 @@ class BaseUIObject(GameObject):
 
     def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
         pos = self.get_real_pos()
-        screen.blit(self.alpha_converted(), self.image.get_rect(center=(pos.x, pos.y)))
+        screen.blit(self.alpha_converted() if apply_alpha else self.image, self.image.get_rect(center=(pos.x, pos.y)))
         for child in self.children.values():
             child.blit(screen, apply_alpha)
 

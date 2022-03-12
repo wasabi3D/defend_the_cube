@@ -116,4 +116,3 @@ class Player(GameObject):
     def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
         screen.blit(self.image, self.image.get_rect(center=tuple2Vec2(sing.ROOT.screen_dim) / 2))
         super().blit_children(screen, apply_alpha)
-        
