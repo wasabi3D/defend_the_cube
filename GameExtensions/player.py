@@ -16,7 +16,7 @@ class Player(GameObject):
     LEFT = "left"
     UP = "up"
     DOWN = "down"
-    SPRITE_SIZE = (32, 32)
+    SPRITE_SIZE = (48, 48)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         super().__init__(pos, rotation, pygame.Surface(Player.SPRITE_SIZE), name)
@@ -35,11 +35,15 @@ class Player(GameObject):
         running_left = Animation(
             [pygame.transform.flip(load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE), True, False)], 0.3)
 
+        front_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/front/", ".png",
+                                                               1, 6, override_size=Player.SPRITE_SIZE), 0.4)
+
         self.animator.register_anim("right_idle", right_idle)
         self.animator.register_anim("left_idle", left_idle)
         self.animator.register_anim("running_right", running_right)
         self.animator.register_anim("running_left", running_left)
-        self.animator.start_anim("right_idle")
+        self.animator.register_anim("front_idle", front_idle)
+        self.animator.start_anim("front_idle")
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
