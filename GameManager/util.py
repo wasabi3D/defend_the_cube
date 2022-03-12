@@ -15,6 +15,7 @@ class SurfaceModifier:
     def __init__(self, r, g, b, a):
         """
         Plus les valeurs de r, g, b sont faibles, plus le sprite est sombre.
+
         :param r: L'intensité de rouge
         :param g: L'intensité de vert
         :param b: L'intensité de bleu
@@ -29,6 +30,7 @@ class SurfaceModifier:
     def to_tuple(self) -> tuple[int, int, int, int]:
         """
         Transforme les attributs en forme de tuple.
+
         :return: (r, g, b, a)
         """
         self.correction()
@@ -37,6 +39,7 @@ class SurfaceModifier:
     def set_rgb(self, value: int) -> None:
         """
         Fonction qui permet de mettre à jour les valeurs de r, g et b.
+
         :param value: La valeur que l'utilisateur souhaite mettre.
         """
         self.r = self.g = self.b = value
@@ -44,6 +47,7 @@ class SurfaceModifier:
     def add_rgb(self, value: Union[int, float]) -> None:
         """
         Fonction qui permet de ajouter une certaine valeur aux attributs r, g et b.
+
         :param value: La valeur que l'utilisateur souhaite ajouter.
         """
         self.r += value
@@ -53,6 +57,7 @@ class SurfaceModifier:
     def set_alpha(self, value: int) -> None:
         """
         Fonction qui permet de mettre à jour l'alpha.
+
         :param value: La valeur que l'utilisateur souhaite mettre.
         """
         self.a = value
@@ -60,6 +65,7 @@ class SurfaceModifier:
     def add_alpha(self, value: Union[int, float]) -> None:
         """
         Fonction qui permet de ajouter une certaine valeur à l'alpha.
+
         :param value: La valeur que l'utilisateur souhaite ajouter.
         """
         self.a += value
@@ -107,16 +113,27 @@ class GameObject( Sprite):
 
         self.rotate(rotation, False)
 
-    def blit(self, screen: pygame.Surface) -> None:
+    def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
         """
         Affiche l'objet sur la fenêtre.
+
         :param screen: La fenêtre où on affiche l'objet.
-        :return:
+        :param apply_alpha: Si on comine l'image avec self.surf_mult(=transparence) ou pas
         """
         at = self.get_screen_pos()
-        screen.blit(self.alpha_converted(), self.image.get_rect(center=(at.x, at.y)))
+        screen.blit(self.alpha_converted() if apply_alpha else self.image, self.image.get_rect(center=(at.x, at.y)))
         for child in self.children.values():
-            child.blit(screen)
+            child.blit(screen, apply_alpha)
+
+    def blit_children(self, screen, apply_alpha=True) -> None:
+        """
+        Affiche les objets enfants sur la fenêtre.
+
+        :param screen: La fenêtre où on affiche l'objet.
+        :param apply_alpha: Si on comine l'image avec self.surf_mult(=transparence) ou pas
+        """
+        for child in self.children.values():
+            child.blit(screen, apply_alpha)
 
     def translate(self, movement: Vector2, additive=True) -> None:
         """
@@ -159,7 +176,6 @@ class GameObject( Sprite):
     def early_update(self) -> None:
         """
         Fonction appellée au début d'une frame, avant les events.
-        :return:
         """
         # print(pygame.mouse.get_pos(), self.image.get_rect(center=self.get_screen_pos()))
         if is_included(tuple2Vec2(pygame.mouse.get_pos()), self.image.get_rect(center=self.get_screen_pos())):
@@ -186,7 +202,6 @@ class GameObject( Sprite):
     def update(self) -> None:
         """
         Fonction appellée après early_update() et les events.
-        :return:
         """
         for child in self.children.values():
             child.update()
@@ -196,6 +211,7 @@ class GameObject( Sprite):
         Renvoie la position réelle de l'objet sur l'écran. self.pos représente la position relative par rapport au
         parent de l'objet mais cette fonction permet de savoir la position absolue en tenant compte la rotation de
         son parent, position relative, etc...
+
         :return: self.pos si l'objet n'a pas de parent, sinon sa position absolue.
         """
 
@@ -222,6 +238,7 @@ class GameObject( Sprite):
     def alpha_converted(self) -> pygame.Surface:
         """
         Permet de générer l'image combiné avec self.surf_mult
+
         :return: L'image avec transparence.
         """
         tmp = self.image.copy()
@@ -263,6 +280,7 @@ class ChildrenHolder(dict):
     def add_gameobject(self, obj: GameObject) -> None:
         """
         Permet de ajouter un gameobject à un gameobject en tant que objet enfant.
+
         :param obj: L'objet qu'on veut ajouter.
         :return:
         """
@@ -273,6 +291,7 @@ class ChildrenHolder(dict):
         """
         Retourne l'objet qui possède le nom donné.
         Alias de ChildrenHolder()[name]
+
         :param name: Nom de l'objet que l'utilisateur cherche.
         :return: L'objet si il existe dans le dict sinon None.
         """

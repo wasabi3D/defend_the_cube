@@ -50,11 +50,11 @@ class BaseUIObject(GameObject):
         # return self.get_real_pos() - pygame.Vector2(sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2)
         return self.get_real_pos()
 
-    def blit(self, screen: pygame.Surface) -> None:
+    def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
         pos = self.get_real_pos()
         screen.blit(self.alpha_converted(), self.image.get_rect(center=(pos.x, pos.y)))
         for child in self.children.values():
-            child.blit(screen)
+            child.blit(screen, apply_alpha)
 
 
 class TextLabel(BaseUIObject):
@@ -91,6 +91,9 @@ class FPS_Label(TextLabel):
             self.set_text(f"{int(1 / (self.sum / 60))} FPS")
             self.sum = 0
 
+    def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
+        super().blit(screen, apply_alpha=apply_alpha)
+
 
 class HPBar(BaseUIObject):
     SIZE = (480, 48)
@@ -101,7 +104,7 @@ class HPBar(BaseUIObject):
                              anchor=CENTER)
             self.prop = prop
 
-        def blit(self, screen: pygame.Surface) -> None:
+        def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
             rect = self.image.get_rect(center=self.get_real_pos())
             rect.update(rect.left, rect.top, rect.width * self.prop, rect.height)
             screen.blit(self.image, rect.topleft, (0, 0, rect.width, rect.height))
@@ -112,8 +115,8 @@ class HPBar(BaseUIObject):
         self.prop = proportion
         self.children.add_gameobject(HPBar.RedFill(self.prop))
 
-    def blit(self, screen: pygame.Surface) -> None:
+    def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
         self.children["red"].prop = self.prop
-        super().blit(screen)
+        super().blit(screen, apply_alpha)
 
 

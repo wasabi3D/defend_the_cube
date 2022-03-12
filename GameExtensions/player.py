@@ -7,6 +7,7 @@ import pygame
 from pygame.locals import *
 import GameManager.singleton as sing
 from pygame.math import Vector2
+from GameManager.funcs import tuple2Vec2
 
 
 class Player(GameObject):
@@ -111,3 +112,8 @@ class Player(GameObject):
             return self.punch_hitbox.get_rect(center=p + Vector2(0, -20))
         elif self.facing == Player.DOWN:
             return self.punch_hitbox.get_rect(center=p + Vector2(0, 20))
+
+    def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
+        screen.blit(self.image, self.image.get_rect(center=tuple2Vec2(sing.ROOT.screen_dim) / 2))
+        super().blit_children(screen, apply_alpha)
+        
