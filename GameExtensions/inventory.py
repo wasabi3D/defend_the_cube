@@ -234,7 +234,7 @@ class Inventory(GameObject):
             #             self.selected = self.selected + 1 if self.selected + 1 < self.grid_size[0] else 0
             #         if event.button == 5:
             #             self.selected = self.selected - 1 if self.selected - 1 >= 0 else self.grid_size[0] - 1
-            if mouse_but[0] and not self.is_pressed["bool"]:
+            if mouse_but[0]:
                 mouse_pos = pygame.Vector2(*pygame.mouse.get_pos())
 
                 # on convertis les coordonnées de la souris en coordonnées de l'inventaire
@@ -244,6 +244,12 @@ class Inventory(GameObject):
 
                 if 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
                     self.selected = hotbar_cell[0]
+
+                elif not self.is_pressed["bool"]:
+                    self.hotbar[self.selected].on_use()
+                    self.is_pressed["bool"] = True
+            elif self.is_pressed["bool"]:
+                self.is_pressed["bool"] = False
 
     def blit_cell(self, screen: pygame.Surface, pos: tuple[int, int], el: InventoryObject) -> None:
         """ Faire afficher un objet à se place dans la grille
