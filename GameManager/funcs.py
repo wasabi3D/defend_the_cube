@@ -19,3 +19,10 @@ def tuple2Vec2(t: typing.Union[tuple[int, int], tuple[float, float]]) -> pygame.
 
 def is_included(pos: pygame.Vector2, rect: pygame.Rect):
     return (rect.x <= pos.x <= rect.x + rect.width) and (rect.y <= pos.y <= rect.y + rect.height)
+
+
+def resize_surface(surf: pygame.Surface, multiplier: float) -> pygame.Surface:
+    s = tuple2Vec2(surf.get_size()) * multiplier
+    print(s)
+    return pygame.transform.smoothscale(surf, (s.x, s.y))
+
