@@ -1,6 +1,7 @@
 from GameManager.util import GameObject
 from GameManager.resources import load_img
 from GameExtensions.util import ShakeGenerator
+from GameManager.funcs import resize_surface
 import GameManager.singleton as sing
 from pygame.math import Vector2
 import pygame
@@ -93,4 +94,6 @@ class Rock(GameObject, Resource):
         return p
 
     def mine(self):
+        self.image = resize_surface(self.image, 0.9)
+        self.rect_surf = resize_surface(self.rect_surf, 0.9)
         self.shake.begin(0)
