@@ -59,11 +59,13 @@ if __name__ == "__main__":
         (8, 6), Vector2(40, 40),
         load_img("resources/UI/inventory.png"),
         load_img("resources/UI/hotbar.png"), load_img("resources/UI/selected_item.png"),
-        "inventory"
+        "inventory",
+        load_font("resources/test/fonts/square-deal.ttf", FONT_SIZE)
     )
-    inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"))
-    inventory.add_obj("frog", load_img("resources/test/frog.png"))
-    inventory.add_obj_ins(Apple())
+    inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
+    inventory.add_obj_at_pos((1, 1), "sand", load_img("resources/test/grid/grid_one.png"), 3)
+    inventory.add_obj("frog", load_img("resources/test/frog.png"), 10)
+    inventory.add_obj_ins(Apple(10, inventory.font))
     root.add_gameObject(inventory)
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
