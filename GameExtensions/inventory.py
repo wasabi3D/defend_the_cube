@@ -8,15 +8,35 @@ from GameManager.util import GameObject
 
 # Classe pour les objets d'inventaire
 class InventoryObject:
-    def __init__(self, name: str, img: pygame.Surface):
+    def __init__(self, name: str, img: pygame.Surface, n: int, font: pygame.font.Font):
         self.name = name
         self.img = img
+        self.n = n
+        self.font = font
+        self.n_img = font.render(str(self.n), False, loc.NUMBER_COLOR)
+        self.max_n = loc.SPE_OBJ[self.name] if self.name in loc.SPE_OBJ else loc.MAX_OBJ
 
-    def get_img(self):
+    def get_img(self) -> pygame.Surface:
         return self.img
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
+
+    def get_n(self) -> int:
+        return self.n
+
+    def get_n_img(self) -> pygame.Surface:
+        return self.n_img
+
+    def set_n(self, n: int):
+        self.n = n
+        self.n_img = self.font.render(str(self.n), False, loc.NUMBER_COLOR)
+
+    def add_n(self, n: int):
+        tmp = self.n
+        self.n = min(self.n + n, self.max_n)
+        self.n_img = self.font.render(str(self.n), False, loc.NUMBER_COLOR)
+        return max(tmp + n - self.max_n, 0)
 
     def on_use(self):
         pass
@@ -36,9 +56,11 @@ class Inventory(GameObject):
                  hot_bar_img: pygame.Surface,
                  selected_img: pygame.Surface,
                  name: str,
+                 font: pygame.font.Font,
                  open_inv_key: int = pygame.K_e):
         self.size = loc.INV_IMG_SIZE
         self.h_size = loc.HOTBAR_IMG_SIZE
+        self.font = font
         self.hotbar_img = pygame.transform.scale(hot_bar_img, self.h_size).convert_alpha()
         super().__init__(pos, 0, pygame.transform.scale(image, self.size).convert_alpha(), name)
 
@@ -62,23 +84,25 @@ class Inventory(GameObject):
             selected_img, (self.cell_size[0] +
                            2 * self.cell_offset[0],
                            self.cell_size[1] +
-                           2 * self.cell_offset[1])).convert_alpha())
+                           2 * self.cell_offset[1])).convert_alpha(), 1, self.font)
 
         self.side_offset = tuple([self.size[0] * loc.INV_GRID_OFFSET_PROP_TO_W[0] / loc.INV_GRID_OFFSET_PROP_TO_W[1]
                                   for _ in range(2)])
         self.total_offset = (self.side_offset[0] + pos.x,
                              self.side_offset[1] + pos.y)
+        self.numb_offset = (self.cell_size[0] - self.cell_offset[0] - loc.NUMBER_SIZE[0],
+                            self.cell_size[1] - self.cell_offset[1] - loc.NUMBER_SIZE[1])
         self.grid_size = grid_size[0], grid_size[1]
         self.inv_img_size = (self.cell_size[0] - 2 * self.cell_offset[0] + 1,
                              self.cell_size[0] - 2 * self.cell_offset[0] + 1)
 
-        self.empty_cell = InventoryObject("empty", pygame.Surface((0, 0)))
+        self.empty_cell = InventoryObject("empty", pygame.Surface((0, 0)), 1, self.font)
         self.objects = [[self.empty_cell for _ in range(grid_size[0])] for _ in range(grid_size[1])]
         self.hotbar = [self.empty_cell for _ in range(grid_size[0])]
 
         self.open_inv_key = open_inv_key
 
-    def add_obj_at_pos(self, place: tuple[int, int], name: str, img: pygame.Surface) -> bool:
+    def add_obj_at_pos(self, place: tuple[int, int], name: str, img: pygame.Surface, n: int) -> bool:
         """ Crée un objet d'inventaire et le met à une position définie
         :param place: coordonnées (x, y) de la place dans l'inventaire
         :param name: nom de l'objet
@@ -88,23 +112,25 @@ class Inventory(GameObject):
         if place[0] < self.grid_size[0]:
             if self.objects[place[1]][place[0]] == self.empty_cell:
                 self.objects[place[1]][place[0]] = InventoryObject(
-                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha()
+                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font
                 )
                 return True
         elif place[0] == self.grid_size[0]:
             if self.hotbar[place[0]] == self.empty_cell:
                 self.hotbar[place[0]] = InventoryObject(
-                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha()
+                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font
                 )
         else: return False
 
-    def add_obj(self, name: str, img: pygame.Surface) -> bool:
+    def add_obj(self, name: str, img: pygame.Surface, n) -> bool:
         """ Rajoute un objet dans la première place disponoible
         :param name: nom de l'objet
         :param img: image de l'objet
         :return: si il a trouvé une place
         """
-        return self.add_obj_ins(InventoryObject(name, pygame.transform.scale(img, self.inv_img_size).convert_alpha()))
+        return self.add_obj_ins(InventoryObject(
+            name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font
+        ))
 
     def add_obj_ins(self, item: InventoryObject):
         """ Rajoute un objet dans la première place disponoible
@@ -119,10 +145,18 @@ class Inventory(GameObject):
             if el == self.empty_cell:
                 self.hotbar[i] = item
                 return True
+            elif el.get_name() == item.get_name():
+                print("hi")
+                self.hotbar[i].add_n(item.get_n())
+                return True
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
                 if el == self.empty_cell:
                     self.objects[y][x] = item
+                    return True
+                elif el.get_name() == item.get_name():
+                    print("hi_")
+                    self.objects[y][x].add_n(item.get_n())
                     return True
         return False
 
@@ -133,26 +167,54 @@ class Inventory(GameObject):
         :param swap: si un objet occupe déjà la place les échanger ou ne pas le faire
         """
         # si il y a autant de conditions c'est parce qu'il y a toutes les combinations hotbar - inventaire
-        if swap or (self.objects[place2[1]][place2[0]] == self.empty_cell if place2[1] < self.grid_size[1] else
-                    self.hotbar[place2[0]] == self.empty_cell):
+        if (swap or (self.objects[place2[1]][place2[0]] == self.empty_cell if place2[1] < self.grid_size[1] else
+                     self.hotbar[place2[0]] == self.empty_cell)) and place1 != place2:
             if place1[1] < self.grid_size[1]:
                 if place2[1] < self.grid_size[1]:
-                    (self.objects[place1[1]][place1[0]],
-                     self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
-                                                            self.objects[place1[1]][place1[0]])
+                    if self.objects[place1[1]][place1[0]].get_name() == self.objects[place2[1]][place2[0]].get_name():
+                        tmp = self.objects[place2[1]][place2[0]].add_n(self.objects[place1[1]][place1[0]].get_n())
+                        if tmp:
+                            self.objects[place1[1]][place1[0]].set_n(tmp)
+                        else:
+                            self.objects[place1[1]][place1[0]] = self.empty_cell
+                    else:
+                        (self.objects[place1[1]][place1[0]],
+                         self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
+                                                                self.objects[place1[1]][place1[0]])
                 else:
-                    (self.objects[place1[1]][place1[0]],
-                     self.hotbar[place2[0]]) = (self.hotbar[place2[0]],
-                                                self.objects[place1[1]][place1[0]])
+                    if self.objects[place1[1]][place1[0]].get_name() == self.hotbar[place2[0]].get_name():
+                        tmp = self.hotbar[place2[0]].add_n(self.objects[place1[1]][place1[0]].get_n())
+                        if tmp:
+                            self.objects[place1[1]][place1[0]].set_n(tmp)
+                        else:
+                            self.objects[place1[1]][place1[0]] = self.empty_cell
+                    else:
+                        (self.objects[place1[1]][place1[0]],
+                         self.hotbar[place2[0]]) = (self.hotbar[place2[0]],
+                                                    self.objects[place1[1]][place1[0]])
             else:
                 if place2[1] < self.grid_size[1]:
-                    (self.hotbar[place1[0]],
-                     self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
-                                                            self.hotbar[place1[0]])
+                    if self.hotbar[place1[0]].get_name() == self.objects[place2[1]][place2[0]].get_name():
+                        tmp = self.objects[place2[1]][place2[0]].add_n(self.hotbar[place1[0]].get_n())
+                        if tmp:
+                            self.hotbar[place1[0]].set_n(tmp)
+                        else:
+                            self.hotbar[place1[0]] = self.empty_cell
+                    else:
+                        (self.hotbar[place1[0]],
+                         self.objects[place2[1]][place2[0]]) = (self.objects[place2[1]][place2[0]],
+                                                                self.hotbar[place1[0]])
                 else:
-                    (self.hotbar[place1[0]],
-                     self.hotbar[place2[0]]) = (self.hotbar[place2[0]],
-                                                self.hotbar[place1[0]])
+                    if self.hotbar[place1[0]].get_name() == self.hotbar[place2[0]].get_name():
+                        tmp = self.hotbar[place2[0]].add_n(self.hotbar[place1[0]].get_n())
+                        if tmp:
+                            self.hotbar[place1[0]].set_n(tmp)
+                        else:
+                            self.hotbar[place1[0]] = self.empty_cell
+                    else:
+                        (self.hotbar[place1[0]],
+                         self.hotbar[place2[0]]) = (self.hotbar[place2[0]],
+                                                    self.hotbar[place1[0]])
 
     def get_obj(self, pos: tuple[int, int]) -> typing.Union[InventoryObject, None]:
         """ Nous donne l'objet présent dans la place donnée
@@ -261,25 +323,35 @@ class Inventory(GameObject):
 
         # si la cellule est dans l'inventaire
         if y != self.grid_size[1]:
+            pos = (
+                x * self.cell_size[0] + self.total_offset[0] + self.cell_offset[0],
+                y * self.cell_size[1] + self.total_offset[1] + self.cell_offset[1]
+            )
             screen.blit(
                 el.get_img(),
-                el.get_img().get_rect(topleft=(
-                    x * self.cell_size[0] + self.total_offset[0] + self.cell_offset[0],
-                    y * self.cell_size[1] + self.total_offset[1] + self.cell_offset[1]))
+                el.get_img().get_rect(topleft=pos)
             )
-
+            screen.blit(
+                el.get_n_img(),
+                el.get_n_img().get_rect(topleft=(pos[0] + self.numb_offset[0], pos[1] + self.numb_offset[1]))
+            )
         # si la cellule est dans la hotbar
         else:
+            pos = (
+                x * self.cell_size[0] + self.total_offset[0] +
+                self.cell_offset[0] + loc.HOTBAR_CELL_IMPERFECTION[0] + loc.HOTBAR_POS_OFFSET[0],
+                loc.HOTBAR_POS_OFFSET[1] + self.cell_size[0] + loc.HOTBAR_CELL_IMPERFECTION[1]
+            )
             screen.blit(
                 el.get_img(),
-                el.get_img().get_rect(topleft=(
-                    x * self.cell_size[0] + self.total_offset[0] +
-                    self.cell_offset[0] + loc.HOTBAR_CELL_IMPERFECTION[0] + loc.HOTBAR_POS_OFFSET[0],
-                    loc.HOTBAR_POS_OFFSET[1] + self.cell_size[0] + loc.HOTBAR_CELL_IMPERFECTION[1]
-                ))
+                el.get_img().get_rect(topleft=pos)
+            )
+            screen.blit(
+                el.get_n_img(),
+                el.get_n_img().get_rect(topleft=(pos[0] + self.numb_offset[0], pos[1] + self.numb_offset[1]))
             )
 
-    def blit(self, screen: pygame.Surface) -> None:
+    def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
         """ affiche l'inventaire
         :param screen: fenêtre du jeu
         """
@@ -308,4 +380,9 @@ class Inventory(GameObject):
             # on affiche l'objet déplacé ici pour qu'il se retrouve devant
             if self.is_pressed["bool"]:
                 el = self.get_obj(self.is_pressed["inv_place"])
-                screen.blit(el.get_img(), el.get_img().get_rect(center=pygame.mouse.get_pos()))
+                pos = pygame.mouse.get_pos()
+                screen.blit(el.get_img(), el.get_img().get_rect(center=pos))
+                screen.blit(
+                    el.get_n_img(),
+                    el.get_n_img().get_rect(center=(pos[0] + self.numb_offset[0] / 2, pos[1] + self.numb_offset[1] / 2))
+                )
