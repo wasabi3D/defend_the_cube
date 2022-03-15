@@ -38,6 +38,9 @@ class InventoryObject:
         self.n_img = self.font.render(str(self.n), False, loc.NUMBER_COLOR)
         return max(tmp + n - self.max_n, 0)
 
+    def copy(self):
+        return InventoryObject(self.name, self.img, self.n, self.font)
+
     def on_use(self):
         pass
 
@@ -109,18 +112,9 @@ class Inventory(GameObject):
         :param img: image de l'objet
         :return: si la place était occupée ou non (dans quel cas il ne serait pas ajouté)
         """
-        if place[0] < self.grid_size[0]:
-            if self.objects[place[1]][place[0]] == self.empty_cell:
-                self.objects[place[1]][place[0]] = InventoryObject(
-                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font
-                )
-                return True
-        elif place[0] == self.grid_size[0]:
-            if self.hotbar[place[0]] == self.empty_cell:
-                self.hotbar[place[0]] = InventoryObject(
-                    name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font
-                )
-        else: return False
+        return self.add_obj_ins_at_place(
+            place, InventoryObject(name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font)
+        )
 
     def add_obj(self, name: str, img: pygame.Surface, n) -> bool:
         """ Rajoute un objet dans la première place disponoible
@@ -132,8 +126,8 @@ class Inventory(GameObject):
             name, pygame.transform.scale(img, self.inv_img_size).convert_alpha(), n, self.font
         ))
 
-    def add_obj_ins(self, item: InventoryObject):
-        """ Rajoute un objet dans la première place disponoible
+    def add_obj_ins_empty_place(self, item: InventoryObject):
+        """ Rajoute un objet dans la première place disponoible vide
         :param item: instance d'un objet
         :return: si il a trouvé une place
         """
@@ -145,20 +139,49 @@ class Inventory(GameObject):
             if el == self.empty_cell:
                 self.hotbar[i] = item
                 return True
-            elif el.get_name() == item.get_name():
-                print("hi")
-                self.hotbar[i].add_n(item.get_n())
-                return True
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
                 if el == self.empty_cell:
                     self.objects[y][x] = item
                     return True
-                elif el.get_name() == item.get_name():
-                    print("hi_")
-                    self.objects[y][x].add_n(item.get_n())
-                    return True
-        return False
+
+    def add_obj_ins_at_place(self, place: tuple[int, int], item: InventoryObject):
+
+        if place[0] < self.grid_size[0]:
+            if self.objects[place[1]][place[0]] == self.empty_cell:
+                self.objects[place[1]][place[0]] = item
+                return True
+        elif place[0] == self.grid_size[0]:
+            if self.hotbar[place[0]] == self.empty_cell:
+                self.hotbar[place[0]] = item
+        else:
+            return False
+
+    def add_obj_ins(self, item: InventoryObject):
+        """ Rajoute un objet dans la première place disponoible dans laquelle il est possible de le mettre
+        :param item: instance d'un objet
+        :return: si il a trouvé une place
+        """
+        if not isinstance(item, InventoryObject):
+            raise TypeError("Not an instance of inventory object.")
+
+        # on remarquera que l'ordre de recherche est hotbar (gauhe-droite) puis inventaire (gauche-droite puis haut-bas)
+        for i, el in enumerate(self.hotbar):
+            if el.get_name() == item.get_name():
+                rest = self.hotbar[i].add_n(item.get_n())
+                if rest:
+                    item = item.copy()
+                    item.set_n(rest)
+                else: return True
+        for y, line in enumerate(self.objects):
+            for x, el in enumerate(line):
+                if el.get_name() == item.get_name():
+                    rest = self.objects[y][x].add_n(item.get_n())
+                    if rest:
+                        item = item.copy()
+                        item.set_n(rest)
+                    else: return True
+        return self.add_obj_ins_empty_place(item)
 
     def move_obj(self, place1: tuple[int, int], place2: tuple[int, int], swap: bool = True) -> None:
         """ Bouge un objet dans l'inventaire

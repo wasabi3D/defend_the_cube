@@ -66,6 +66,9 @@ if __name__ == "__main__":
     inventory.add_obj_at_pos((1, 1), "sand", load_img("resources/test/grid/grid_one.png"), 3)
     inventory.add_obj("frog", load_img("resources/test/frog.png"), 10)
     inventory.add_obj_ins(Apple(10, inventory.font))
+    inventory.add_obj_ins_at_place((4, 4), Apple(6, inventory.font))
+    inventory.add_obj_ins(Apple(5, inventory.font))
+    inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
     root.add_gameObject(inventory)
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
