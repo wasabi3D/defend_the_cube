@@ -8,7 +8,7 @@ from GameManager.util import GameObject
 import GameManager.singleton as sing
 from GameManager.resources import load_img
 
-from GameExtensions.resources import Tree, Rock
+from GameExtensions.resources import Tree, Rock, Resource
 
 
 class Terrain(GameObject):
@@ -173,7 +173,7 @@ class Terrain(GameObject):
                         self.over_terrain[y][x] = tr
                         sing.ROOT.add_collidable_object(tr)
 
-    def blit(self, scr: pygame.Surface) -> None:
+    def blit(self, scr: pygame.Surface, apply_alpha=False) -> None:
         center_x = self.get_real_pos().x
         center_y = self.get_real_pos().y
         x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
@@ -204,16 +204,24 @@ class Terrain(GameObject):
             for j, c in enumerate(t[left_start_index:right_index]):
                 new_j = j + left_start_index
                 x = new_j * self.block_px_size + center_x - x_dim_half - sing.ROOT.camera_pos.x + scr_width_half
-                if self.over_terrain[new_i][new_j] is not None:
-                    if isinstance(self.over_terrain[new_i][new_j], GameObject):
-                        self.over_terrain[new_i][new_j].blit(scr)
+                obj = self.over_terrain[new_i][new_j]
+                if obj is not None:
+                    if isinstance(obj, Resource):
+                        if obj.size <= obj.destroy_threshold:
+                            sing.ROOT.remove_collidable_object(obj)
+                            self.over_terrain[new_i][new_j] = None
+                            continue
+                        obj.blit(scr)
                     else:
-                        scr.blit(
-                            self.over_terrain[new_i][new_j],
-                            self.over_terrain[new_i][new_j].get_rect(center=(x, y))
-                        )
+                        scr.blit(obj, obj.get_rect(center=(x, y)))
 
-    def get_render_index(self):
+    def get_render_index(self) -> tuple[int, int, int, int]:
+        """
+        Fonction pour déterminer quelle partie du terrain est visible par le joueur. Cela permet de afficher que
+        la parie necessaire sur l'écran et donc on gagne en performance.
+
+        :return: 4 ints qui indiquent l'indice de haut, bas, gauche et droite respectivement.
+        """
         center_x = self.get_real_pos().x
         center_y = self.get_real_pos().y
         x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2

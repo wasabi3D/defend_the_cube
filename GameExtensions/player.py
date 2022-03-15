@@ -102,7 +102,7 @@ class Player(GameObject):
             if hit != -1:
                 obj = sing.ROOT.collidable_objects[hit]
                 if isinstance(obj, Resource):
-                    obj.mine()
+                    obj.on_mine()
 
         super().update()
 

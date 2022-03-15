@@ -23,6 +23,5 @@ def is_included(pos: pygame.Vector2, rect: pygame.Rect):
 
 def resize_surface(surf: pygame.Surface, multiplier: float) -> pygame.Surface:
     s = tuple2Vec2(surf.get_size()) * multiplier
-    print(s)
     return pygame.transform.smoothscale(surf, (s.x, s.y))
 

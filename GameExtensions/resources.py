@@ -10,20 +10,52 @@ from random import random
 from abc import ABCMeta, abstractmethod
 
 
-class Resource(metaclass=ABCMeta):
+class Resource(GameObject, metaclass=ABCMeta):
     """
     Classe qui représente tous les ressources dont on peut les miner.
     """
+    def __init__(self, pos: Vector2,
+                 name: str,
+                 original_img: pygame.Surface,
+                 hitbox_rect: pygame.Surface,
+                 hitbox_offset: pygame.Vector2,
+                 shake_gen: ShakeGenerator,
+                 size_decrease_rate=0.9,
+                 destroy_threshold=0.25):
+        super().__init__(pos, 0, original_img, name)
+        self.clone_img = original_img.copy()
+        self.rect_surf = hitbox_rect
+        self.rect_surf_clone = hitbox_rect.copy()
+        self.col_offset = hitbox_offset
+        self.size = 1
+        self.decrease_rate = size_decrease_rate
+        self.shake = shake_gen
+        self.destroy_threshold = destroy_threshold
+
+    def get_collision_rect(self) -> pygame.Rect:
+        """
+        Permet d'obtenir le hitbox de l'arbre.
+        :return: Le hitbox de type pygame.Rect
+        """
+        return self.rect_surf.get_rect(center=self.get_real_pos() + self.col_offset)
+
+    def get_screen_pos(self) -> Vector2:
+        p = super().get_screen_pos()
+        p += self.shake.get_shake()
+        self.shake.next_frame(sing.ROOT.delta)
+        return p
 
     @abstractmethod
-    def mine(self):
+    def on_mine(self):
         """
         Fonction qui doit être appellée quand un joueur mine un objet ressource.
         """
-        pass
+        self.size *= self.decrease_rate
+        self.image = resize_surface(self.clone_img, self.size)
+        self.rect_surf = resize_surface(self.rect_surf_clone, self.size)
 
 
-class Tree(GameObject, Resource):
+class Tree(Resource):
     """
     Arbre.
     """
@@ -38,35 +70,19 @@ class Tree(GameObject, Resource):
             img = load_img("resources/environment/tree_with_apple.png", (size, size))
         else:
             img = load_img("resources/environment/tree.png", (size, size))
-        super().__init__(pos, 0, img, name)
-        self.rect_surf = pygame.Surface((size * 0.4, size * 0.4))
-        self.col_offset = Vector2(0, 20)
-        self.shake = ShakeGenerator(15, -22, 13, 23, 0, 0.1, 0.9, 0.86)
+        super().__init__(pos, name, img, pygame.Surface((size * 0.4, size * 0.4)), Vector2(0, 20),
+                         ShakeGenerator(15, -22, 13, 23, 0, 0.1, 0.9, 0.86))
 
-    def get_collision_rect(self) -> pygame.Rect:
-        """
-        Permet d'obtenir le hitbox de l'arbre.
-        :return: Le hitbox de type pygame.Rect
-        """
-        return self.rect_surf.get_rect(center=self.get_real_pos() + self.col_offset)
-
-    def get_screen_pos(self) -> Vector2:
-        p = super().get_screen_pos()
-        sh = self.shake.get_shake()
-        p += sh
-        self.shake.next_frame(sing.ROOT.delta)
-        return p
-
-    def mine(self):
+    def on_mine(self):
+        super().on_mine()
         self.shake.y_intensity *= -1 if random() > 0.5 else 1
         self.shake.begin(0)
 
 
-class Rock(GameObject, Resource):
+class Rock(Resource):
     """
     Roche.
     """
-
     def __init__(self, pos: Vector2, name: str, size_min=48, size_max=64):
         """
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -74,26 +90,10 @@ class Rock(GameObject, Resource):
         """
         size = randint(size_min, size_max)
         img = ["rock.png", "rock2.png"]
-        super().__init__(pos, 0, load_img(f"resources/environment/{choice(img)}", (size, size)), name)
-        self.rect_surf = pygame.Surface((size * 0.6, size * 0.4))
-        self.col_offset = Vector2(0, 15)
-        self.shake = ShakeGenerator(11, 8, 13, 17, 0, 0, 0.9, 0.9)
+        super().__init__(pos, name, load_img(f"resources/environment/{choice(img)}", (size, size)),
+                         pygame.Surface((size * 0.6, size * 0.4)), Vector2(0, 15),
+                         ShakeGenerator(11, 8, 13, 17, 0, 0, 0.9, 0.9))
 
-    def get_collision_rect(self) -> pygame.Rect:
-        """
-        Permet d'obtenir le hitbox de la roche.
-        :return: Le hitbox de type pygame.Rect
-        """
-        return self.rect_surf.get_rect(center=self.get_real_pos() + self.col_offset)
-
-    def get_screen_pos(self) -> Vector2:
-        p = super().get_screen_pos()
-        sh = self.shake.get_shake()
-        p += sh
-        self.shake.next_frame(sing.ROOT.delta)
-        return p
-
-    def mine(self):
-        self.image = resize_surface(self.image, 0.9)
-        self.rect_surf = resize_surface(self.rect_surf, 0.9)
+    def on_mine(self):
+        super().on_mine()
         self.shake.begin(0)

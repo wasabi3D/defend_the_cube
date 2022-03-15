@@ -68,11 +68,19 @@ class GameRoot:
             self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)
 
-    def add_gameObject(self, gameObject: util.GameObject):
+    def add_gameObject(self, gameObject: util.GameObject) -> None:
         self.game_objects.setdefault(gameObject.name, gameObject)
 
-    def add_collidable_object(self, gameObject: util.GameObject):
+    def add_collidable_object(self, gameObject: util.GameObject) -> None:
         self.collidable_objects.append(gameObject)
 
     def is_colliding(self, rect: pygame.Rect) -> int:
         return rect.collidelist(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
+
+    def remove_collidable_object(self, obj: util.GameObject) -> bool:
+        for i, o in enumerate(self.collidable_objects):
+            if o == obj:
+                self.collidable_objects.pop(i)
+                return True
+        return False
+
