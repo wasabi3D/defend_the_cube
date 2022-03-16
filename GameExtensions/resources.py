@@ -1,12 +1,19 @@
-from GameManager.util import GameObject
-from GameManager.resources import load_img
-from GameExtensions.util import ShakeGenerator
-from GameManager.funcs import resize_surface
 import GameManager.singleton as sing
+from GameManager.util import GameObject
+from GameManager.funcs import resize_surface
+from GameManager.resources import load_img
+
+from GameExtensions.util import ShakeGenerator
+from GameExtensions.items import Log
+from GameExtensions.inventory import Inventory
+from GameExtensions.locals import ITEM_FONT_NAME
+
 from pygame.math import Vector2
 import pygame
+
 from random import randint, choice
 from random import random
+
 from abc import ABCMeta, abstractmethod
 
 
@@ -72,9 +79,12 @@ class Tree(Resource):
             img = load_img("resources/environment/tree.png", (size, size))
         super().__init__(pos, name, img, pygame.Surface((size * 0.4, size * 0.4)), Vector2(0, 20),
                          ShakeGenerator(15, -22, 13, 23, 0, 0.1, 0.9, 0.86))
+        self.log_item = Log(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
 
     def on_mine(self):
         super().on_mine()
+        inv: Inventory
+        sing.ROOT.game_objects["inventory"].add_obj_ins(self.log_item.copy())
         self.shake.y_intensity *= -1 if random() > 0.5 else 1
         self.shake.begin(0)
 

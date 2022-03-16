@@ -23,6 +23,7 @@ class GameRoot:
         self.camera_pos: pygame.Vector2 = camera_pos
         self.game_objects: dict[str, util.GameObject] = {}
         self.collidable_objects: list[util.GameObject] = []
+        self.global_fonts: dict[str, pygame.font.Font] = {}
 
     def mainloop(self):
         done = False

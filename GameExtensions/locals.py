@@ -21,6 +21,7 @@ HOTBAR_POS_OFFSET: Final = 0, 350
 HOTBAR_CELL_IMPERFECTION: Final = -0.2, 0.1
 
 FONT_SIZE: Final = 20
+ITEM_FONT_NAME: Final = "square-deal"
 NUMBER_SIZE: Final = 20, 20
 NUMBER_COLOR: Final = 200, 200, 200
 
@@ -30,5 +31,7 @@ SPE_OBJ: Final = {
     "apple": 10,
     "sand": 6
 }
+
+ITEM_SPRITE_SIZE: Final = (32, 32)
 
 

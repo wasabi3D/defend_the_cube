@@ -14,5 +14,9 @@ def load_img(filename: typing.Union[str, pathlib.Path],
         return pygame.transform.scale(loaded, resize)
 
 
-def load_font(filename: typing.Union[str, pathlib.Path], font_size: int) -> pygame.font.Font:
-    return pygame.font.Font(os.path.join(sing.ROOT.resources_path, filename), font_size)
+def load_font(filename: typing.Union[str, pathlib.Path], font_size: int, global_font=False, name="")\
+        -> pygame.font.Font:
+    fnt = pygame.font.Font(os.path.join(sing.ROOT.resources_path, filename), font_size)
+    if global_font:
+        sing.ROOT.global_fonts.setdefault(name, fnt)
+    return fnt

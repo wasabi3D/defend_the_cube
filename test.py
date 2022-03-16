@@ -1,17 +1,18 @@
 from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
+import GameManager.singleton as sing
+
 from GameExtensions.UI import FPS_Label, HPBar
 from GameExtensions.items import Apple
 import GameExtensions.inventory as inv
 from GameExtensions.locals import *
-import GameManager.singleton as sing
-import pygame
-import random
-from pygame.math import Vector2
-from pygame.locals import *
 from GameExtensions.generate_terrain import Terrain
 from GameExtensions.player import Player
+
+import pygame
+from pygame.math import Vector2
+
 import os
 
 
@@ -34,7 +35,7 @@ class RenderOverTerrain(GameObject):
     def __init__(self):
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "RenderOverTerrain")
 
-    def blit(self, screen: pygame.Surface) -> None:
+    def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
         sing.ROOT.game_objects["terrain"].blit_over_terrain(screen)
 
 
@@ -45,6 +46,13 @@ if __name__ == "__main__":
     bs = 32
     biomes = [load_img("resources/environment/terrain/dark_grass.png", (bs, bs)),
               load_img("resources/environment/terrain/grass.png", (bs, bs))]
+    inventory = inv.Inventory(
+        (8, 6), Vector2(40, 40),
+        load_img("resources/UI/inventory.png"),
+        load_img("resources/UI/hotbar.png"), load_img("resources/UI/selected_item.png"),
+        "inventory",
+        load_font("resources/test/fonts/square-deal.ttf", FONT_SIZE, global_font=True, name="square-deal")
+    )
     ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
 
     root.add_gameObject(ter)
@@ -55,13 +63,6 @@ if __name__ == "__main__":
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     root.add_gameObject(HPBar(Vector2(0, -20), S))
 
-    inventory = inv.Inventory(
-        (8, 6), Vector2(40, 40),
-        load_img("resources/UI/inventory.png"),
-        load_img("resources/UI/hotbar.png"), load_img("resources/UI/selected_item.png"),
-        "inventory",
-        load_font("resources/test/fonts/square-deal.ttf", FONT_SIZE)
-    )
     inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
     inventory.add_obj_at_pos((1, 1), "sand", load_img("resources/test/grid/grid_one.png"), 3)
     inventory.add_obj("frog", load_img("resources/test/frog.png"), 10)
