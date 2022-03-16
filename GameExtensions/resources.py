@@ -4,7 +4,7 @@ from GameManager.funcs import resize_surface
 from GameManager.resources import load_img
 
 from GameExtensions.util import ShakeGenerator
-from GameExtensions.items import Log
+from GameExtensions.items import Log, Stone
 from GameExtensions.inventory import Inventory
 from GameExtensions.locals import ITEM_FONT_NAME
 
@@ -83,7 +83,6 @@ class Tree(Resource):
 
     def on_mine(self):
         super().on_mine()
-        inv: Inventory
         sing.ROOT.game_objects["inventory"].add_obj_ins(self.log_item.copy())
         self.shake.y_intensity *= -1 if random() > 0.5 else 1
         self.shake.begin(0)
@@ -103,7 +102,9 @@ class Rock(Resource):
         super().__init__(pos, name, load_img(f"resources/environment/{choice(img)}", (size, size)),
                          pygame.Surface((size * 0.6, size * 0.4)), Vector2(0, 15),
                          ShakeGenerator(11, 8, 13, 17, 0, 0, 0.9, 0.9))
+        self.stone_item = Stone(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
 
     def on_mine(self):
         super().on_mine()
+        sing.ROOT.game_objects["inventory"].add_obj_ins(self.stone_item.copy())
         self.shake.begin(0)

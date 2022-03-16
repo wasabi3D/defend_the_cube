@@ -24,3 +24,14 @@ class Log(InventoryObject):
 
     def on_use(self):
         print("log")
+
+
+class Stone(InventoryObject):
+    def __init__(self, n: int, font: pygame.font.Font):
+        super().__init__("stone", load_img("resources/items/stone.png", ITEM_SPRITE_SIZE), n, font)
+
+    def copy(self):
+        return Stone(self.n, self.font)
+
+    def on_use(self):
+        print("stone")
