@@ -389,7 +389,7 @@ class Inventory(GameObject):
                     )))
         for i, el in enumerate(self.hotbar):
             if el != self.empty_cell and not (self.is_pressed["inv_place"] == (i, self.grid_size[1])
-                                              and self.is_pressed["bool"]):
+                                              and self.is_pressed["bool"] and self.is_shown):
                 self.blit_cell(screen, (i, self.grid_size[1]), el)
 
         if self.is_shown:
