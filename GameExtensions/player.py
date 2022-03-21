@@ -1,13 +1,24 @@
 from GameManager.util import GameObject
 from GameManager.resources import load_img
-from GameExtensions.resources import Resource
-from GameExtensions.util import Animation, Animator
 from GameManager.locals import MOUSE_LEFT
+from GameManager.funcs import tuple2Vec2
+import GameManager.singleton as sing
+
+from GameExtensions.util import Animation, Animator
+from GameExtensions.resources import Resource
+
 import pygame
 from pygame.locals import *
-import GameManager.singleton as sing
 from pygame.math import Vector2
-from GameManager.funcs import tuple2Vec2
+
+import math
+
+
+class Hand(GameObject):
+    HAND_SIZE = (8, 8)
+
+    def __init__(self, pos: Vector2, rotation: float):
+        super().__init__(pos, rotation, load_img("resources/player/hand.png", Hand.HAND_SIZE), "hand")
 
 
 class Player(GameObject):
@@ -16,34 +27,39 @@ class Player(GameObject):
     LEFT = "left"
     UP = "up"
     DOWN = "down"
-    SPRITE_SIZE = (48, 48)
+    SPRITE_SIZE = (32, 32)
+    HAND_OFFSET = Vector2(15, -5)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
-        super().__init__(pos, rotation, pygame.Surface(Player.SPRITE_SIZE), name)
+        super().__init__(pos, rotation, load_img("resources/player/body.png", Player.SPRITE_SIZE), name)
         self.right_oriented = True
         self.punch_hitbox = pygame.Surface((15, 15))
         self.facing = Player.RIGHT
         self.idle = True
         self.animator = Animator()
-        right_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
-                                                               1, 4, override_size=Player.SPRITE_SIZE), 0.3)
-        left_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
-                                                              1, 4,
-                                                              conv=lambda s: pygame.transform.flip(s, True, False),
-                                                              override_size=Player.SPRITE_SIZE), 0.3)
-        running_right = Animation([load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE)], 0.3)
-        running_left = Animation(
-            [pygame.transform.flip(load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE), True, False)], 0.3)
-
-        front_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/front/", ".png",
-                                                               1, 6, override_size=Player.SPRITE_SIZE), 0.4)
-
-        self.animator.register_anim("right_idle", right_idle)
-        self.animator.register_anim("left_idle", left_idle)
-        self.animator.register_anim("running_right", running_right)
-        self.animator.register_anim("running_left", running_left)
-        self.animator.register_anim("front_idle", front_idle)
-        self.animator.start_anim("front_idle")
+        left_hand = Hand(Vector2(-Player.HAND_OFFSET.x, Player.HAND_OFFSET.y), rotation)
+        right_hand = Hand(Player.HAND_OFFSET, rotation)
+        self.children.add_gameobject(left_hand)
+        self.children.add_gameobject(right_hand)
+        # right_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
+        #                                                        1, 4, override_size=Player.SPRITE_SIZE), 0.3)
+        # left_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
+        #                                                       1, 4,
+        #                                                       conv=lambda s: pygame.transform.flip(s, True, False),
+        #                                                       override_size=Player.SPRITE_SIZE), 0.3)
+        # running_right = Animation([load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE)], 0.3)
+        # running_left = Animation(
+        #    [pygame.transform.flip(load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE), True, False)], 0.3)
+        #
+        # front_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/front/", ".png",
+        #                                                        1, 6, override_size=Player.SPRITE_SIZE), 0.4)
+        #
+        # self.animator.register_anim("right_idle", right_idle)
+        # self.animator.register_anim("left_idle", left_idle)
+        # self.animator.register_anim("running_right", running_right)
+        # self.animator.register_anim("running_left", running_left)
+        # self.animator.register_anim("front_idle", front_idle)
+        # self.animator.start_anim("front_idle")
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
@@ -63,23 +79,28 @@ class Player(GameObject):
             self.facing = Player.DOWN
         if pressed[K_RIGHT]:
             self.idle = False
-            if not self.right_oriented or not prev_idle:
-                self.animator.start_anim("running_right")
+            # if not self.right_oriented or not prev_idle:
+            #     self.animator.start_anim("running_right")
             self.right_oriented = True
             dx += 1
             self.facing = Player.RIGHT
         if pressed[K_LEFT]:
             self.idle = False
-            if self.right_oriented or not prev_idle:
-                self.animator.start_anim("running_left")
+            # if self.right_oriented or not prev_idle:
+            #     self.animator.start_anim("running_left")
             self.right_oriented = False
             dx += -1
             self.facing = Player.LEFT
 
-        if not prev_idle and self.idle:
-            self.animator.start_anim("right_idle" if self.right_oriented else "left_idle")
+        # if not prev_idle and self.idle:
+        #     self.animator.start_anim("right_idle" if self.right_oriented else "left_idle")
 
-        self.image = self.animator.get_cur_frame()
+        # self.image = self.animator.get_cur_frame()
+        mouse_vec = tuple2Vec2(pygame.mouse.get_pos()) - tuple2Vec2(sing.ROOT.screen_dim) / 2
+
+        # Produit scalaire( mouse_vec.Vector2(0, -1) )
+        cos = -mouse_vec.y / mouse_vec.length() * (-1 if mouse_vec.x > 0 else 1)
+        self.rotate(math.acos(cos), False)
 
         # Check for collisions  https://youtu.be/m7GnJo_oZUU
         rp = self.get_real_pos()
