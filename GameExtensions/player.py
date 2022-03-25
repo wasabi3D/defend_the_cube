@@ -37,10 +37,10 @@ class Player(GameObject):
         self.facing = Player.RIGHT
         self.idle = True
         self.animator = Animator()
-        left_hand = Hand(Vector2(-Player.HAND_OFFSET.x, Player.HAND_OFFSET.y), rotation)
-        right_hand = Hand(Player.HAND_OFFSET, rotation)
-        self.children.add_gameobject(left_hand)
-        self.children.add_gameobject(right_hand)
+        # left_hand = Hand(Vector2(-Player.HAND_OFFSET.x, Player.HAND_OFFSET.y), rotation)
+        # right_hand = Hand(Player.HAND_OFFSET, rotation)
+        # self.children.add_gameobject(left_hand)
+        # self.children.add_gameobject(right_hand)
         # right_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
         #                                                        1, 4, override_size=Player.SPRITE_SIZE), 0.3)
         # left_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
@@ -60,6 +60,12 @@ class Player(GameObject):
         # self.animator.register_anim("running_left", running_left)
         # self.animator.register_anim("front_idle", front_idle)
         # self.animator.start_anim("front_idle")
+        base = "resources/player/topdown/"
+        self.animator.register_anim("north", Animation([load_img(base + "player_north.png")], 1))
+        self.animator.register_anim("south", Animation([load_img(base + "player_south.png")], 1))
+        self.animator.register_anim("west", Animation([load_img(base + "player_west.png")], 1))
+        self.animator.register_anim("east", Animation([load_img(base + "player_east.png")], 1))
+        self.animator.start_anim("east")
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
@@ -70,14 +76,20 @@ class Player(GameObject):
         prev_idle = self.idle
         self.idle = True
         if pressed[K_UP]:
+            if self.facing != Player.UP:
+                self.animator.start_anim("north")
             self.idle = False
             dy += -1
             self.facing = Player.UP
         if pressed[K_DOWN]:
+            if self.facing != Player.DOWN:
+                self.animator.start_anim("south")
             self.idle = False
             dy += 1
             self.facing = Player.DOWN
         if pressed[K_RIGHT]:
+            if self.facing != Player.RIGHT:
+                self.animator.start_anim("east")
             self.idle = False
             # if not self.right_oriented or not prev_idle:
             #     self.animator.start_anim("running_right")
@@ -85,6 +97,8 @@ class Player(GameObject):
             dx += 1
             self.facing = Player.RIGHT
         if pressed[K_LEFT]:
+            if self.facing != Player.LEFT:
+                self.animator.start_anim("west")
             self.idle = False
             # if self.right_oriented or not prev_idle:
             #     self.animator.start_anim("running_left")
@@ -95,12 +109,12 @@ class Player(GameObject):
         # if not prev_idle and self.idle:
         #     self.animator.start_anim("right_idle" if self.right_oriented else "left_idle")
 
-        # self.image = self.animator.get_cur_frame()
-        mouse_vec = tuple2Vec2(pygame.mouse.get_pos()) - tuple2Vec2(sing.ROOT.screen_dim) / 2
+        self.image = self.animator.get_cur_frame()
+        # mouse_vec = tuple2Vec2(pygame.mouse.get_pos()) - tuple2Vec2(sing.ROOT.screen_dim) / 2
 
         # Produit scalaire( mouse_vec.Vector2(0, -1) )
-        cos = -mouse_vec.y / mouse_vec.length() * (-1 if mouse_vec.x > 0 else 1)
-        self.rotate(math.acos(cos), False)
+        # cos = -mouse_vec.y / mouse_vec.length() * (-1 if mouse_vec.x > 0 else 1)
+        # self.rotate(math.acos(cos), False)
 
         # Check for collisions  https://youtu.be/m7GnJo_oZUU
         rp = self.get_real_pos()
