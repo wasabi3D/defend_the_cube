@@ -15,6 +15,7 @@ class InventoryObject:
         self.font = font
         self.n_img = font.render(str(self.n), False, loc.NUMBER_COLOR)
         self.max_n = loc.SPE_OBJ[self.name] if self.name in loc.SPE_OBJ else loc.MAX_OBJ
+        self.tag: list[str] = []
 
     def get_img(self) -> pygame.Surface:
         return self.img
@@ -101,7 +102,7 @@ class Inventory(GameObject):
 
         self.empty_cell = InventoryObject("empty", pygame.Surface((0, 0)), 1, self.font)
         self.objects = [[self.empty_cell for _ in range(grid_size[0])] for _ in range(grid_size[1])]
-        self.hotbar = [self.empty_cell for _ in range(grid_size[0])]
+        self.hotbar: list[InventoryObject] = [self.empty_cell for _ in range(grid_size[0])]
 
         self.open_inv_key = open_inv_key
 
