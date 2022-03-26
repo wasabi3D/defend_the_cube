@@ -54,4 +54,5 @@ class WoodBlockItem(InventoryObject):
         if len(holding) > 0:
             pos = tuple(holding.values())[0].get_real_pos()
             WoodBlock(pos)
+            self.n -= 1  # There's a problem with this thing
 

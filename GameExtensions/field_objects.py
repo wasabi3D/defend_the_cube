@@ -3,6 +3,8 @@ from __future__ import annotations  # Avoid circular import
 import typing
 
 import GameExtensions.generate_terrain
+from GameExtensions.util import get_grid_pos
+
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 from GameManager.resources import load_img
@@ -24,7 +26,7 @@ class Placeable(GameObject, metaclass=ABCMeta):
         if not isinstance(self.terrain, GameExtensions.generate_terrain.Terrain):
             raise TypeError("terrain is not an instance of Terrain")
 
-        grid_pos = self.get_grid_pos()
+        grid_pos = get_grid_pos(self.get_real_pos())
         self.translate(self.terrain.get_real_pos() + grid_pos * self.terrain.block_px_size
                        - tuple2Vec2(self.terrain.size) * self.terrain.block_px_size / 2, additive=False)
         if self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] is None and\

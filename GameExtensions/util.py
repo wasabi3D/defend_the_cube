@@ -2,7 +2,26 @@ import typing
 from typing import Union
 import math
 import pygame
+from pygame.math import Vector2
 from GameManager.resources import load_img
+import GameManager.singleton as sing
+
+
+def get_grid_pos(coordinate: Vector2) -> Vector2:
+    from GameExtensions.generate_terrain import Terrain
+    terrain: Terrain = sing.ROOT.game_objects["terrain"]
+    if not isinstance(terrain, Terrain):
+        raise TypeError("Not an instance of Terrain.")
+    map_pos = terrain.get_real_pos()
+    dim_per_block = terrain.block_px_size
+    rel_pos = coordinate - map_pos + Vector2(terrain.block_px_size, terrain.block_px_size) / 2
+    rel_pos = rel_pos // dim_per_block
+    rel_pos += Vector2(len(terrain.over_terrain[0]) // 2, len(terrain.over_terrain) // 2)
+    return rel_pos
+
+
+def get_chunk_pos(coordinate: Vector2, chunk_size: int = 20):
+    return get_grid_pos(coordinate) // chunk_size
 
 
 class ShakeGenerator:
@@ -122,3 +141,23 @@ class Animator:
             lst.append(conv(load_img(f"{base_file_name}{i}{suffix}", override_size)))
         return lst
 
+
+class PathFinderNoObstacles:
+    def __init__(self, current_pos: Vector2, target_pos: Vector2):
+        self.current = current_pos
+        self.target = target_pos
+
+    def get_next(self) -> pygame.Vector2:
+        diff_x = self.current.x - self.target.x
+        diff_y = self.current.y - self.target.y
+        if self.current == self.target:
+            return self.current
+        elif abs(diff_x) > abs(diff_y):
+            return self.current + Vector2(1 if diff_x < 0 else -1, 0)
+        else:
+            return self.current + Vector2(0, 1 if diff_y < 0 else -1)
+
+
+class PathFinder2NextChunk:
+    def __init__(self, current_pos: Vector2, target_dir: str, ):
+        pass

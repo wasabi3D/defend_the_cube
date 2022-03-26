@@ -4,7 +4,7 @@ from GameManager.locals import MOUSE_LEFT
 from GameManager.funcs import tuple2Vec2
 import GameManager.singleton as sing
 
-from GameExtensions.util import Animation, Animator
+from GameExtensions.util import Animation, Animator, get_grid_pos, get_chunk_pos
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
 from GameExtensions.locals import HOLDABLE, PLACEABLE
@@ -24,7 +24,7 @@ class Hand(GameObject):
 
 
 class Player(GameObject):
-    SPEED = 210
+    SPEED = 300
     DECEL_WHEN_HOLDING = 0.4
     DECEL_SHIFT = 0.6
     RIGHT = "right"
@@ -56,6 +56,7 @@ class Player(GameObject):
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
+        print(get_chunk_pos(self.get_real_pos()))
 
         # MOVEMENT
         pressed = pygame.key.get_pressed()
