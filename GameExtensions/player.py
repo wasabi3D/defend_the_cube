@@ -1,13 +1,26 @@
 from GameManager.util import GameObject
 from GameManager.resources import load_img
-from GameExtensions.resources import Resource
-from GameExtensions.util import Animation, Animator
 from GameManager.locals import MOUSE_LEFT
+from GameManager.funcs import tuple2Vec2
+import GameManager.singleton as sing
+
+from GameExtensions.util import Animation, Animator
+from GameExtensions.resources import Resource
+from GameExtensions.inventory import Inventory
+from GameExtensions.locals import HOLDABLE
+
 import pygame
 from pygame.locals import *
-import GameManager.singleton as sing
 from pygame.math import Vector2
-from GameManager.funcs import tuple2Vec2
+
+import math
+
+
+class Hand(GameObject):
+    HAND_SIZE = (8, 8)
+
+    def __init__(self, pos: Vector2, rotation: float):
+        super().__init__(pos, rotation, load_img("resources/player/hand.png", Hand.HAND_SIZE), "hand")
 
 
 class Player(GameObject):
@@ -16,34 +29,26 @@ class Player(GameObject):
     LEFT = "left"
     UP = "up"
     DOWN = "down"
-    SPRITE_SIZE = (48, 48)
+    SPRITE_SIZE = (32, 32)
+    HAND_OFFSET = Vector2(15, -5)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
-        super().__init__(pos, rotation, pygame.Surface(Player.SPRITE_SIZE), name)
-        self.right_oriented = True
+        super().__init__(pos, rotation, load_img("resources/player/body.png", Player.SPRITE_SIZE), name)
         self.punch_hitbox = pygame.Surface((15, 15))
         self.facing = Player.RIGHT
-        self.idle = True
         self.animator = Animator()
-        right_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
-                                                               1, 4, override_size=Player.SPRITE_SIZE), 0.3)
-        left_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/player_idle_", ".png",
-                                                              1, 4,
-                                                              conv=lambda s: pygame.transform.flip(s, True, False),
-                                                              override_size=Player.SPRITE_SIZE), 0.3)
-        running_right = Animation([load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE)], 0.3)
-        running_left = Animation(
-            [pygame.transform.flip(load_img("resources/player/tmp_player.png", Player.SPRITE_SIZE), True, False)], 0.3)
+        base = "resources/player/topdown/"
+        self.animator.register_anim("north", Animation([load_img(base + "player_north.png")], 1))
+        self.animator.register_anim("south", Animation([load_img(base + "player_south.png")], 1))
+        self.animator.register_anim("west", Animation([load_img(base + "player_west.png")], 1))
+        self.animator.register_anim("east", Animation([load_img(base + "player_east.png")], 1))
+        self.animator.start_anim("east")
+        self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
+        self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
+        if not isinstance(self.inventory, Inventory):
+            raise TypeError("Not an instance of Inventory")
 
-        front_idle = Animation(Animator.load_frames_by_pattern("resources/player/anim/idle/front/", ".png",
-                                                               1, 6, override_size=Player.SPRITE_SIZE), 0.4)
-
-        self.animator.register_anim("right_idle", right_idle)
-        self.animator.register_anim("left_idle", left_idle)
-        self.animator.register_anim("running_right", running_right)
-        self.animator.register_anim("running_left", running_left)
-        self.animator.register_anim("front_idle", front_idle)
-        self.animator.start_anim("front_idle")
+        self.last_hold = ""
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
@@ -51,33 +56,30 @@ class Player(GameObject):
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0
-        prev_idle = self.idle
-        self.idle = True
         if pressed[K_UP]:
-            self.idle = False
+            if self.facing != Player.UP:
+                self.animator.start_anim("north")
+                self.children["item_holder"].rotate(math.pi / 2, False)
             dy += -1
             self.facing = Player.UP
         if pressed[K_DOWN]:
-            self.idle = False
+            if self.facing != Player.DOWN:
+                self.animator.start_anim("south")
+                self.children["item_holder"].rotate(3 * math.pi / 2, False)
             dy += 1
             self.facing = Player.DOWN
         if pressed[K_RIGHT]:
-            self.idle = False
-            if not self.right_oriented or not prev_idle:
-                self.animator.start_anim("running_right")
-            self.right_oriented = True
+            if self.facing != Player.RIGHT:
+                self.animator.start_anim("east")
+                self.children["item_holder"].rotate(0, False)
             dx += 1
             self.facing = Player.RIGHT
         if pressed[K_LEFT]:
-            self.idle = False
-            if self.right_oriented or not prev_idle:
-                self.animator.start_anim("running_left")
-            self.right_oriented = False
+            if self.facing != Player.LEFT:
+                self.animator.start_anim("west")
+                self.children["item_holder"].rotate(math.pi, False)
             dx += -1
             self.facing = Player.LEFT
-
-        if not prev_idle and self.idle:
-            self.animator.start_anim("right_idle" if self.right_oriented else "left_idle")
 
         self.image = self.animator.get_cur_frame()
 
@@ -103,6 +105,14 @@ class Player(GameObject):
                 obj = sing.ROOT.collidable_objects[hit]
                 if isinstance(obj, Resource):
                     obj.on_mine()
+
+        selected = self.inventory.hotbar[self.inventory.selected]
+        if selected.name != self.last_hold:
+            self.last_hold = selected.name
+            self.children["item_holder"].children.clear()
+            if HOLDABLE in selected.tag:
+                img = selected.img.copy()
+                self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item"))
 
         super().update()
 

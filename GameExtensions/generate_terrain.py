@@ -9,6 +9,7 @@ import GameManager.singleton as sing
 from GameManager.resources import load_img
 
 from GameExtensions.resources import Tree, Rock, Resource
+from GameExtensions.field_objects import Placeable
 
 
 class Terrain(GameObject):
@@ -211,6 +212,8 @@ class Terrain(GameObject):
                             sing.ROOT.remove_collidable_object(obj)
                             self.over_terrain[new_i][new_j] = None
                             continue
+                        obj.blit(scr)
+                    elif isinstance(obj, Placeable):
                         obj.blit(scr)
                     else:
                         scr.blit(obj, obj.get_rect(center=(x, y)))

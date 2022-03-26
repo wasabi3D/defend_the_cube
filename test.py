@@ -4,11 +4,12 @@ from GameManager.util import GameObject
 import GameManager.singleton as sing
 
 from GameExtensions.UI import FPS_Label, HPBar
-from GameExtensions.items import Apple
+from GameExtensions.items import Apple, WoodBlockItem
 import GameExtensions.inventory as inv
 from GameExtensions.locals import *
 from GameExtensions.generate_terrain import Terrain
 from GameExtensions.player import Player
+from GameExtensions.field_objects import WoodBlock
 
 import pygame
 from pygame.math import Vector2
@@ -44,7 +45,7 @@ if __name__ == "__main__":
                     Vector2(0, 0), 1000)
 
     bs = 32
-    biomes = [load_img("resources/environment/terrain/dark_grass.png", (bs, bs)),
+    biomes = [load_img("resources/test/grid/grid_one.png", (bs, bs)),
               load_img("resources/environment/terrain/grass.png", (bs, bs))]
     inventory = inv.Inventory(
         (8, 6), Vector2(40, 40),
@@ -56,6 +57,7 @@ if __name__ == "__main__":
     ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
 
     root.add_gameObject(ter)
+    root.add_gameObject(inventory)
     root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
     root.add_gameObject(TestObject(Vector2(100, 200), 0, load_img("resources/test/grid/grid_one.png"), "yay"))
     root.add_collidable_object(root.game_objects["yay"])
@@ -70,7 +72,10 @@ if __name__ == "__main__":
     inventory.add_obj_ins_at_place((4, 4), Apple(6, inventory.font))
     inventory.add_obj_ins(Apple(5, inventory.font))
     inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
-    root.add_gameObject(inventory)
+    inventory.add_obj_ins(WoodBlockItem(1, inventory.font))
+
+
+    WoodBlock(Vector2(510, 0))
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))
     # root.add_gameObject(TextLabel(Vector2(30, 30), 0, load_font("resources/test/fonts/remachine.ttf", 25),
     #                               "hello world", (200, 200, 200), "test_label", anchor=CENTER))
