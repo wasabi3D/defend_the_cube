@@ -57,14 +57,16 @@ if __name__ == "__main__":
     ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
 
     root.add_gameObject(ter)
-    root.add_gameObject(inventory)
-    root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
     root.add_gameObject(TestObject(Vector2(100, 200), 0, load_img("resources/test/grid/grid_one.png"), "yay"))
     root.add_collidable_object(root.game_objects["yay"])
-    root.add_collidable_object(root.game_objects["player"])
-    root.add_gameObject(RenderOverTerrain())
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
+    root.add_gameObject(inventory)
+    root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
+    root.add_gameObject(RenderOverTerrain())
+    root.game_objects.move_to_end("inventory")
     root.add_gameObject(HPBar(Vector2(0, -20), S))
+
+    root.add_collidable_object(root.game_objects["player"])
 
     inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
     inventory.add_obj_at_pos((1, 1), "sand", load_img("resources/test/grid/grid_one.png"), 3)

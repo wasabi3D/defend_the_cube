@@ -82,13 +82,13 @@ class SurfaceModifier:
         self.a = int(max(0, min(255, self.a)))
 
 
-class GameObject( Sprite):
+class GameObject(Sprite):
     """
     La base de tous les objets utilisables dans le jeu.
     """
 
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str, enabled=True,
-                 parent=None, alpha=255):
+                 parent=None, alpha=255, tags: Optional[list[str]] = None):
         """
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
         :param rotation: La rotation en radian initiale de l'objet. La valeur par défaut est 0.
@@ -108,6 +108,7 @@ class GameObject( Sprite):
         self.parent: Union[GameObject, None] = parent
         self.surf_mult: SurfaceModifier = SurfaceModifier(255, 255, 255, alpha)
         self.enabled = enabled
+        self.tags = [] if tags is None else tags
 
         self.mouse_in_rect = False
 

@@ -7,7 +7,7 @@ import GameManager.singleton as sing
 from GameExtensions.util import Animation, Animator
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
-from GameExtensions.locals import HOLDABLE
+from GameExtensions.locals import HOLDABLE, PLACEABLE
 
 import pygame
 from pygame.locals import *
@@ -25,16 +25,20 @@ class Hand(GameObject):
 
 class Player(GameObject):
     SPEED = 210
+    DECEL_WHEN_HOLDING = 0.4
+    DECEL_SHIFT = 0.6
     RIGHT = "right"
     LEFT = "left"
     UP = "up"
     DOWN = "down"
     SPRITE_SIZE = (32, 32)
     HAND_OFFSET = Vector2(15, -5)
+    HITBOX_SIZE = (26, 26)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         super().__init__(pos, rotation, load_img("resources/player/body.png", Player.SPRITE_SIZE), name)
         self.punch_hitbox = pygame.Surface((15, 15))
+        self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
         self.facing = Player.RIGHT
         self.animator = Animator()
         base = "resources/player/topdown/"
@@ -56,25 +60,25 @@ class Player(GameObject):
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0
-        if pressed[K_UP]:
+        if pressed[K_w]:
             if self.facing != Player.UP:
                 self.animator.start_anim("north")
                 self.children["item_holder"].rotate(math.pi / 2, False)
             dy += -1
             self.facing = Player.UP
-        if pressed[K_DOWN]:
+        if pressed[K_s]:
             if self.facing != Player.DOWN:
                 self.animator.start_anim("south")
                 self.children["item_holder"].rotate(3 * math.pi / 2, False)
             dy += 1
             self.facing = Player.DOWN
-        if pressed[K_RIGHT]:
+        if pressed[K_d]:
             if self.facing != Player.RIGHT:
                 self.animator.start_anim("east")
                 self.children["item_holder"].rotate(0, False)
             dx += 1
             self.facing = Player.RIGHT
-        if pressed[K_LEFT]:
+        if pressed[K_a]:
             if self.facing != Player.LEFT:
                 self.animator.start_anim("west")
                 self.children["item_holder"].rotate(math.pi, False)
@@ -85,16 +89,24 @@ class Player(GameObject):
 
         # Check for collisions  https://youtu.be/m7GnJo_oZUU
         rp = self.get_real_pos()
-        dx_tmp_rect = self.image.get_rect(center=rp + Vector2(dx, 0))
-        dy_tmp_rect = self.image.get_rect(center=rp + Vector2(0, dy))
+        dx_tmp_rect = self.player_hitbox.get_rect(center=rp + Vector2(dx, 0))
+        dy_tmp_rect = self.player_hitbox.get_rect(center=rp + Vector2(0, dy))
         if sing.ROOT.is_colliding(dx_tmp_rect, exclude="player") != -1:
             dx = 0
         if sing.ROOT.is_colliding(dy_tmp_rect, exclude="player") != -1:
             dy = 0
 
+        # movement
         mov = Vector2(dx, dy)
         if mov.length_squared() != 0:
-            self.translate(mov.normalize() * sing.ROOT.delta * Player.SPEED)
+            spd = Player.SPEED
+            if len(self.children["item_holder"].children) > 0 and \
+                    PLACEABLE in self.children["item_holder"].children["item"].tags:
+                spd *= Player.DECEL_WHEN_HOLDING
+            if pressed[K_LSHIFT]:
+                spd *= Player.DECEL_SHIFT
+
+            self.translate(mov.normalize() * sing.ROOT.delta * spd)
             sing.ROOT.camera_pos = self.get_real_pos().copy()
 
         # PUNCH
@@ -112,7 +124,8 @@ class Player(GameObject):
             self.children["item_holder"].children.clear()
             if HOLDABLE in selected.tag:
                 img = selected.img.copy()
-                self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item"))
+                self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item",
+                                                                                tags=selected.tag))
 
         super().update()
 

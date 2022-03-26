@@ -1,6 +1,6 @@
 from GameExtensions.inventory import InventoryObject
 from GameManager.resources import load_img
-from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE
+from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE
 import GameManager.singleton as sing
 import pygame
 
@@ -42,6 +42,7 @@ class WoodBlockItem(InventoryObject):
     def __init__(self, n: int, font: pygame.font.Font):
         super().__init__("wood_block", load_img("resources/items/wood_block.png"), n, font)
         self.tag.append(HOLDABLE)
+        self.tag.append(PLACEABLE)
 
     def copy(self):
         return WoodBlockItem(self.n, self.font)
@@ -52,6 +53,5 @@ class WoodBlockItem(InventoryObject):
         holding = pl.children["item_holder"].children
         if len(holding) > 0:
             pos = tuple(holding.values())[0].get_real_pos()
-            print(pos)
             WoodBlock(pos)
 

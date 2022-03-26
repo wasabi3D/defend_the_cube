@@ -2,6 +2,7 @@ import pygame
 import GameManager.singleton as sing
 import GameManager.util as util
 from typing import Optional
+from collections import OrderedDict
 
 
 class GameRoot:
@@ -22,7 +23,7 @@ class GameRoot:
         self.mouse_ups: list[bool, bool, bool] = [False, False, False]
         self.mouse_downs: list[bool, bool, bool] = [False, False, False]
         self.camera_pos: pygame.Vector2 = camera_pos
-        self.game_objects: dict[str, util.GameObject] = {}
+        self.game_objects: OrderedDict[str, util.GameObject] = OrderedDict()
         self.collidable_objects: list[util.GameObject] = []
         self.global_fonts: dict[str, pygame.font.Font] = {}
 

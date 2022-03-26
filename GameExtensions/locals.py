@@ -35,5 +35,5 @@ SPE_OBJ: Final = {
 ITEM_SPRITE_SIZE: Final = (32, 32)
 
 HOLDABLE: Final = "holdable"
-
+PLACEABLE: Final = "placeable"
 
