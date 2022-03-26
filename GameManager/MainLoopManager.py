@@ -1,6 +1,7 @@
 import pygame
 import GameManager.singleton as sing
 import GameManager.util as util
+from typing import Optional
 
 
 class GameRoot:
@@ -75,8 +76,13 @@ class GameRoot:
     def add_collidable_object(self, gameObject: util.GameObject) -> None:
         self.collidable_objects.append(gameObject)
 
-    def is_colliding(self, rect: pygame.Rect) -> int:
-        return rect.collidelist(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
+    def is_colliding(self, rect: pygame.Rect, exclude: Optional[str] = None) -> int:
+        # i = rect.collidelist(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
+        il = rect.collidelistall(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
+        for i in il:
+            if self.collidable_objects[i].name != exclude:
+                return i
+        return -1
 
     def remove_collidable_object(self, obj: util.GameObject) -> bool:
         for i, o in enumerate(self.collidable_objects):

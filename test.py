@@ -45,7 +45,7 @@ if __name__ == "__main__":
                     Vector2(0, 0), 1000)
 
     bs = 32
-    biomes = [load_img("resources/test/grid/grid_one.png", (bs, bs)),
+    biomes = [load_img("resources/environment/terrain/dark_grass.png", (bs, bs)),
               load_img("resources/environment/terrain/grass.png", (bs, bs))]
     inventory = inv.Inventory(
         (8, 6), Vector2(40, 40),
@@ -61,6 +61,7 @@ if __name__ == "__main__":
     root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
     root.add_gameObject(TestObject(Vector2(100, 200), 0, load_img("resources/test/grid/grid_one.png"), "yay"))
     root.add_collidable_object(root.game_objects["yay"])
+    root.add_collidable_object(root.game_objects["player"])
     root.add_gameObject(RenderOverTerrain())
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     root.add_gameObject(HPBar(Vector2(0, -20), S))
@@ -73,7 +74,6 @@ if __name__ == "__main__":
     inventory.add_obj_ins(Apple(5, inventory.font))
     inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
     inventory.add_obj_ins(WoodBlockItem(1, inventory.font))
-
 
     WoodBlock(Vector2(510, 0))
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))

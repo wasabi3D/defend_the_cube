@@ -87,9 +87,9 @@ class Player(GameObject):
         rp = self.get_real_pos()
         dx_tmp_rect = self.image.get_rect(center=rp + Vector2(dx, 0))
         dy_tmp_rect = self.image.get_rect(center=rp + Vector2(0, dy))
-        if sing.ROOT.is_colliding(dx_tmp_rect) != -1:
+        if sing.ROOT.is_colliding(dx_tmp_rect, exclude="player") != -1:
             dx = 0
-        if sing.ROOT.is_colliding(dy_tmp_rect) != -1:
+        if sing.ROOT.is_colliding(dy_tmp_rect, exclude="player") != -1:
             dy = 0
 
         mov = Vector2(dx, dy)

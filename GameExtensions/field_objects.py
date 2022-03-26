@@ -27,7 +27,8 @@ class Placeable(GameObject, metaclass=ABCMeta):
         grid_pos = self.get_grid_pos()
         self.translate(self.terrain.get_real_pos() + grid_pos * self.terrain.block_px_size
                        - tuple2Vec2(self.terrain.size) * self.terrain.block_px_size / 2, additive=False)
-        if self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] is None:
+        if self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] is None and\
+                sing.ROOT.is_colliding(self.image.get_rect(center=self.get_real_pos())) == -1:
             self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] = self
             sing.ROOT.add_collidable_object(self)
 
@@ -37,7 +38,7 @@ class Placeable(GameObject, metaclass=ABCMeta):
     def get_grid_pos(self) -> Vector2:
         map_pos = self.terrain.get_real_pos()
         dim_per_block = self.terrain.block_px_size
-        rel_pos = self.get_real_pos() - map_pos
+        rel_pos = self.get_real_pos() - map_pos + Vector2(self.terrain.block_px_size, self.terrain.block_px_size) / 2
         rel_pos = rel_pos // dim_per_block
         rel_pos += Vector2(len(self.terrain.over_terrain[0]) // 2, len(self.terrain.over_terrain) // 2)
         return rel_pos
