@@ -1,10 +1,13 @@
 import typing
-from typing import Union
+from typing import Union, Optional
 import math
 import pygame
 from pygame.math import Vector2
 from GameManager.resources import load_img
 import GameManager.singleton as sing
+from GameManager.util import tuple2Vec2
+from queue import PriorityQueue
+from GameExtensions.locals import N, S, W, E, CHUNK_SIZE
 
 
 def get_grid_pos(coordinate: Vector2) -> Vector2:
@@ -20,14 +23,25 @@ def get_grid_pos(coordinate: Vector2) -> Vector2:
     return rel_pos
 
 
-def get_chunk_pos(coordinate: Vector2, chunk_size: int = 20):
+def get_chunk_pos(coordinate: Vector2, chunk_size: int = CHUNK_SIZE):
     return get_grid_pos(coordinate) // chunk_size
+
+
+def grid_pos2world_pos(coordinate: Vector2):
+    from GameExtensions.generate_terrain import Terrain
+    terrain: Terrain = sing.ROOT.game_objects["terrain"]
+    if not isinstance(terrain, Terrain):
+        raise TypeError("Not an instance of Terrain.")
+    map_pos = terrain.get_real_pos()
+
+    return coordinate * terrain.block_px_size + map_pos - tuple2Vec2(terrain.size) * terrain.block_px_size / 2
 
 
 class ShakeGenerator:
     """
     Classe qui permet de générer un tremblement.
     """
+
     def __init__(self,
                  x_intensity: Union[int, float],
                  y_intensity: Union[int, float],
@@ -158,6 +172,60 @@ class PathFinderNoObstacles:
             return self.current + Vector2(0, 1 if diff_y < 0 else -1)
 
 
+class Cell:
+    def __init__(self, coords: list[Vector2], cost=0):
+        self.coords: list[Vector2] = coords
+        self.cost = cost
+
+    def copy(self):
+        return Cell(self.coords.copy(), self.cost)
+
+    def __lt__(self, other):
+        return self.cost < other.cost
+
+
 class PathFinder2NextChunk:
-    def __init__(self, current_pos: Vector2, target_dir: str, ):
-        pass
+    def __init__(self, current_pos: Vector2,
+                 target_dir: str,
+                 chunk_topleft: Vector2,
+                 chunk_rightbottom: Vector2):
+        self.cur = current_pos
+        self.target_dir = target_dir
+        self.chunk_topleft = chunk_topleft
+        self.chunk_rightbottom = chunk_rightbottom
+        self.queue: PriorityQueue[Cell] = PriorityQueue()
+        self.queue.put(Cell([self.cur.copy()]))
+        self.x_obj: Optional[int] = None
+        self.y_obj: Optional[int] = None
+        self.dirs = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        self.path = []
+        self.map = sing.ROOT.game_objects["terrain"].over_terrain
+        if self.target_dir == N:
+            self.y_obj = self.chunk_topleft.y
+        elif self.target_dir == S:
+            self.y_obj = self.chunk_rightbottom.y
+        elif self.target_dir == E:
+            self.x_obj = self.chunk_rightbottom.x
+        elif self.target_dir == W:
+            self.x_obj = self.chunk_topleft.x
+
+    def calculate(self):  # A-star path finding algorithm
+        while True:
+            cur = self.queue.get()
+            if cur.coords[-1].x == self.x_obj or cur.coords[-1].y == self.y_obj:
+                self.path = cur.coords
+                return self.path
+
+            for d in self.dirs:
+                nxt = Vector2(cur.coords[-1].x + d[0], cur.coords[-1].y + d[1])
+                if (not self.chunk_topleft.x <= nxt.x <= self.chunk_rightbottom.x) or \
+                        (not self.chunk_topleft.y <= nxt.y <= self.chunk_rightbottom.y) or \
+                        self.map[int(nxt.y)][int(nxt.x)] is not None or \
+                        nxt in cur.coords:
+                    continue
+
+                new_path = cur.copy()
+                new_path.coords.append(nxt)
+                new_path.cost = (len(new_path.coords) + (((self.x_obj - nxt.x) if self.x_obj is not None else 0) ** 2 +
+                                                         ((self.y_obj - nxt.y) if self.y_obj is not None else 0) ** 2))
+                self.queue.put(new_path)

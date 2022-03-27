@@ -56,7 +56,6 @@ class Player(GameObject):
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
-        print(get_chunk_pos(self.get_real_pos()))
 
         # MOVEMENT
         pressed = pygame.key.get_pressed()

@@ -37,3 +37,5 @@ ITEM_SPRITE_SIZE: Final = (32, 32)
 HOLDABLE: Final = "holdable"
 PLACEABLE: Final = "placeable"
 
+CHUNK_SIZE = 20
+

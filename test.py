@@ -1,3 +1,5 @@
+import sys
+
 from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
@@ -10,6 +12,8 @@ from GameExtensions.locals import *
 from GameExtensions.generate_terrain import Terrain
 from GameExtensions.player import Player
 from GameExtensions.field_objects import WoodBlock
+from GameExtensions.util import PathFinder2NextChunk
+from GameExtensions.enemy import TestEnemy
 
 import pygame
 from pygame.math import Vector2
@@ -40,6 +44,16 @@ class RenderOverTerrain(GameObject):
         sing.ROOT.game_objects["terrain"].blit_over_terrain(screen)
 
 
+def path_test():
+    mp = [[None, 1,    None, None, None],
+          [None, None, None, None, None],
+          [None, 1,    None, None, None],
+          [None, None, 1,    1,    None],
+          [None, 1,    None, 1,    None]]
+    p = PathFinder2NextChunk(Vector2(0, 0), "s", Vector2(0, 0), Vector2(4, 4), mp)
+    print(p.calculate())
+
+
 if __name__ == "__main__":
     root = GameRoot((720, 480), (30, 30, 30), "test game", os.path.dirname(os.path.realpath(__file__)),
                     Vector2(0, 0), 1000)
@@ -62,6 +76,7 @@ if __name__ == "__main__":
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     root.add_gameObject(inventory)
     root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
+    root.add_gameObject(TestEnemy(Vector2(40, 150), load_img("resources/enemy/test_enemy.png"), "enemy"))
     root.add_gameObject(RenderOverTerrain())
     root.game_objects.move_to_end("inventory")
     root.add_gameObject(HPBar(Vector2(0, -20), S))
