@@ -39,3 +39,5 @@ PLACEABLE: Final = "placeable"
 
 CHUNK_SIZE = 20
 
+DIRS = ((1, 0), (0, 1), (-1, 0), (0, -1))
+
