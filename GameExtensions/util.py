@@ -7,7 +7,7 @@ from GameManager.resources import load_img
 import GameManager.singleton as sing
 from GameManager.util import tuple2Vec2
 from queue import PriorityQueue
-from GameExtensions.locals import N, S, W, E, CHUNK_SIZE
+from GameExtensions.locals import N, S, W, E, CHUNK_SIZE, DIRS
 
 
 def get_grid_pos(coordinate: Vector2) -> Vector2:
@@ -228,4 +228,33 @@ class PathFinder2NextChunk:
                 new_path.coords.append(nxt)
                 new_path.cost = (len(new_path.coords) + (((self.x_obj - nxt.x) if self.x_obj is not None else 0) ** 2 +
                                                          ((self.y_obj - nxt.y) if self.y_obj is not None else 0) ** 2))
+                self.queue.put(new_path)
+
+
+class PathFinder2Pos:
+    def __init__(self, current_pos: Vector2, target_pos: Vector2):
+        self.cur = current_pos
+        self.target = target_pos
+        self.queue: PriorityQueue[Cell] = PriorityQueue()
+        self.queue.put(Cell([self.cur.copy()]))
+        self.x_obj: int = int(self.target.x)
+        self.y_obj: int = int(self.target.y)
+        self.path = []
+        self.map = sing.ROOT.game_objects["terrain"].over_terrain
+
+    def calculate(self):  # A-star path finding algorithm
+        while True:
+            cur = self.queue.get()
+            if cur.coords[-1].x == self.x_obj or cur.coords[-1].y == self.y_obj:
+                self.path = cur.coords
+                return self.path
+
+            for d in DIRS:
+                nxt = Vector2(cur.coords[-1].x + d[0], cur.coords[-1].y + d[1])
+                if self.map[int(nxt.y)][int(nxt.x)] is not None or nxt in cur.coords:
+                    continue
+
+                new_path = cur.copy()
+                new_path.coords.append(nxt)
+                new_path.cost = (len(new_path.coords) + ((self.x_obj - nxt.x) ** 2 + (self.y_obj - nxt.y) ** 2))
                 self.queue.put(new_path)
