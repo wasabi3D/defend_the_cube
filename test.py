@@ -18,6 +18,8 @@ from GameExtensions.enemy import TestEnemy
 import pygame
 from pygame.math import Vector2
 
+from random import randint
+
 import os
 
 
@@ -76,7 +78,9 @@ if __name__ == "__main__":
     root.add_gameObject(FPS_Label(Vector2(50, 20)))
     root.add_gameObject(inventory)
     root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
-    root.add_gameObject(TestEnemy(Vector2(40, 150), load_img("resources/enemy/test_enemy.png"), "enemy"))
+    for i in range(5):
+        root.add_gameObject(TestEnemy(Vector2(randint(-600, 600), randint(-600, 600)), load_img("resources/enemy/test_enemy.png"), f"enemy{i}"))
+
     root.add_gameObject(RenderOverTerrain())
     root.game_objects.move_to_end("inventory")
     root.add_gameObject(HPBar(Vector2(0, -20), S))
