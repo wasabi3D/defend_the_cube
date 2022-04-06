@@ -4,7 +4,7 @@ from GameManager.locals import MOUSE_LEFT
 from GameManager.funcs import tuple2Vec2
 import GameManager.singleton as sing
 
-from GameExtensions.util import Animation, Animator, get_grid_pos, get_chunk_pos
+from GameExtensions.util import Animation, Animator, MovementGenerator
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
 from GameExtensions.locals import HOLDABLE, PLACEABLE
@@ -49,6 +49,7 @@ class Player(GameObject):
         self.animator.start_anim("east")
         self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
+        self.movment = MovementGenerator(self.player_hitbox, self)
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
@@ -87,28 +88,19 @@ class Player(GameObject):
 
         self.image = self.animator.get_cur_frame()
 
-        # Check for collisions  https://youtu.be/m7GnJo_oZUU
-        rp = self.get_real_pos()
-        dx_tmp_rect = self.player_hitbox.get_rect(center=rp + Vector2(dx, 0))
-        dy_tmp_rect = self.player_hitbox.get_rect(center=rp + Vector2(0, dy))
-        if sing.ROOT.is_colliding(dx_tmp_rect, exclude="player") != -1:
-            dx = 0
-        if sing.ROOT.is_colliding(dy_tmp_rect, exclude="player") != -1:
-            dy = 0
-
-        # movement
         mov = Vector2(dx, dy)
         if mov.length_squared() != 0:
-            spd = Player.SPEED
+            mov.normalize_ip()
+            mov *= sing.ROOT.delta * Player.SPEED
             if len(self.children["item_holder"].children) > 0 and \
                     PLACEABLE in self.children["item_holder"].children["item"].tags:
-                spd *= Player.DECEL_WHEN_HOLDING
+                mov *= Player.DECEL_WHEN_HOLDING
             if pressed[K_LSHIFT]:
-                spd *= Player.DECEL_SHIFT
-
-            self.translate(mov.normalize() * sing.ROOT.delta * spd)
+                mov *= Player.DECEL_SHIFT
+            mov = self.movment.move(mov.x, mov.y)
+            self.translate(mov)
             sing.ROOT.camera_pos = self.get_real_pos().copy()
-
+            
         # PUNCH
         if sing.ROOT.mouse_downs[MOUSE_LEFT]:
             ph = self.generate_punch_hitbox()
