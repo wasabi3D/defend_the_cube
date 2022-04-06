@@ -1,7 +1,9 @@
 from GameExtensions.inventory import InventoryObject
-from GameManager.resources import load_img
 from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE
+
+from GameManager.resources import load_img
 import GameManager.singleton as sing
+
 import pygame
 
 

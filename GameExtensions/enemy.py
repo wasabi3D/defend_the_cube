@@ -1,7 +1,7 @@
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 
-from GameExtensions.util import get_grid_pos, get_chunk_pos
+from GameExtensions.util import get_grid_pos, get_chunk_pos, MovementGenerator
 from GameExtensions.util import grid_pos2world_pos, get_path2target, get_next_chunk, get_path2nxt_chunk
 from GameExtensions.locals import N, W, S, E, CHUNK_SIZE, DIRS
 
@@ -24,6 +24,7 @@ class TestEnemy(GameObject):
         self.check_pos = self.get_real_pos().copy()
         self.last_checked = time.time()
         self.map = sing.ROOT.game_objects["terrain"].over_terrain
+        self.movement_gen = MovementGenerator(self.image, self)
 
     def update(self) -> None:
         player_pos = sing.ROOT.game_objects["player"].get_real_pos()
@@ -54,15 +55,9 @@ class TestEnemy(GameObject):
         dx = mov_vec.x
         dy = mov_vec.y
 
-        rp = self.get_real_pos()
-        dx_tmp_rect = self.image.get_rect(center=rp + Vector2(dx, 0))
-        dy_tmp_rect = self.image.get_rect(center=rp + Vector2(0, dy))
-        if sing.ROOT.is_colliding(dx_tmp_rect, exclude=self.name) != -1:
-            dx = 0
-        if sing.ROOT.is_colliding(dy_tmp_rect, exclude=self.name) != -1:
-            dy = 0
+        mov = self.movement_gen.move(dx, dy)
 
-        self.translate(Vector2(dx, dy))
+        self.translate(mov)
         diff_x = abs(self.get_real_pos().x - self.objectives[0].x)
         diff_y = abs(self.get_real_pos().y - self.objectives[0].y)
         if diff_x < 5 and diff_y < 5:

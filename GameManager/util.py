@@ -203,6 +203,7 @@ class GameObject(Sprite):
     def update(self) -> None:
         """
         Fonction appellée après early_update() et les events.
+        Permet de mettre à jour l'objet et de performer certains actions en overload-ant cette fonction.
         """
         for child in self.children.values():
             child.update()

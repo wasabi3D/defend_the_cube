@@ -24,6 +24,9 @@ class Hand(GameObject):
 
 
 class Player(GameObject):
+    """
+    Classe qui définit le joueur.
+    """
     SPEED = 300
     DECEL_WHEN_HOLDING = 0.4
     DECEL_SHIFT = 0.6
@@ -36,6 +39,12 @@ class Player(GameObject):
     HITBOX_SIZE = (26, 26)
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
+        """
+
+        :param pos: La position initiale.
+        :param rotation: La rotation initiale.
+        :param name: Le nom du joueur.
+        """
         super().__init__(pos, rotation, load_img("resources/player/body.png", Player.SPRITE_SIZE), name)
         self.punch_hitbox = pygame.Surface((15, 15))
         self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
@@ -122,6 +131,11 @@ class Player(GameObject):
         super().update()
 
     def generate_punch_hitbox(self) -> pygame.Rect:
+        """
+        Fonction qui permet de calculer la partie punchée par le joueur en fonction de la position et la rotation.
+
+        :return: Un rectangle de type pygame.Rect
+        """
         p = self.get_real_pos()
         if self.facing == Player.RIGHT:
             return self.punch_hitbox.get_rect(center=p + Vector2(20, 0))

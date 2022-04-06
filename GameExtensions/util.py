@@ -15,6 +15,12 @@ from GameExtensions.locals import N, S, W, E, CHUNK_SIZE, DIRS
 
 
 def get_grid_pos(coordinate: Vector2) -> Vector2:
+    """
+    Permet de calculer la position sur le grid en fonction de la position universelle.
+    
+    :param coordinate: La position universelle
+    :return: La position sur le grid
+    """
     from GameExtensions.generate_terrain import Terrain
     terrain: Terrain = sing.ROOT.game_objects["terrain"]
     if not isinstance(terrain, Terrain):
@@ -27,11 +33,24 @@ def get_grid_pos(coordinate: Vector2) -> Vector2:
     return rel_pos
 
 
-def get_chunk_pos(coordinate: Vector2, chunk_size: int = CHUNK_SIZE):
+def get_chunk_pos(coordinate: Vector2, chunk_size: int = CHUNK_SIZE) -> Vector2:
+    """
+    Calcule les coordonnées du chunk en fonction des coordonnées donnés
+
+    :param coordinate: La position sur le grid
+    :param chunk_size: La taille d'un chunk
+    :return: Les coordonnées du chunk
+    """
     return get_grid_pos(coordinate) // chunk_size
 
 
-def grid_pos2world_pos(coordinate: Vector2):
+def grid_pos2world_pos(coordinate: Vector2) -> Vector2:
+    """
+    Convertit la position sur le grid en position universelle
+
+    :param coordinate: La position sur le grid
+    :return: La position convertie
+    """
     from GameExtensions.generate_terrain import Terrain
     terrain: Terrain = sing.ROOT.game_objects["terrain"]
     if not isinstance(terrain, Terrain):
@@ -125,6 +144,9 @@ class Animation:
 
 
 class Animator:
+    """
+    Classe qui permet de controller une animation d'un objet.
+    """
     def __init__(self):
         self.animations: dict[str, Animation] = {}
         self.current: typing.Optional[str] = None
@@ -132,14 +154,30 @@ class Animator:
         self.timer = 0
 
     def register_anim(self, name: str, anim: Animation) -> None:
+        """
+        Ajouter une nouvelle animation
+
+        :param name: Le nom
+        :param anim: L'animation
+        """
         self.animations.setdefault(name, anim)
 
-    def start_anim(self, name: str):
+    def start_anim(self, name: str) -> None:
+        """
+        Commence une animation du début
+
+        :param name: Le nom de l'animation qu'on veut commencer
+        """
         self.current = name
         self.cur_frame = 0
         self.timer = 0
 
-    def update(self, delta: float):
+    def update(self, delta: float) -> None:
+        """
+        Fonction appellée pour faire avancer l'animation
+
+        :param delta: Le temps écoulé pendant la dernière frame
+        """
         if self.current is None:
             return
         self.timer += delta
@@ -149,24 +187,43 @@ class Animator:
             self.timer = 0
 
     def get_cur_frame(self) -> pygame.Surface:
+        """
+        Renvoie la frame de l'animation actuelle.
+
+        :return: La frame
+        """
         return self.animations[self.current].frames[self.cur_frame]
 
     @staticmethod
     def load_frames_by_pattern(base_file_name: str, suffix: str, start_i: int, end_i: int, conv=lambda s: s,
-                               override_size: typing.Optional[tuple[int, int]] = None):
+                               override_size: typing.Optional[tuple[int, int]] = None) -> list[pygame.Surface]:
+        """
+        Permet de charger plusieurs images avec un pattern de nom.
+
+        :param base_file_name: La base des noms dans tous les fichiers
+        :param suffix: Le suffixe des fichiers (ex. xx.png)
+        :param start_i: Début du pattern
+        :param end_i: Fin du pattern
+        :param conv: Fonction pour convertir les images éventuellement
+        :param override_size: La taille des images
+        :return: Une liste des images
+        """
         lst = []
         for i in range(start_i, end_i + 1):
             lst.append(conv(load_img(f"{base_file_name}{i}{suffix}", override_size)))
         return lst
 
 
-class Cell:
+class Path:
+    """
+    Classe utilisée pour calculer un chemin avec l'algorithme A*. Represente un chemin
+    """
     def __init__(self, coords: list[Vector2], cost=0):
         self.coords: list[Vector2] = coords
         self.cost = cost
 
     def copy(self):
-        return Cell(self.coords.copy(), self.cost)
+        return Path(self.coords.copy(), self.cost)
 
     def __lt__(self, other):
         return self.cost < other.cost
@@ -174,6 +231,14 @@ class Cell:
 
 def get_next_chunk(current_pos: Vector2,
                    target_pos: Vector2) -> Vector2:
+    """
+    Fonction qui permet de calculer vers quel chunk parmi les chunks adjacentes que
+     l'ennemi doit aller pour aller jusqu'au joueur.
+
+    :param current_pos: La position actuelle sur le grid
+    :param target_pos: La position actuelle du goal sur le grid
+    :return: Les coordonnées du prochain chunk
+    """
     diff_x = current_pos.x - target_pos.x
     diff_y = current_pos.y - target_pos.y
     if current_pos == target_pos:
@@ -188,8 +253,17 @@ def get_path2target(current_pos: Vector2,
                     target_x: Optional[int],
                     target_y: Optional[int],
                     chunk_limit: Optional[pygame.Rect] = None) -> list[Vector2]:
-    queue: PriorityQueue[Cell] = PriorityQueue()
-    queue.put(Cell([current_pos.copy()]))
+    """
+    Calcule  un chemin pour aller à la case souhaitée à l'aide de l'algorithme A* (A-Star)
+
+    :param current_pos: La position actuelle sur le grid
+    :param target_x: L'abcisse de la case de goal
+    :param target_y: L'ordonnée de la case de goal
+    :param chunk_limit: Le chunk dans lequel l'algorithme va être forcé à trouver un chemin dedans.
+    :return: Une liste des cases que l'ennemi? doit suivre
+    """
+    queue: PriorityQueue[Path] = PriorityQueue()
+    queue.put(Path([current_pos.copy()]))
 
     ter = sing.ROOT.game_objects["terrain"].over_terrain
 
@@ -219,6 +293,14 @@ def get_path2target(current_pos: Vector2,
 def get_path2nxt_chunk(current_pos: Vector2,
                        target_dir: str,
                        chunk_limit: pygame.Rect) -> list[Vector2]:
+    """
+    Fonction qui permet de trouver un chemin pour aller au prochain chunk
+
+    :param current_pos: La position actuell sur le grid
+    :param target_dir: La direction à laquelle qu'on veut avancer
+    :param chunk_limit: La taille d'un chunk
+    :return: Une liste de position que l'enemi? doit suivre
+    """
     x_obj, y_obj = None, None
     if target_dir == N:
         y_obj = chunk_limit.topleft[1]
@@ -232,11 +314,26 @@ def get_path2nxt_chunk(current_pos: Vector2,
 
 
 class MovementGenerator:
+    """
+    Classe qui permet de générer un mouvement qui respecte les hiboxes
+    """
     def __init__(self, hitbox: pygame.Surface, ref: GameObject):
+        """
+
+        :param hitbox: Un pygame.Surface qui définit la taille du hitbox
+        :param ref: Un gameobject qui utilise cette instance
+        """
         self.hitbox = hitbox
         self.ref = ref
 
     def move(self, dx: Union[int, float], dy: Union[int, float]) -> Vector2:
+        """
+        Retourne un mouvement valide en fonction de dx et dy
+
+        :param dx: Variation de la position sur l'abcisse
+        :param dy: Variation de la position sur l'ordonnée
+        :return: Le vecteur mouvement final
+        """
         # Check for collisions  https://youtu.be/m7GnJo_oZUU
         rp = self.ref.get_real_pos()
         dx_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(dx, 0))
