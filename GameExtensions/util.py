@@ -1,12 +1,16 @@
 import typing
 from typing import Union, Optional
+
 import math
+from queue import PriorityQueue
+
 import pygame
 from pygame.math import Vector2
-from GameManager.resources import load_img
+
 import GameManager.singleton as sing
-from GameManager.util import tuple2Vec2
-from queue import PriorityQueue
+from GameManager.resources import load_img
+from GameManager.util import tuple2Vec2, GameObject
+
 from GameExtensions.locals import N, S, W, E, CHUNK_SIZE, DIRS
 
 
@@ -258,3 +262,21 @@ class PathFinder2Pos:
                 new_path.coords.append(nxt)
                 new_path.cost = (len(new_path.coords) + ((self.x_obj - nxt.x) ** 2 + (self.y_obj - nxt.y) ** 2))
                 self.queue.put(new_path)
+
+
+class MovementGenerator:
+    def __init__(self, hitbox: pygame.Surface, ref: GameObject):
+        self.hitbox = hitbox
+        self.ref = ref
+
+    def move(self, dx: Union[int, float], dy: Union[int, float]) -> Vector2:
+        # Check for collisions  https://youtu.be/m7GnJo_oZUU
+        rp = self.ref.get_real_pos()
+        dx_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(dx, 0))
+        dy_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(0, dy))
+        if sing.ROOT.is_colliding(dx_tmp_rect, exclude=self.ref.name) != -1:
+            dx = 0
+        if sing.ROOT.is_colliding(dy_tmp_rect, exclude=self.ref.name) != -1:
+            dy = 0
+
+        return Vector2(dx, dy)
