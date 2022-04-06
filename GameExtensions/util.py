@@ -160,22 +160,6 @@ class Animator:
         return lst
 
 
-class PathFinderNoObstacles:
-    def __init__(self, current_pos: Vector2, target_pos: Vector2):
-        self.current = current_pos
-        self.target = target_pos
-
-    def get_next(self) -> pygame.Vector2:
-        diff_x = self.current.x - self.target.x
-        diff_y = self.current.y - self.target.y
-        if self.current == self.target:
-            return self.current
-        elif abs(diff_x) > abs(diff_y):
-            return self.current + Vector2(1 if diff_x < 0 else -1, 0)
-        else:
-            return self.current + Vector2(0, 1 if diff_y < 0 else -1)
-
-
 class Cell:
     def __init__(self, coords: list[Vector2], cost=0):
         self.coords: list[Vector2] = coords
@@ -188,80 +172,63 @@ class Cell:
         return self.cost < other.cost
 
 
-class PathFinder2NextChunk:
-    def __init__(self, current_pos: Vector2,
-                 target_dir: str,
-                 chunk_topleft: Vector2,
-                 chunk_rightbottom: Vector2):
-        self.cur = current_pos
-        self.target_dir = target_dir
-        self.chunk_topleft = chunk_topleft
-        self.chunk_rightbottom = chunk_rightbottom
-        self.queue: PriorityQueue[Cell] = PriorityQueue()
-        self.queue.put(Cell([self.cur.copy()]))
-        self.x_obj: Optional[int] = None
-        self.y_obj: Optional[int] = None
-        self.dirs = ((1, 0), (-1, 0), (0, 1), (0, -1))
-        self.path = []
-        self.map = sing.ROOT.game_objects["terrain"].over_terrain
-        if self.target_dir == N:
-            self.y_obj = self.chunk_topleft.y
-        elif self.target_dir == S:
-            self.y_obj = self.chunk_rightbottom.y
-        elif self.target_dir == E:
-            self.x_obj = self.chunk_rightbottom.x
-        elif self.target_dir == W:
-            self.x_obj = self.chunk_topleft.x
+def get_next_chunk(current_pos: Vector2,
+                   target_pos: Vector2) -> Vector2:
+    diff_x = current_pos.x - target_pos.x
+    diff_y = current_pos.y - target_pos.y
+    if current_pos == target_pos:
+        return current_pos
+    elif abs(diff_x) > abs(diff_y):
+        return current_pos + Vector2(1 if diff_x < 0 else -1, 0)
+    else:
+        return current_pos + Vector2(0, 1 if diff_y < 0 else -1)
 
-    def calculate(self):  # A-star path finding algorithm
-        while True:
-            cur = self.queue.get()
-            if cur.coords[-1].x == self.x_obj or cur.coords[-1].y == self.y_obj:
-                self.path = cur.coords
-                return self.path
 
-            for d in self.dirs:
-                nxt = Vector2(cur.coords[-1].x + d[0], cur.coords[-1].y + d[1])
-                if (not self.chunk_topleft.x <= nxt.x <= self.chunk_rightbottom.x) or \
-                        (not self.chunk_topleft.y <= nxt.y <= self.chunk_rightbottom.y) or \
-                        self.map[int(nxt.y)][int(nxt.x)] is not None or \
+def get_path2target(current_pos: Vector2,
+                    target_x: Optional[int],
+                    target_y: Optional[int],
+                    chunk_limit: Optional[pygame.Rect] = None) -> list[Vector2]:
+    queue: PriorityQueue[Cell] = PriorityQueue()
+    queue.put(Cell([current_pos.copy()]))
+
+    ter = sing.ROOT.game_objects["terrain"].over_terrain
+
+    while True:
+        cur = queue.get()
+        if target_x is None or target_y is None and (cur.coords[-1].x == target_x or cur.coords[-1].y == target_y):
+            return cur.coords
+        elif cur.coords[-1].x == target_x and cur.coords[-1].y == target_y:
+            return cur.coords
+
+        for d in DIRS:
+            nxt = Vector2(cur.coords[-1].x + d[0], cur.coords[-1].y + d[1])
+            if chunk_limit is not None:
+                if (not chunk_limit.topleft[0] <= nxt.x <= chunk_limit.bottomright[0]) or \
+                        (not chunk_limit.topleft[1] <= nxt.y <= chunk_limit.bottomright[1]) or \
+                        ter[int(nxt.y)][int(nxt.x)] is not None or \
                         nxt in cur.coords:
                     continue
 
-                new_path = cur.copy()
-                new_path.coords.append(nxt)
-                new_path.cost = (len(new_path.coords) + (((self.x_obj - nxt.x) if self.x_obj is not None else 0) ** 2 +
-                                                         ((self.y_obj - nxt.y) if self.y_obj is not None else 0) ** 2))
-                self.queue.put(new_path)
+            new_path = cur.copy()
+            new_path.coords.append(nxt)
+            new_path.cost = (len(new_path.coords) + (((target_x - nxt.x) if target_x is not None else 0) ** 2 +
+                                                     ((target_y - nxt.y) if target_y is not None else 0) ** 2))
+            queue.put(new_path)
 
 
-class PathFinder2Pos:
-    def __init__(self, current_pos: Vector2, target_pos: Vector2):
-        self.cur = current_pos
-        self.target = target_pos
-        self.queue: PriorityQueue[Cell] = PriorityQueue()
-        self.queue.put(Cell([self.cur.copy()]))
-        self.x_obj: int = int(self.target.x)
-        self.y_obj: int = int(self.target.y)
-        self.path = []
-        self.map = sing.ROOT.game_objects["terrain"].over_terrain
-
-    def calculate(self):  # A-star path finding algorithm
-        while True:
-            cur = self.queue.get()
-            if cur.coords[-1].x == self.x_obj or cur.coords[-1].y == self.y_obj:
-                self.path = cur.coords
-                return self.path
-
-            for d in DIRS:
-                nxt = Vector2(cur.coords[-1].x + d[0], cur.coords[-1].y + d[1])
-                if self.map[int(nxt.y)][int(nxt.x)] is not None or nxt in cur.coords:
-                    continue
-
-                new_path = cur.copy()
-                new_path.coords.append(nxt)
-                new_path.cost = (len(new_path.coords) + ((self.x_obj - nxt.x) ** 2 + (self.y_obj - nxt.y) ** 2))
-                self.queue.put(new_path)
+def get_path2nxt_chunk(current_pos: Vector2,
+                       target_dir: str,
+                       chunk_limit: pygame.Rect) -> list[Vector2]:
+    x_obj, y_obj = None, None
+    if target_dir == N:
+        y_obj = chunk_limit.topleft[1]
+    elif target_dir == S:
+        y_obj = chunk_limit.bottomright[1]
+    elif target_dir == E:
+        x_obj = chunk_limit.bottomright[0]
+    elif target_dir == W:
+        x_obj = chunk_limit.topleft[0]
+    return get_path2target(current_pos, x_obj, y_obj, chunk_limit)
 
 
 class MovementGenerator:

@@ -12,7 +12,6 @@ from GameExtensions.locals import *
 from GameExtensions.generate_terrain import Terrain
 from GameExtensions.player import Player
 from GameExtensions.field_objects import WoodBlock
-from GameExtensions.util import PathFinder2NextChunk
 from GameExtensions.enemy import TestEnemy
 
 import pygame
@@ -44,16 +43,6 @@ class RenderOverTerrain(GameObject):
 
     def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
         sing.ROOT.game_objects["terrain"].blit_over_terrain(screen)
-
-
-def path_test():
-    mp = [[None, 1,    None, None, None],
-          [None, None, None, None, None],
-          [None, 1,    None, None, None],
-          [None, None, 1,    1,    None],
-          [None, 1,    None, 1,    None]]
-    p = PathFinder2NextChunk(Vector2(0, 0), "s", Vector2(0, 0), Vector2(4, 4), mp)
-    print(p.calculate())
 
 
 if __name__ == "__main__":
