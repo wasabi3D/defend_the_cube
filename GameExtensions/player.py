@@ -4,7 +4,7 @@ from GameManager.locals import MOUSE_LEFT
 from GameManager.funcs import tuple2Vec2
 import GameManager.singleton as sing
 
-from GameExtensions.util import Animation, Animator, MovementGenerator
+from GameExtensions.util import Animation, Animator, MovementGenerator, get_grid_pos
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
 from GameExtensions.locals import HOLDABLE, PLACEABLE
@@ -66,7 +66,6 @@ class Player(GameObject):
 
     def update(self) -> None:
         self.animator.update(sing.ROOT.delta)
-
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0

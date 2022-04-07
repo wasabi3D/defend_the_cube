@@ -267,7 +267,7 @@ class ChildrenHolder(dict):
     """
     Une classe qui permet de contenir les objets enfants d'un gameobject. Tous gameobjets ont au moins 1 instance de
     ChildrenHolder.
-    Hérite la classe dict(dictionnaire) pour faciliter l'accès aux objets.
+    Hérite dict pour faciliter l'accès aux objets.
     """
 
     def __init__(self, parent: GameObject):

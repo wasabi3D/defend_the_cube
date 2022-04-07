@@ -37,7 +37,7 @@ def get_chunk_pos(coordinate: Vector2, chunk_size: int = CHUNK_SIZE) -> Vector2:
     """
     Calcule les coordonnées du chunk en fonction des coordonnées donnés
 
-    :param coordinate: La position sur le grid
+    :param coordinate: La position universelle
     :param chunk_size: La taille d'un chunk
     :return: Les coordonnées du chunk
     """
@@ -252,7 +252,8 @@ def get_next_chunk(current_pos: Vector2,
 def get_path2target(current_pos: Vector2,
                     target_x: Optional[int],
                     target_y: Optional[int],
-                    chunk_limit: Optional[pygame.Rect] = None) -> list[Vector2]:
+                    chunk_limit: Optional[pygame.Rect] = None,
+                    iter_limit: int = 12) -> list[Vector2]:
     """
     Calcule  un chemin pour aller à la case souhaitée à l'aide de l'algorithme A* (A-Star)
 
@@ -260,16 +261,20 @@ def get_path2target(current_pos: Vector2,
     :param target_x: L'abcisse de la case de goal
     :param target_y: L'ordonnée de la case de goal
     :param chunk_limit: Le chunk dans lequel l'algorithme va être forcé à trouver un chemin dedans.
+    :param iter_limit:
     :return: Une liste des cases que l'ennemi? doit suivre
     """
     queue: PriorityQueue[Path] = PriorityQueue()
     queue.put(Path([current_pos.copy()]))
 
     ter = sing.ROOT.game_objects["terrain"].over_terrain
+    counter = 0
 
     while True:
         cur = queue.get()
-        if target_x is None or target_y is None and (cur.coords[-1].x == target_x or cur.coords[-1].y == target_y):
+        if counter > iter_limit:
+            return cur.coords
+        if (target_x is None or target_y is None) and (cur.coords[-1].x == target_x or cur.coords[-1].y == target_y):
             return cur.coords
         elif cur.coords[-1].x == target_x and cur.coords[-1].y == target_y:
             return cur.coords

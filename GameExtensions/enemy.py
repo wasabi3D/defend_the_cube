@@ -29,6 +29,7 @@ class TestEnemy(GameObject):
     def update(self) -> None:
         player_pos = sing.ROOT.game_objects["player"].get_real_pos()
         dist = (self.get_real_pos().x - player_pos.x) ** 2 + (self.get_real_pos().y - player_pos.y) ** 2
+
         if get_chunk_pos(self.get_real_pos()) != self.cur_chunk or (len(self.objectives) == 0 and dist > 50):
             self.calculate_path(player_pos)
         if time.time() - self.last_checked > 5:
@@ -82,5 +83,7 @@ class TestEnemy(GameObject):
             return
         chunk_topleft = self.cur_chunk * CHUNK_SIZE
         pf = get_path2nxt_chunk(get_grid_pos(self.get_real_pos()), d,
-                                pygame.Rect(chunk_topleft.x - 2, chunk_topleft.y - 2, CHUNK_SIZE + 1, CHUNK_SIZE + 1))
+                                pygame.Rect(chunk_topleft.x - 2, chunk_topleft.y - 2, CHUNK_SIZE + 2, CHUNK_SIZE + 2))
         self.objectives += list(map(lambda pos: grid_pos2world_pos(pos), pf))
+        # print(pygame.Rect(chunk_topleft.x - 2, chunk_topleft.y - 2, CHUNK_SIZE + 1, CHUNK_SIZE + 1), d,
+        #       get_grid_pos(self.get_real_pos()))
