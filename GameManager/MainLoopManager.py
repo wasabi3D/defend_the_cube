@@ -26,12 +26,14 @@ class GameRoot:
         self.game_objects: OrderedDict[str, util.GameObject] = OrderedDict()
         self.collidable_objects: list[util.GameObject] = []
         self.global_fonts: dict[str, pygame.font.Font] = {}
+        self.object_collision_rects: list[pygame.Rect] = []
 
     def mainloop(self):
         done = False
 
         self.delta = 0
         while not done:
+            self.object_collision_rects.clear()
             t = pygame.time.get_ticks()
             self.key_ups.clear()
             self.key_downs.clear()
@@ -78,8 +80,9 @@ class GameRoot:
         self.collidable_objects.append(gameObject)
 
     def is_colliding(self, rect: pygame.Rect, exclude: Optional[str] = None) -> int:
-        # i = rect.collidelist(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
-        il = rect.collidelistall(tuple(map(lambda obj: obj.get_collision_rect(), self.collidable_objects)))
+        if len(self.object_collision_rects) == 0:
+            self.object_collision_rects = list(map(lambda obj: obj.get_collision_rect(), self.collidable_objects))
+        il = rect.collidelistall(self.object_collision_rects)
         for i in il:
             if self.collidable_objects[i].name != exclude:
                 return i
@@ -91,4 +94,3 @@ class GameRoot:
                 self.collidable_objects.pop(i)
                 return True
         return False
-

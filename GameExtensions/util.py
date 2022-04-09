@@ -293,6 +293,7 @@ def get_path2target(current_pos: Vector2,
             new_path.cost = (len(new_path.coords) + (((target_x - nxt.x) if target_x is not None else 0) ** 2 +
                                                      ((target_y - nxt.y) if target_y is not None else 0) ** 2))
             queue.put(new_path)
+        counter += 1
 
 
 def get_path2nxt_chunk(current_pos: Vector2,
