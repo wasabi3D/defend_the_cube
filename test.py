@@ -9,7 +9,7 @@ from GameExtensions.UI import FPS_Label, HPBar
 from GameExtensions.items import Apple, WoodBlockItem
 import GameExtensions.inventory as inv
 from GameExtensions.locals import *
-from GameExtensions.generate_terrain import Terrain
+from GameExtensions.generate_terrain import Terrain, RenderOverTerrain
 from GameExtensions.player import Player
 from GameExtensions.field_objects import WoodBlock
 from GameExtensions.enemy import TestEnemy
@@ -35,14 +35,6 @@ class TestObject(GameObject):
     def get_collision_rect(self) -> pygame.Rect:
         a = super().get_collision_rect()
         return a
-
-
-class RenderOverTerrain(GameObject):
-    def __init__(self):
-        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "RenderOverTerrain")
-
-    def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
-        sing.ROOT.game_objects["terrain"].blit_over_terrain(screen)
 
 
 if __name__ == "__main__":

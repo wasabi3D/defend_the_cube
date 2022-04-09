@@ -307,3 +307,11 @@ class Voronoi:
         # finalement on utilise les seed pour que tous les points dans la zone du tronçon soient du même type
         random.seed(closest_point_chunk[0] * (closest_point_chunk[1] + 1) + self.seed)
         return random.choice(self.chunk_types)
+
+
+class RenderOverTerrain(GameObject):
+    def __init__(self):
+        super().__init__(pygame.Vector2(0, 0), 0, pygame.Surface((0, 0)), "RenderOverTerrain")
+
+    def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
+        sing.ROOT.game_objects["terrain"].blit_over_terrain(screen)

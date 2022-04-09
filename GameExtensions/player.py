@@ -7,7 +7,7 @@ import GameManager.singleton as sing
 from GameExtensions.util import Animation, Animator, MovementGenerator, get_grid_pos
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
-from GameExtensions.locals import HOLDABLE, PLACEABLE
+from GameExtensions.locals import HOLDABLE, PLACEABLE, SWORD
 
 import pygame
 from pygame.locals import *
@@ -38,7 +38,7 @@ class Player(GameObject):
     """
     Classe qui définit le joueur.
     """
-    SPEED = 300
+    SPEED = 220
     DECEL_WHEN_HOLDING = 0.4
     DECEL_SHIFT = 0.6
     RIGHT = "right"
@@ -108,15 +108,6 @@ class Player(GameObject):
             sing.ROOT.camera_pos = self.get_real_pos().copy()
             
         # PUNCH
-        if sing.ROOT.mouse_downs[MOUSE_LEFT]:
-            self.children["slash"].slash()
-            ph = self.generate_punch_hitbox()
-            hit = sing.ROOT.is_colliding(ph)
-            if hit != -1:
-                obj = sing.ROOT.collidable_objects[hit]
-                if isinstance(obj, Resource):
-                    obj.on_mine()
-
         selected = self.inventory.hotbar[self.inventory.selected]
         if selected.name != self.last_hold:
             self.last_hold = selected.name
@@ -125,6 +116,16 @@ class Player(GameObject):
                 img = selected.img.copy()
                 self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item",
                                                                                 tags=selected.tag))
+
+        if sing.ROOT.mouse_downs[MOUSE_LEFT]:
+            if SWORD in selected.tag:
+                self.children["slash"].slash()
+            ph = self.generate_punch_hitbox()
+            hit = sing.ROOT.is_colliding(ph)
+            if hit != -1:
+                obj = sing.ROOT.collidable_objects[hit]
+                if isinstance(obj, Resource):
+                    obj.on_mine()
 
         super().update()
 

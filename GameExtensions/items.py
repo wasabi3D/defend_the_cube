@@ -1,5 +1,5 @@
 from GameExtensions.inventory import InventoryObject
-from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE
+from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE, SWORD
 
 from GameManager.resources import load_img
 import GameManager.singleton as sing
@@ -10,6 +10,7 @@ import pygame
 class Apple(InventoryObject):
     def __init__(self, n: int, font: pygame.font.Font):
         super().__init__("apple", load_img("resources/items/apple.png", ITEM_SPRITE_SIZE), n, font)
+        self.tag.append(SWORD)
 
     def copy(self):
         return Apple(self.n, self.font)

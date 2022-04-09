@@ -11,7 +11,7 @@ import GameManager.singleton as sing
 from GameManager.resources import load_img
 from GameManager.util import tuple2Vec2, GameObject, rad2deg
 
-from GameExtensions.locals import N, S, W, E, CHUNK_SIZE, DIRS
+from GameExtensions.locals import N, S, W, E, CHUNK_SIZE, DIRS, WATER_DECEL
 
 
 def get_grid_pos(coordinate: Vector2) -> Vector2:
@@ -342,8 +342,10 @@ class MovementGenerator:
         :param hitbox: Un pygame.Surface qui définit la taille du hitbox
         :param ref: Un gameobject qui utilise cette instance
         """
+        from GameExtensions.generate_terrain import Terrain
         self.hitbox = hitbox
         self.ref = ref
+        self.terrain: Terrain = sing.ROOT.game_objects["terrain"]
 
     def move(self, dx: Union[int, float], dy: Union[int, float]) -> Vector2:
         """
@@ -362,4 +364,10 @@ class MovementGenerator:
         if sing.ROOT.is_colliding(dy_tmp_rect, exclude=self.ref.name) != -1:
             dy = 0
 
-        return Vector2(dx, dy)
+        vec = Vector2(dx, dy)
+
+        grid_pos = get_grid_pos(rp)
+        if self.terrain.terrain[int(grid_pos.y)][int(grid_pos.x)] == self.terrain.WATER:
+            vec *= WATER_DECEL
+
+        return vec

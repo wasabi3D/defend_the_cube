@@ -86,7 +86,7 @@ class GameRoot:
         for i in il:
             if i > len(self.collidable_objects) - 1:
                 continue
-            if self.collidable_objects[i].name != exclude:  # index out of range error
+            if self.collidable_objects[i].name != exclude:
                 return i
         return -1
 
