@@ -9,7 +9,7 @@ from pygame.math import Vector2
 
 import GameManager.singleton as sing
 from GameManager.resources import load_img
-from GameManager.util import tuple2Vec2, GameObject
+from GameManager.util import tuple2Vec2, GameObject, rad2deg
 
 from GameExtensions.locals import N, S, W, E, CHUNK_SIZE, DIRS
 
@@ -138,15 +138,17 @@ class ShakeGenerator:
 
 
 class Animation:
-    def __init__(self, frames: list[pygame.Surface], frame_interval: float):
+    def __init__(self, frames: list[pygame.Surface], frame_interval: float, goto_on_end: Optional[str] = None):
         self.frames = frames
         self.interval = frame_interval
+        self.on_end = goto_on_end
 
 
 class Animator:
     """
     Classe qui permet de controller une animation d'un objet.
     """
+
     def __init__(self):
         self.animations: dict[str, Animation] = {}
         self.current: typing.Optional[str] = None
@@ -183,16 +185,25 @@ class Animator:
         self.timer += delta
         if self.animations[self.current].interval <= self.timer:
             self.cur_frame += 1
+            if self.cur_frame > len(self.animations[self.current].frames) - 1 \
+                    and self.animations[self.current].on_end is not None:
+                self.current = self.animations[self.current].on_end
+                self.cur_frame = 0
+
             self.cur_frame %= len(self.animations[self.current].frames)
             self.timer = 0
 
-    def get_cur_frame(self) -> pygame.Surface:
+    def get_cur_frame(self, rotation: Optional[float] = None) -> pygame.Surface:
         """
         Renvoie la frame de l'animation actuelle.
 
         :return: La frame
         """
-        return self.animations[self.current].frames[self.cur_frame]
+        img = self.animations[self.current].frames[self.cur_frame]
+        if rotation is None:
+            return img
+        else:
+            return pygame.transform.rotate(img, rad2deg(rotation))
 
     @staticmethod
     def load_frames_by_pattern(base_file_name: str, suffix: str, start_i: int, end_i: int, conv=lambda s: s,
@@ -218,6 +229,7 @@ class Path:
     """
     Classe utilisée pour calculer un chemin avec l'algorithme A*. Represente un chemin
     """
+
     def __init__(self, coords: list[Vector2], cost=0):
         self.coords: list[Vector2] = coords
         self.cost = cost
@@ -323,6 +335,7 @@ class MovementGenerator:
     """
     Classe qui permet de générer un mouvement qui respecte les hiboxes
     """
+
     def __init__(self, hitbox: pygame.Surface, ref: GameObject):
         """
 

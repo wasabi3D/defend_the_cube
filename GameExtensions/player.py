@@ -16,11 +16,22 @@ from pygame.math import Vector2
 import math
 
 
-class Hand(GameObject):
-    HAND_SIZE = (8, 8)
+class Slash(GameObject):
+    def __init__(self, pos: Vector2):
+        super().__init__(pos, math.pi / 2, load_img("resources/anim/slash/5.png"), "slash")
+        self.animator = Animator()
 
-    def __init__(self, pos: Vector2, rotation: float):
-        super().__init__(pos, rotation, load_img("resources/player/hand.png", Hand.HAND_SIZE), "hand")
+        b = "resources/anim/slash/"
+        self.animator.register_anim("slash", Animation(Animator.load_frames_by_pattern(b, ".png", 0, 9), 0.015, "calm"))
+        self.animator.register_anim("calm", Animation([pygame.Surface((1, 1))], 1))
+        self.animator.start_anim("calm")
+
+    def slash(self) -> None:
+        self.animator.start_anim("slash")
+
+    def update(self) -> None:
+        self.animator.update(sing.ROOT.delta)
+        self.image = self.animator.get_cur_frame(rotation=self.parent.rotation - math.pi / 2)
 
 
 class Player(GameObject):
@@ -45,18 +56,12 @@ class Player(GameObject):
         :param rotation: La rotation initiale.
         :param name: Le nom du joueur.
         """
-        super().__init__(pos, rotation, load_img("resources/player/body.png", Player.SPRITE_SIZE), name)
+        super().__init__(pos, rotation, load_img("resources/player/topdown/player_east.png", Player.SPRITE_SIZE), name)
         self.punch_hitbox = pygame.Surface((15, 15))
         self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
         self.facing = Player.RIGHT
-        self.animator = Animator()
-        base = "resources/player/topdown/"
-        self.animator.register_anim("north", Animation([load_img(base + "player_north.png")], 1))
-        self.animator.register_anim("south", Animation([load_img(base + "player_south.png")], 1))
-        self.animator.register_anim("west", Animation([load_img(base + "player_west.png")], 1))
-        self.animator.register_anim("east", Animation([load_img(base + "player_east.png")], 1))
-        self.animator.start_anim("east")
         self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
+        self.children.add_gameobject(Slash(Vector2(25, 0)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
         self.movment = MovementGenerator(self.player_hitbox, self)
         if not isinstance(self.inventory, Inventory):
@@ -65,36 +70,29 @@ class Player(GameObject):
         self.last_hold = ""
 
     def update(self) -> None:
-        self.animator.update(sing.ROOT.delta)
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0
         if pressed[K_w]:
             if self.facing != Player.UP:
-                self.animator.start_anim("north")
-                self.children["item_holder"].rotate(math.pi / 2, False)
+                self.rotate(math.pi / 2, False)
             dy += -1
             self.facing = Player.UP
         if pressed[K_s]:
             if self.facing != Player.DOWN:
-                self.animator.start_anim("south")
-                self.children["item_holder"].rotate(3 * math.pi / 2, False)
+                self.rotate(3 * math.pi / 2, False)
             dy += 1
             self.facing = Player.DOWN
         if pressed[K_d]:
             if self.facing != Player.RIGHT:
-                self.animator.start_anim("east")
-                self.children["item_holder"].rotate(0, False)
+                self.rotate(0, False)
             dx += 1
             self.facing = Player.RIGHT
         if pressed[K_a]:
             if self.facing != Player.LEFT:
-                self.animator.start_anim("west")
-                self.children["item_holder"].rotate(math.pi, False)
+                self.rotate(math.pi, False)
             dx += -1
             self.facing = Player.LEFT
-
-        self.image = self.animator.get_cur_frame()
 
         mov = Vector2(dx, dy)
         if mov.length_squared() != 0:
@@ -111,6 +109,7 @@ class Player(GameObject):
             
         # PUNCH
         if sing.ROOT.mouse_downs[MOUSE_LEFT]:
+            self.children["slash"].slash()
             ph = self.generate_punch_hitbox()
             hit = sing.ROOT.is_colliding(ph)
             if hit != -1:

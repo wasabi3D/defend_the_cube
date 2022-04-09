@@ -84,7 +84,9 @@ class GameRoot:
             self.object_collision_rects = list(map(lambda obj: obj.get_collision_rect(), self.collidable_objects))
         il = rect.collidelistall(self.object_collision_rects)
         for i in il:
-            if self.collidable_objects[i].name != exclude:
+            if i > len(self.collidable_objects) - 1:
+                continue
+            if self.collidable_objects[i].name != exclude:  # index out of range error
                 return i
         return -1
 

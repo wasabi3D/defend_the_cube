@@ -74,18 +74,8 @@ class Terrain(GameObject):
         self.rock_lim = 0.3
         self.rock_dens_lim = 0.7
 
-        d = os.getcwd() + r"\resources\test\grid"
-        self.GRASS = load_img("resources/environment/terrain/grass.png", (block_pixel_size, block_pixel_size))
-        # self.GRASS = pygame.transform.scale(pygame.image.load(d + r"\grass.png"),
-        #                                     (block_pixel_size, block_pixel_size))
         self.SAND = load_img("resources/environment/terrain/sand.png", (block_pixel_size, block_pixel_size))
-        # self.SAND = pygame.transform.scale(pygame.image.load(d + r"\sand.png"),
-        #                                    (block_pixel_size, block_pixel_size))
         self.WATER = load_img("resources/environment/terrain/water.png", (block_pixel_size, block_pixel_size))
-        # self.WATER = pygame.transform.scale(pygame.image.load(d + r"\water.png"),
-        #                                     (block_pixel_size, block_pixel_size))
-        self.TREE = pygame.transform.scale(pygame.image.load(d + r"\tree2.png"),
-                                           (block_pixel_size, block_pixel_size))
 
         self.biome_types = biome_types
         self.voronoi = Voronoi(seed=seed + 11, chunk_size=biome_chunk_size,
