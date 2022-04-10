@@ -76,7 +76,7 @@ class Tree(Resource):
         if self.has_apple:
             img = load_img("resources/environment/tree_with_apple.png", (size, size))
         else:
-            img = load_img("resources/environment/tree.png", (size, size))
+            img = load_img("resources/environment/tree_topdown.png", (size, size))
         super().__init__(pos, name, img, pygame.Surface((size * 0.4, size * 0.4)), Vector2(0, 20),
                          ShakeGenerator(15, -22, 13, 23, 0, 0.1, 0.9, 0.86))
         self.log_item = Log(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
@@ -98,7 +98,7 @@ class Rock(Resource):
         :param name: Le nom de l'objet.
         """
         size = randint(size_min, size_max)
-        img = ["rock.png", "rock2.png"]
+        img = ["rock_topdown.png"]
         super().__init__(pos, name, load_img(f"resources/environment/{choice(img)}", (size, size)),
                          pygame.Surface((size * 0.6, size * 0.4)), Vector2(0, 15),
                          ShakeGenerator(11, 8, 13, 17, 0, 0, 0.9, 0.9))
