@@ -5,7 +5,7 @@ from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 
-from GameExtensions.UI import FPS_Label, HPBar
+from GameExtensions.UI import FPS_Label, HPBar, Button
 from GameExtensions.items import Apple, WoodBlockItem
 import GameExtensions.inventory as inv
 from GameExtensions.locals import *
@@ -76,6 +76,8 @@ if __name__ == "__main__":
     inventory.add_obj_ins(Apple(5, inventory.font))
     inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
     inventory.add_obj_ins(WoodBlockItem(10, inventory.font))
+
+    root.add_gameObject(Button(Vector2(100, 100), 0, load_img("resources/test/frog.png"), "btn", lambda: print("frog")))
 
     # WoodBlock(Vector2(510, 0))
     # root.add_gameObject(TestObject(Vector2(0, 0), 0, load_img("resources/test/grid/grid_one.png"), "test_obj"))

@@ -3,6 +3,7 @@ from GameExtensions.locals import N, NE, NW, S, SE, SW, E, W, CENTER
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 from GameManager.resources import load_img
+from GameManager.locals import MOUSE_LEFT
 
 import pygame
 from pygame.math import Vector2
@@ -174,5 +175,55 @@ class HPBar(BaseUIObject):
     def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
         self.children["red"].prop = self.prop
         super().blit(screen, apply_alpha)
+
+
+class Button(BaseUIObject):
+    HOVERING_ALPHA = 210
+    CLICKED_ALPHA = 155
+    CL_ALPH_DURATION = 0.02
+
+    def __init__(self,
+                 pos: Vector2,
+                 rotation: float,
+                 image: pygame.Surface,
+                 name: str,
+                 on_mouse_down_func=None,
+                 on_mouse_up_func=None,
+                 anchor=NW):
+        super().__init__(pos, rotation, image, name, anchor=anchor)
+        self.mouse_down_f = on_mouse_down_func
+        self.mouse_up_f = on_mouse_up_func
+        self.timer = 0
+        self.clicking = False
+        self.hovering = False
+
+    def early_update(self) -> None:
+        super().early_update()
+        if self.surf_mult.r != 255 and not self.clicking:
+            self.timer += sing.ROOT.delta
+            if self.timer >= Button.CL_ALPH_DURATION:
+                self.surf_mult.set_rgb(255 if not self.hovering else Button.HOVERING_ALPHA)
+
+    def on_mouse_down(self, button: int):
+        if button == MOUSE_LEFT:
+            self.timer = 0
+            self.clicking = True
+            self.surf_mult.set_rgb(Button.CLICKED_ALPHA)
+            if self.mouse_down_f is not None:
+                self.mouse_down_f()
+
+    def on_mouse_up(self, button: int):
+        if button == MOUSE_LEFT:
+            self.clicking = False
+            if self.mouse_up_f is not None:
+                self.mouse_up_f()
+
+    def on_mouse_rect_enter(self):
+        self.surf_mult.set_rgb(Button.HOVERING_ALPHA)
+        self.hovering = True
+
+    def on_mouse_rect_exit(self):
+        self.surf_mult.set_rgb(255)
+        self.hovering = False
 
 

@@ -58,17 +58,20 @@ class GameRoot:
             # ___________
 
             for gm in self.game_objects.values():
-                gm.early_update()
+                if gm.enabled:
+                    gm.early_update()
 
             # ___MAIN UPDATE___
             for gm in self.game_objects.values():
-                gm.update()
+                if gm.enabled:
+                    gm.update()
             # _________________
 
             # __ BLIT THINGS ON THE SCREEN __
             self.display.fill(self.background)
             for gm in self.game_objects.values():
-                gm.blit(self.display)
+                if gm.enabled:
+                    gm.blit(self.display)
             pygame.display.update()
             self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)
@@ -96,3 +99,8 @@ class GameRoot:
                 self.collidable_objects.pop(i)
                 return True
         return False
+
+    def clear_objects(self):
+        self.game_objects.clear()
+        self.collidable_objects.clear()
+        self.object_collision_rects.clear()

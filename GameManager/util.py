@@ -262,6 +262,9 @@ class GameObject(Sprite):
     def get_collision_rect(self) -> pygame.Rect:
         return self.image.get_rect(center=self.get_real_pos())
 
+    def set_enabled(self, state: bool) -> None:
+        self.enabled = state
+
 
 class ChildrenHolder(dict):
     """

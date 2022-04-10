@@ -23,7 +23,7 @@ class Slash(GameObject):
 
         b = "resources/anim/slash/"
         self.animator.register_anim("slash", Animation(Animator.load_frames_by_pattern(b, ".png", 0, 9), 0.015, "calm"))
-        self.animator.register_anim("calm", Animation([pygame.Surface((1, 1))], 1))
+        self.animator.register_anim("calm", Animation([load_img("resources/blank.png")], 1))
         self.animator.start_anim("calm")
 
     def slash(self) -> None:
