@@ -23,8 +23,8 @@ class GameLoader(GameObject):
     def __init__(self):
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "loader")
         root.add_gameObject(TextLabel(Vector2(0, -25), 0, root.global_fonts["menu_font"], "Loading...", (200, 200, 200),
-                                      "loading_label", anchor=S))
-        root.add_gameObject(TextLabel(Vector2(0, -50), 0, root.global_fonts["menu_font"], "Generating terrain...",
+                                      "loading_label", anchor=S),
+                            TextLabel(Vector2(0, -50), 0, root.global_fonts["menu_font"], "Generating terrain...",
                                       (200, 200, 200), "state_label", anchor=S))
         self.ter: Optional[Terrain] = None
 
@@ -40,19 +40,21 @@ class GameLoader(GameObject):
             inventory = inv.Inventory(
                 (8, 6), Vector2(40, 40),
                 load_img("resources/UI/inventory.png"),
-                load_img("resources/UI/hotbar.png"), load_img("resources/UI/selected_item.png"),
+                load_img("resources/UI/hotbar.png"),
+                load_img("resources/UI/selected_item.png"),
                 "inventory",
                 root.global_fonts[ITEM_FONT_NAME]
             )
-            root.add_gameObject(self.ter)
-            root.add_gameObject(FPS_Label(Vector2(50, 20)))
-            root.add_gameObject(inventory)
-            root.add_gameObject(Player(Vector2(0, 0), 0, "player"))
-            root.add_gameObject(RenderOverTerrain())
-            root.game_objects.move_to_end("inventory")
-            root.add_gameObject(HPBar(Vector2(0, -20), S))
 
-            root.add_collidable_object(root.game_objects["player"])
+            root.add_gameObject(self.ter,
+                                FPS_Label(Vector2(50, 20)),
+                                inventory)\
+                .add_gameObject(Player(Vector2(0, 0), 0, "player"),
+                                RenderOverTerrain())\
+                .game_objects.move_to_end("inventory")
+
+            root.add_gameObject(HPBar(Vector2(0, -20), S))\
+                .add_collidable_object(root.game_objects["player"])
 
             inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
             time.sleep(2)

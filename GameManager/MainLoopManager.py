@@ -76,8 +76,11 @@ class GameRoot:
             self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)
 
-    def add_gameObject(self, gameObject: util.GameObject) -> None:
-        self.game_objects.setdefault(gameObject.name, gameObject)
+    def add_gameObject(self, *gameObject: util.GameObject):
+        print(gameObject)
+        for g in gameObject:
+            self.game_objects.setdefault(g.name, g)
+        return self
 
     def add_collidable_object(self, gameObject: util.GameObject) -> None:
         self.collidable_objects.append(gameObject)
