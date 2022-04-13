@@ -77,7 +77,6 @@ class GameRoot:
             self.clock.tick(self.fps_limit)
 
     def add_gameObject(self, *gameObject: util.GameObject):
-        print(gameObject)
         for g in gameObject:
             self.game_objects.setdefault(g.name, g)
         return self

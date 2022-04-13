@@ -1,9 +1,12 @@
+import math
+
 from GameManager.util import GameObject
 import GameManager.singleton as sing
 
 from GameExtensions.util import get_grid_pos, get_chunk_pos, MovementGenerator
 from GameExtensions.util import grid_pos2world_pos, get_path2target, get_next_chunk, get_path2nxt_chunk
 from GameExtensions.locals import N, W, S, E, CHUNK_SIZE, DIRS
+from GameExtensions.resources import load_img
 
 import pygame
 from pygame.math import Vector2
@@ -58,6 +61,15 @@ class TestEnemy(GameObject):
 
         mov = self.movement_gen.move(dx, dy)
 
+        if mov.x > 0 and abs(mov.x) > abs(mov.y):
+            self.rotate(0, False)
+        elif mov.x < 0 and abs(mov.x) > abs(mov.y):
+            self.rotate(-math.pi, False)
+        elif mov.y > 0:
+            self.rotate(3 * math.pi / 2, False)
+        elif mov.y < 0:
+            self.rotate(math.pi / 2, False)
+
         self.translate(mov)
         diff_x = abs(self.get_real_pos().x - self.objectives[0].x)
         diff_y = abs(self.get_real_pos().y - self.objectives[0].y)
@@ -85,5 +97,23 @@ class TestEnemy(GameObject):
         pf = get_path2nxt_chunk(get_grid_pos(self.get_real_pos()), d,
                                 pygame.Rect(chunk_topleft.x - 2, chunk_topleft.y - 2, CHUNK_SIZE + 2, CHUNK_SIZE + 2))
         self.objectives += list(map(lambda pos: grid_pos2world_pos(pos), pf))
-        # print(pygame.Rect(chunk_topleft.x - 2, chunk_topleft.y - 2, CHUNK_SIZE + 1, CHUNK_SIZE + 1), d,
-        #       get_grid_pos(self.get_real_pos()))
+
+
+class Zombie(TestEnemy):
+    ATK = 10
+    ATK_COOLDOWN = 2
+    ATK_RANGE = 50
+
+    def __init__(self, pos: Vector2, name: str):
+        super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name)
+        self.timer = 0
+        self.player = sing.ROOT.game_objects["player"]
+
+    def update(self) -> None:
+        super().update()
+        dist = self.player.get_real_pos().distance_squared_to(self.get_real_pos())
+        if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= self.ATK_COOLDOWN:
+            self.player.hp -= self.ATK
+            self.timer = 0
+        self.timer += sing.ROOT.delta
+

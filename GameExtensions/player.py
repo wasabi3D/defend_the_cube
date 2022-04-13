@@ -48,6 +48,7 @@ class Player(GameObject):
     SPRITE_SIZE = (32, 32)
     HAND_OFFSET = Vector2(15, -5)
     HITBOX_SIZE = (26, 26)
+    MAX_HP = 100
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         """
@@ -64,6 +65,7 @@ class Player(GameObject):
         self.children.add_gameobject(Slash(Vector2(25, 0)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
         self.movment = MovementGenerator(self.player_hitbox, self)
+        self.hp = Player.MAX_HP
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
@@ -126,6 +128,9 @@ class Player(GameObject):
                 obj = sing.ROOT.collidable_objects[hit]
                 if isinstance(obj, Resource):
                     obj.on_mine()
+
+        hpb = sing.ROOT.game_objects["HPBar"]
+        hpb.prop = self.hp / Player.MAX_HP
 
         super().update()
 

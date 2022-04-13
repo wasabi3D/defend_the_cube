@@ -11,6 +11,7 @@ from GameExtensions.UI import FPS_Label, HPBar, Button, TextLabel, BaseUIObject
 from GameExtensions.generate_terrain import Terrain, RenderOverTerrain
 from GameExtensions.locals import *
 from GameExtensions.player import Player
+from GameExtensions.enemy import Zombie
 from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
@@ -55,6 +56,7 @@ class GameLoader(GameObject):
 
             root.add_gameObject(HPBar(Vector2(0, -20), S))\
                 .add_collidable_object(root.game_objects["player"])
+            root.add_gameObject(Zombie(Vector2(-50, 100), "zombie"))
 
             inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
             time.sleep(2)

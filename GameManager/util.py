@@ -160,6 +160,8 @@ class GameObject(Sprite):
            remplacer la rotation actuelle par la valeur donnée.
         :return:
        """
+        if not additive and rotation == self.rotation:
+            return
         b4_rct = self.image.get_rect(center=self.rect.center)
         if additive:
             self.rotation += rotation
