@@ -48,17 +48,19 @@ class GameLoader(GameObject):
             )
 
             root.add_gameObject(self.ter,
-                                FPS_Label(Vector2(50, 20)),
                                 inventory)\
-                .add_gameObject(Player(Vector2(0, 0), 0, "player"),
-                                RenderOverTerrain())\
+                .add_gameObject(Player(Vector2(0, 0), 0, "player"))\
+                .add_gameObject(Zombie(Vector2(-50, 100), "zombie"))\
+                .add_gameObject(RenderOverTerrain())\
                 .game_objects.move_to_end("inventory")
 
-            root.add_gameObject(HPBar(Vector2(0, -20), S))\
+            root.add_gameObject(FPS_Label(Vector2(50, 20)),
+                                HPBar(Vector2(0, -20), S))\
                 .add_collidable_object(root.game_objects["player"])
-            root.add_gameObject(Zombie(Vector2(-50, 100), "zombie"))
+
 
             inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
+            inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
             time.sleep(2)
             root.game_objects.pop("loader")
             root.game_objects.pop("loading_label")

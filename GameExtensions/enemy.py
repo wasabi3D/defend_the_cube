@@ -103,6 +103,7 @@ class Zombie(TestEnemy):
     ATK = 10
     ATK_COOLDOWN = 2
     ATK_RANGE = 50
+    KNOCKBACK_FORCE = 500
 
     def __init__(self, pos: Vector2, name: str):
         super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name)
@@ -112,8 +113,9 @@ class Zombie(TestEnemy):
     def update(self) -> None:
         super().update()
         dist = self.player.get_real_pos().distance_squared_to(self.get_real_pos())
-        if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= self.ATK_COOLDOWN:
+        if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= Zombie.ATK_COOLDOWN:
             self.player.hp -= self.ATK
             self.timer = 0
+            self.player.knockback += (self.player.get_real_pos() - self.get_real_pos()).normalize() * \
+                                    Zombie.KNOCKBACK_FORCE
         self.timer += sing.ROOT.delta
-

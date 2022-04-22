@@ -34,6 +34,41 @@ class Slash(GameObject):
         self.image = self.animator.get_cur_frame(rotation=self.parent.rotation - math.pi / 2)
 
 
+class Hands(GameObject):
+    DEFAULT_Y = 12
+    ANIM_TIME = 0.15
+    ANIM_DIST = 15
+
+    def __init__(self, pos: Vector2):
+        super().__init__(pos, 0, pygame.Surface((0, 0)), "hands")
+        hand_img = load_img("resources/player/hand.png", (10, 10))
+        self.children.add_gameobject(GameObject(Vector2(0, Hands.DEFAULT_Y), 0, hand_img, "right_hand"))
+        self.children.add_gameobject(GameObject(Vector2(0, -Hands.DEFAULT_Y), 0, hand_img, "left_hand"))
+        self.children["right_hand"].children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item"))
+        self.fw = True  # si la main droite avance ou pas
+        self.time_remain = 0
+
+    def update(self):
+        if self.time_remain > 0:
+            self.time_remain -= sing.ROOT.delta
+            d = Hands.ANIM_DIST / Hands.ANIM_TIME
+            self.children["right_hand"].translate(Vector2(d * (1 if self.fw else -1) * sing.ROOT.delta, 0))
+            self.children["left_hand"].translate(Vector2(d * (-1 if self.fw else 1) * sing.ROOT.delta, 0))
+        else:
+            if self.fw:
+                self.fw = False
+                self.time_remain = Hands.ANIM_TIME / 2
+                self.children["right_hand"].translate(Vector2(Hands.ANIM_DIST, Hands.DEFAULT_Y), False)
+                self.children["left_hand"].translate(Vector2(-Hands.ANIM_DIST, -Hands.DEFAULT_Y), False)
+            else:
+                self.children["right_hand"].translate(Vector2(0, Hands.DEFAULT_Y), False)
+                self.children["left_hand"].translate(Vector2(0, -Hands.DEFAULT_Y), False)
+
+    def punch(self):
+        self.fw = True
+        self.time_remain = Hands.ANIM_TIME / 2
+
+
 class Player(GameObject):
     """
     Classe qui définit le joueur.
@@ -49,6 +84,7 @@ class Player(GameObject):
     HAND_OFFSET = Vector2(15, -5)
     HITBOX_SIZE = (26, 26)
     MAX_HP = 100
+    KNOCKBACK_RECOVER = 0.1
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         """
@@ -62,10 +98,12 @@ class Player(GameObject):
         self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
         self.facing = Player.RIGHT
         self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
+        self.children.add_gameobject(Hands(Vector2(18, 0)))
         self.children.add_gameobject(Slash(Vector2(25, 0)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
         self.movment = MovementGenerator(self.player_hitbox, self)
         self.hp = Player.MAX_HP
+        self.knockback: Vector2 = Vector2(0, 0)
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
@@ -96,6 +134,7 @@ class Player(GameObject):
             dx += -1
             self.facing = Player.LEFT
 
+        self.knockback -= self.knockback * Player.KNOCKBACK_RECOVER
         mov = Vector2(dx, dy)
         if mov.length_squared() != 0:
             mov.normalize_ip()
@@ -105,21 +144,28 @@ class Player(GameObject):
                 mov *= Player.DECEL_WHEN_HOLDING
             if pressed[K_LSHIFT]:
                 mov *= Player.DECEL_SHIFT
-            mov = self.movment.move(mov.x, mov.y)
-            self.translate(mov)
-            sing.ROOT.camera_pos = self.get_real_pos().copy()
-            
-        # PUNCH
+
+        sum_vec = mov + self.knockback * sing.ROOT.delta
+
+        self.translate(self.movment.move(sum_vec.x, sum_vec.y))
+        sing.ROOT.camera_pos = self.get_real_pos().copy()
+
         selected = self.inventory.hotbar[self.inventory.selected]
         if selected.name != self.last_hold:
             self.last_hold = selected.name
             self.children["item_holder"].children.clear()
+
+            self.children["hands"].children["right_hand"].children.clear()
+            new_img = pygame.Surface((0, 0)) if selected.name == 'empty' else pygame.transform.scale(selected.img, (12, 12))
+            self.children["hands"].children["right_hand"].children.add_gameobject(GameObject(Vector2(2, -6), 0, new_img, "item"))
+
             if HOLDABLE in selected.tag:
                 img = selected.img.copy()
                 self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item",
                                                                                 tags=selected.tag))
 
         if sing.ROOT.mouse_downs[MOUSE_LEFT]:
+            self.children["hands"].punch()
             if SWORD in selected.tag:
                 self.children["slash"].slash()
             ph = self.generate_punch_hitbox()
