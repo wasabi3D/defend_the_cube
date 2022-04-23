@@ -1,7 +1,5 @@
 import typing
-
 import pygame
-
 import GameExtensions.locals as loc
 from GameManager.util import GameObject
 

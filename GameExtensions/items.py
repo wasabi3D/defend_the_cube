@@ -59,3 +59,14 @@ class WoodBlockItem(InventoryObject):
             WoodBlock(pos)
             self.n -= 1  # There's a problem with this thing
 
+
+class Sword(InventoryObject):
+    def __init__(self, n: int, font: pygame.font.Font):
+        super().__init__("iron_sword", load_img("resources/items/iron_sword.png"), n, font)
+        self.tag.append(SWORD)
+
+    def copy(self):
+        return WoodBlockItem(self.n, self.font)
+
+    def on_use(self):
+        pass

@@ -37,6 +37,7 @@ class Slash(GameObject):
 class Hands(GameObject):
     DEFAULT_Y = 12
     ANIM_TIME = 0.15
+    SWORD_ANIM_TIME = 0.2
     ANIM_DIST = 15
 
     def __init__(self, pos: Vector2):
@@ -46,27 +47,44 @@ class Hands(GameObject):
         self.children.add_gameobject(GameObject(Vector2(0, -Hands.DEFAULT_Y), 0, hand_img, "left_hand"))
         self.children["right_hand"].children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item"))
         self.fw = True  # si la main droite avance ou pas
+        self.sword_mode = False
         self.time_remain = 0
+        self.distance_from_parent = Vector2(0, 0).distance_to(self.pos + self.children["right_hand"].pos)
+        self.x_dist_from_parent = self.pos.x + self.children["right_hand"].pos.x
 
     def update(self):
         if self.time_remain > 0:
             self.time_remain -= sing.ROOT.delta
             d = Hands.ANIM_DIST / Hands.ANIM_TIME
-            self.children["right_hand"].translate(Vector2(d * (1 if self.fw else -1) * sing.ROOT.delta, 0))
-            self.children["left_hand"].translate(Vector2(d * (-1 if self.fw else 1) * sing.ROOT.delta, 0))
-        else:
-            if self.fw:
-                self.fw = False
-                self.time_remain = Hands.ANIM_TIME / 2
-                self.children["right_hand"].translate(Vector2(Hands.ANIM_DIST, Hands.DEFAULT_Y), False)
-                self.children["left_hand"].translate(Vector2(-Hands.ANIM_DIST, -Hands.DEFAULT_Y), False)
+
+            if self.sword_mode:
+                time = Hands.SWORD_ANIM_TIME
+                angle = (math.pi / 2) * (((time - self.time_remain) / time)) - (math.pi / 2) * 1
+                x = math.cos(angle) * self.distance_from_parent
+                y = math.sin(angle) * self.distance_from_parent
+                self.children["right_hand"].translate(Vector2(x, -y) - Vector2(self.x_dist_from_parent, 0), False)
             else:
+                self.children["right_hand"].translate(Vector2(d * (1 if self.fw else -1) * sing.ROOT.delta, 0))
+                self.children["left_hand"].translate(Vector2(d * (-1 if self.fw else 1) * sing.ROOT.delta, 0))
+        else:
+            if self.sword_mode:
+                self.fw = False
                 self.children["right_hand"].translate(Vector2(0, Hands.DEFAULT_Y), False)
                 self.children["left_hand"].translate(Vector2(0, -Hands.DEFAULT_Y), False)
+            else:
+                if self.fw:
+                    self.fw = False
+                    self.time_remain = Hands.ANIM_TIME / 2
+                    self.children["right_hand"].translate(Vector2(Hands.ANIM_DIST, Hands.DEFAULT_Y), False)
+                    self.children["left_hand"].translate(Vector2(-Hands.ANIM_DIST, -Hands.DEFAULT_Y), False)
+                else:
+                    self.children["right_hand"].translate(Vector2(0, Hands.DEFAULT_Y), False)
+                    self.children["left_hand"].translate(Vector2(0, -Hands.DEFAULT_Y), False)
 
-    def punch(self):
+    def punch(self, sword_mode=False):
+        self.sword_mode = sword_mode
         self.fw = True
-        self.time_remain = Hands.ANIM_TIME / 2
+        self.time_remain = Hands.SWORD_ANIM_TIME if sword_mode else Hands.ANIM_TIME / 2
 
 
 class Player(GameObject):
@@ -99,7 +117,7 @@ class Player(GameObject):
         self.facing = Player.RIGHT
         self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
         self.children.add_gameobject(Hands(Vector2(18, 0)))
-        self.children.add_gameobject(Slash(Vector2(25, 0)))
+        self.children.add_gameobject(Slash(Vector2(35, 10)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
         self.movment = MovementGenerator(self.player_hitbox, self)
         self.hp = Player.MAX_HP
@@ -165,9 +183,11 @@ class Player(GameObject):
                                                                                 tags=selected.tag))
 
         if sing.ROOT.mouse_downs[MOUSE_LEFT]:
-            self.children["hands"].punch()
             if SWORD in selected.tag:
+                self.children["hands"].punch(sword_mode=True)
                 self.children["slash"].slash()
+            else:
+                self.children["hands"].punch(sword_mode=False)
             ph = self.generate_punch_hitbox()
             hit = sing.ROOT.is_colliding(ph)
             if hit != -1:

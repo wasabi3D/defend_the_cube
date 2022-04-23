@@ -16,7 +16,12 @@ from typing import Optional
 import time
 
 
-class TestEnemy(GameObject):
+class Enemy(GameObject):  # Every enemy related class must inherit this
+    def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str):
+        super().__init__(pos, rotation, image, name)
+
+
+class TestEnemy(Enemy):
     def __init__(self, pos: Vector2, image: pygame.Surface, name: str):
         super().__init__(pos, 0, image, name)
         self.objectives: list[Vector2] = [self.get_real_pos()]

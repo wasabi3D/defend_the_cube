@@ -12,6 +12,7 @@ from GameExtensions.generate_terrain import Terrain, RenderOverTerrain
 from GameExtensions.locals import *
 from GameExtensions.player import Player
 from GameExtensions.enemy import Zombie
+from GameExtensions.items import *
 from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
@@ -61,6 +62,7 @@ class GameLoader(GameObject):
 
             inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
             inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
+            inventory.add_obj_ins(Sword(1, root.global_fonts[ITEM_FONT_NAME]))
             time.sleep(2)
             root.game_objects.pop("loader")
             root.game_objects.pop("loading_label")
