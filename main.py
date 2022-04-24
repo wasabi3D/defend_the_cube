@@ -64,6 +64,7 @@ class GameLoader(GameObject):
             inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
             inventory.add_obj_ins(WoodBlockItem(10, inventory.font))
             inventory.add_obj_ins(Sword(1))
+            inventory.add_obj_ins(Book())
             time.sleep(2)
             root.game_objects.pop("loader")
             root.game_objects.pop("loading_label")

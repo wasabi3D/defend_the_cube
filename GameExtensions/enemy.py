@@ -4,7 +4,7 @@ import GameManager.singleton as sing
 
 from GameExtensions.util import get_grid_pos, get_chunk_pos, Entity
 from GameExtensions.util import grid_pos2world_pos, get_path2target, get_next_chunk, get_path2nxt_chunk
-from GameExtensions.locals import N, W, S, E, CHUNK_SIZE, DIRS
+from GameExtensions.locals import N, W, S, E, CHUNK_SIZE, DIRS, ENEMY
 from GameExtensions.resources import load_img
 
 import pygame
@@ -18,10 +18,11 @@ import time
 class Enemy(Entity):  # Every enemy related class must inherit this
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str, hp: int, max_hp: int):
         super().__init__(pos, rotation, image, name, hp, max_hp, image)
+        self.tags.append(ENEMY)
 
 
 class TestEnemy(Enemy):
-    def __init__(self, pos: Vector2, image: pygame.Surface, name: str, hp: int):
+    def __init__(self, pos: Vector2, image: pygame.Surface, name: str, hp: int, speed: int):
         super().__init__(pos, 0, image, name, hp, hp)
         self.objectives: list[Vector2] = [self.get_real_pos()]
         self.cur_chunk: Optional[Vector2] = None
@@ -31,6 +32,7 @@ class TestEnemy(Enemy):
         self.check_pos = self.get_real_pos().copy()
         self.last_checked = time.time()
         self.map = sing.ROOT.game_objects["terrain"].over_terrain
+        self.speed = speed
         sing.ROOT.add_collidable_object(self)
 
     def update(self) -> None:
@@ -63,7 +65,7 @@ class TestEnemy(Enemy):
 
         mov_vec = (self.objectives[0] - self.get_real_pos())
         if mov_vec.length_squared() > 0:
-            mov_vec.normalize_ip()
+            mov_vec = mov_vec.normalize() * self.speed
         dx = mov_vec.x
         dy = mov_vec.y
 
@@ -111,11 +113,11 @@ class Zombie(TestEnemy):
     ATK = 10
     ATK_COOLDOWN = 2
     ATK_RANGE = 50
-    KNOCKBACK_FORCE = 500
+    KNOCKBACK_FORCE = 550
     MAX_HP = 100
 
     def __init__(self, pos: Vector2, name: str):
-        super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name, Zombie.MAX_HP)
+        super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name, Zombie.MAX_HP, 0.5)
         self.timer = 0
         self.player = sing.ROOT.game_objects["player"]
 

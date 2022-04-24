@@ -7,7 +7,7 @@ import GameManager.singleton as sing
 from GameExtensions.util import Animation, Animator, MovementGenerator, Entity
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
-from GameExtensions.locals import HOLDABLE, PLACEABLE, SLASHABLE
+from GameExtensions.locals import *
 from GameExtensions.items import Weapon
 from GameExtensions.enemy import Enemy
 
@@ -114,6 +114,7 @@ class Player(Entity):
         """
         super().__init__(pos, rotation, load_img("resources/player/topdown/player_east.png", Player.SPRITE_SIZE), name,
                          Player.MAX_HP, Player.MAX_HP, pygame.Surface(Player.HITBOX_SIZE))
+        self.mov_gen.kb_decay = 0.08
         self.punch_hitbox = pygame.Surface((15, 15))
         # self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
         self.facing = Player.RIGHT
@@ -189,7 +190,7 @@ class Player(Entity):
             if SLASHABLE in selected.tag:
                 self.children["hands"].punch(sword_mode=True)
                 self.children["slash"].slash()
-            elif HOLDABLE not in selected.tag:
+            elif HOLDABLE not in selected.tag and DONT_SLASH not in selected.tag:
                 self.children["hands"].punch(sword_mode=False)
 
             ph = self.generate_punch_hitbox()
@@ -230,6 +231,11 @@ class Player(Entity):
             return self.punch_hitbox.get_rect(center=p + Vector2(0, -20))
         elif self.facing == Player.DOWN:
             return self.punch_hitbox.get_rect(center=p + Vector2(0, 20))
+
+    def get_direction_vec(self) -> Vector2:
+        x = math.cos(self.rotation)
+        y = -math.sin(self.rotation)
+        return Vector2(x, y).normalize()
 
     def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
         screen.blit(self.image, self.image.get_rect(center=tuple2Vec2(sing.ROOT.screen_dim) / 2))

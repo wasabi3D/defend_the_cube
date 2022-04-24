@@ -1,10 +1,14 @@
 from GameExtensions.inventory import InventoryObject
-from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE, SLASHABLE
+from GameExtensions.locals import *
 
 from GameManager.resources import load_img
 import GameManager.singleton as sing
+from GameManager.util import GameObject
 
 import pygame
+from pygame.math import Vector2
+
+from typing import Optional
 
 
 class Apple(InventoryObject):
@@ -16,7 +20,7 @@ class Apple(InventoryObject):
         return Apple(self.n, self.font)
 
     def on_use(self):
-        print("apple")
+        pass
 
 
 class Log(InventoryObject):
@@ -27,7 +31,7 @@ class Log(InventoryObject):
         return Log(self.n, self.font)
 
     def on_use(self):
-        print("log")
+        pass
 
 
 class Stone(InventoryObject):
@@ -38,7 +42,7 @@ class Stone(InventoryObject):
         return Stone(self.n, self.font)
 
     def on_use(self):
-        print("stone")
+        pass
 
 
 class WoodBlockItem(InventoryObject):
@@ -76,3 +80,44 @@ class Sword(Weapon):
 
     def on_use(self):
         pass
+
+
+class MagicBullet(GameObject):
+    SPEED = 180
+    DIR_CORRECTION = 0.8
+    TARGET_DETECT_DISTANCE = 140
+
+    def __init__(self, pos: Vector2, direction: Vector2):
+        super().__init__(pos, 0, load_img("resources/player/magic_bullet.png", (16, 16)),
+                         f"mb{pygame.time.get_ticks()}")
+        self.direction = direction
+        self.target: Optional[GameObject] = None
+
+    def update(self) -> None:
+        self.translate(self.direction * MagicBullet.SPEED * sing.ROOT.delta)
+
+        if self.target is None:
+            for gm in sing.ROOT.get_obj_list_by_tag(ENEMY):
+                if gm.get_real_pos().distance_squared_to(self.get_real_pos()) <= MagicBullet.TARGET_DETECT_DISTANCE ** 2:
+                    self.target = gm
+                    break
+        else:
+            if self.image.get_rect(center=self.get_real_pos()).colliderect(
+                    self.target.image.get_rect(center=self.target.get_real_pos())):
+                sing.ROOT.objects2be_removed.append(self)
+                return
+            self.direction += (self.target.get_real_pos() - self.get_real_pos()).normalize() * MagicBullet.DIR_CORRECTION
+            self.direction.normalize_ip()
+
+
+class Book(Weapon):
+    def __init__(self):
+        super().__init__("book", load_img("resources/items/book.png"), 1, 10)
+        self.tag.append(DONT_SLASH)
+        self.player = sing.ROOT.game_objects["player"]
+
+    def copy(self):
+        return Book()
+
+    def on_use(self):
+        sing.ROOT.objects2be_added.append(MagicBullet(self.player.get_real_pos(), self.player.get_direction_vec()))

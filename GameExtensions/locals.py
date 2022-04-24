@@ -37,10 +37,13 @@ ITEM_SPRITE_SIZE: Final = (32, 32)
 HOLDABLE: Final = "holdable"
 PLACEABLE: Final = "placeable"
 SLASHABLE: Final = "sword"
+DONT_SLASH = "dont_slash"
 
 CHUNK_SIZE: Final = 40
 
 DIRS: Final = ((1, 0), (0, 1), (-1, 0), (0, -1))
 
-WATER_DECEL: Final= 0.45
+WATER_DECEL: Final = 0.45
+
+ENEMY = "enemy"
 

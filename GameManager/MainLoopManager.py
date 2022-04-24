@@ -28,6 +28,8 @@ class GameRoot:
         self.global_fonts: dict[str, pygame.font.Font] = {}
         self.object_collision_rects: list[pygame.Rect] = []
         self.objects2be_removed: list[util.GameObject] = []
+        self.objects2be_added: list[util.GameObject] = []
+        self.objects_by_tag: dict[str, list[util.GameObject]] = {}
 
     def mainloop(self):
         done = False
@@ -35,6 +37,8 @@ class GameRoot:
         self.delta = 0
         while not done:
             self.object_collision_rects.clear()
+            for l in self.objects_by_tag.values():
+                l.clear()
             t = pygame.time.get_ticks()
             self.key_ups.clear()
             self.key_downs.clear()
@@ -68,13 +72,17 @@ class GameRoot:
                     gm.update()
             # _________________
 
-            # ___ REMOVE OBJECTS ___
+            # ___ ADD/REMOVE OBJECTS ___
+            for gm in self.objects2be_added:
+                self.add_gameObject(gm)
+
             for gm in self.objects2be_removed:
                 try:
                     self.game_objects.pop(gm.name)
                 except KeyError:
                     pass
                 self.remove_collidable_object(gm)
+            self.objects2be_added.clear()
             self.objects2be_removed.clear()
             # _________________
 
@@ -134,3 +142,15 @@ class GameRoot:
         self.game_objects.clear()
         self.collidable_objects.clear()
         self.object_collision_rects.clear()
+
+    def get_obj_list_by_tag(self, tag: str) -> list[util.GameObject]:
+        if tag not in self.objects_by_tag.keys():
+            self.objects_by_tag[tag] = []
+
+        if len(self.objects_by_tag[tag]) == 0:
+            for gm in self.game_objects.values():
+                if tag in gm.tags:
+                    self.objects_by_tag[tag].append(gm)
+
+        return self.objects_by_tag[tag]
+
