@@ -1,9 +1,8 @@
 import math
 
-from GameManager.util import GameObject
 import GameManager.singleton as sing
 
-from GameExtensions.util import get_grid_pos, get_chunk_pos, MovementGenerator
+from GameExtensions.util import get_grid_pos, get_chunk_pos, Entity
 from GameExtensions.util import grid_pos2world_pos, get_path2target, get_next_chunk, get_path2nxt_chunk
 from GameExtensions.locals import N, W, S, E, CHUNK_SIZE, DIRS
 from GameExtensions.resources import load_img
@@ -16,15 +15,14 @@ from typing import Optional
 import time
 
 
-class Enemy(GameObject):  # Every enemy related class must inherit this
-    def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str):
-        super().__init__(pos, rotation, image, name)
-        self.hp = 100  # TMP
+class Enemy(Entity):  # Every enemy related class must inherit this
+    def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str, hp: int, max_hp: int):
+        super().__init__(pos, rotation, image, name, hp, max_hp, image)
 
 
 class TestEnemy(Enemy):
-    def __init__(self, pos: Vector2, image: pygame.Surface, name: str):
-        super().__init__(pos, 0, image, name)
+    def __init__(self, pos: Vector2, image: pygame.Surface, name: str, hp: int):
+        super().__init__(pos, 0, image, name, hp, hp)
         self.objectives: list[Vector2] = [self.get_real_pos()]
         self.cur_chunk: Optional[Vector2] = None
 
@@ -33,11 +31,11 @@ class TestEnemy(Enemy):
         self.check_pos = self.get_real_pos().copy()
         self.last_checked = time.time()
         self.map = sing.ROOT.game_objects["terrain"].over_terrain
-        self.movement_gen = MovementGenerator(self.image, self)
         sing.ROOT.add_collidable_object(self)
 
     def update(self) -> None:
-        if self.hp < 0:
+        super().update()
+        if self.hp <= 0:
             sing.ROOT.remove_object(self)
             return
         player_pos = sing.ROOT.game_objects["player"].get_real_pos()
@@ -69,7 +67,7 @@ class TestEnemy(Enemy):
         dx = mov_vec.x
         dy = mov_vec.y
 
-        mov = self.movement_gen.move(dx, dy)
+        mov = self.mov_gen.move(dx, dy)
 
         if mov.x > 0 and abs(mov.x) > abs(mov.y):
             self.rotate(0, False)
@@ -114,9 +112,10 @@ class Zombie(TestEnemy):
     ATK_COOLDOWN = 2
     ATK_RANGE = 50
     KNOCKBACK_FORCE = 500
+    MAX_HP = 100
 
     def __init__(self, pos: Vector2, name: str):
-        super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name)
+        super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name, Zombie.MAX_HP)
         self.timer = 0
         self.player = sing.ROOT.game_objects["player"]
 
@@ -124,8 +123,7 @@ class Zombie(TestEnemy):
         super().update()
         dist = self.player.get_real_pos().distance_squared_to(self.get_real_pos())
         if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= Zombie.ATK_COOLDOWN:
-            self.player.hp -= self.ATK
             self.timer = 0
-            self.player.knockback += (self.player.get_real_pos() - self.get_real_pos()).normalize() * \
-                                    Zombie.KNOCKBACK_FORCE
+            self.player.get_damage(self.ATK, (self.player.get_real_pos() - self.get_real_pos()).normalize() * \
+                                   Zombie.KNOCKBACK_FORCE)
         self.timer += sing.ROOT.delta

@@ -336,26 +336,35 @@ class MovementGenerator:
     Classe qui permet de générer un mouvement qui respecte les hiboxes
     """
 
-    def __init__(self, hitbox: pygame.Surface, ref: GameObject):
+    def __init__(self, hitbox: pygame.Surface, ref: GameObject, knockback_decay: float = 0.1):
         """
 
         :param hitbox: Un pygame.Surface qui définit la taille du hitbox
-        :param ref: Un gameobject qui utilise cette instance
+        :param ref: le gameobject qui utilise cette instance
         """
         from GameExtensions.generate_terrain import Terrain
         self.hitbox = hitbox
         self.ref = ref
         self.terrain: Terrain = sing.ROOT.game_objects["terrain"]
+        self.knockback = Vector2(0, 0)
+        self.kb_decay = knockback_decay
 
-    def move(self, dx: Union[int, float], dy: Union[int, float]) -> Vector2:
+    def update_knockback(self):
+        self.knockback -= self.knockback * self.kb_decay
+
+    def move(self, dx: Union[int, float], dy: Union[int, float], include_knockback=True) -> Vector2:
         """
         Retourne un mouvement valide en fonction de dx et dy
 
         :param dx: Variation de la position sur l'abcisse
         :param dy: Variation de la position sur l'ordonnée
+        :param include_knockback: Si on prend en compte le knockback ou pas
         :return: Le vecteur mouvement final
         """
         # Check for collisions  https://youtu.be/m7GnJo_oZUU
+        if include_knockback:
+            dx += self.knockback.x * sing.ROOT.delta
+            dy += self.knockback.y * sing.ROOT.delta
         rp = self.ref.get_real_pos()
         dx_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(dx, 0))
         dy_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(0, dy))
@@ -371,3 +380,28 @@ class MovementGenerator:
             vec *= WATER_DECEL
 
         return vec
+
+
+class Entity(GameObject):
+    def __init__(self, pos: Vector2,
+                 rotation: float,
+                 image: pygame.Surface,
+                 name: str,
+                 hp: int,
+                 max_hp: int,
+                 hitbox: Optional[pygame.Surface] = None):
+        super().__init__(pos, rotation, image, name)
+        self.mov_gen = MovementGenerator(hitbox if hitbox is not None else self.image, self)
+        self.hp = hp
+        self.max_hp = max_hp
+
+    def get_damage(self, amount: int, knockback_force: Optional[Vector2] = None) -> None:
+        self.hp = max(min(self.hp - amount, self.max_hp), 0)
+        if knockback_force is not None:
+            self.mov_gen.knockback += knockback_force
+
+    def update(self) -> None:
+        super().update()
+        self.mov_gen.update_knockback()
+
+

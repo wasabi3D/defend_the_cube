@@ -4,7 +4,7 @@ from GameManager.locals import MOUSE_LEFT
 from GameManager.funcs import tuple2Vec2
 import GameManager.singleton as sing
 
-from GameExtensions.util import Animation, Animator, MovementGenerator, get_grid_pos
+from GameExtensions.util import Animation, Animator, MovementGenerator, Entity
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
 from GameExtensions.locals import HOLDABLE, PLACEABLE, SLASHABLE
@@ -89,7 +89,7 @@ class Hands(GameObject):
         self.time_remain = Hands.SWORD_ANIM_TIME if sword_mode else Hands.ANIM_TIME / 2
 
 
-class Player(GameObject):
+class Player(Entity):
     """
     Classe qui définit le joueur.
     """
@@ -104,7 +104,6 @@ class Player(GameObject):
     HAND_OFFSET = Vector2(15, -5)
     HITBOX_SIZE = (26, 26)
     MAX_HP = 100
-    KNOCKBACK_RECOVER = 0.1
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         """
@@ -113,23 +112,22 @@ class Player(GameObject):
         :param rotation: La rotation initiale.
         :param name: Le nom du joueur.
         """
-        super().__init__(pos, rotation, load_img("resources/player/topdown/player_east.png", Player.SPRITE_SIZE), name)
+        super().__init__(pos, rotation, load_img("resources/player/topdown/player_east.png", Player.SPRITE_SIZE), name,
+                         Player.MAX_HP, Player.MAX_HP, pygame.Surface(Player.HITBOX_SIZE))
         self.punch_hitbox = pygame.Surface((15, 15))
-        self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
+        # self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
         self.facing = Player.RIGHT
         self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
         self.children.add_gameobject(Hands(Vector2(18, 0)))
         self.children.add_gameobject(Slash(Vector2(35, 10)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
-        self.movment = MovementGenerator(self.player_hitbox, self)
-        self.hp = Player.MAX_HP
-        self.knockback: Vector2 = Vector2(0, 0)
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
         self.last_hold = ""
 
     def update(self) -> None:
+        super().update()
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -155,7 +153,6 @@ class Player(GameObject):
             self.facing = Player.LEFT
 
         # Calcul du vecteur mouvement final
-        self.knockback -= self.knockback * Player.KNOCKBACK_RECOVER
         mov = Vector2(dx, dy)  # l'input du joueur
         if mov.length_squared() != 0:
             mov.normalize_ip()
@@ -166,9 +163,7 @@ class Player(GameObject):
             if pressed[K_LSHIFT]:
                 mov *= Player.DECEL_SHIFT
 
-        sum_vec = mov + self.knockback * sing.ROOT.delta  # vecteur final
-
-        self.translate(self.movment.move(sum_vec.x, sum_vec.y))
+        self.translate(self.mov_gen.move(mov.x, mov.y))
         sing.ROOT.camera_pos = self.get_real_pos().copy()
 
         # Affichage de l'item que le joueur selectionne
@@ -205,7 +200,8 @@ class Player(GameObject):
                     if isinstance(obj, Resource):
                         obj.on_mine()
                     elif isinstance(obj, Enemy):
-                        obj.hp -= 10  # TMP
+                        vec = (obj.get_real_pos() - self.get_real_pos()).normalize()
+                        obj.get_damage(10, vec * 1000)
             else:
                 hit = sing.ROOT.is_colliding(ph)
                 if hit != -1:
