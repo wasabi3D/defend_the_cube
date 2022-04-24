@@ -27,6 +27,7 @@ class GameRoot:
         self.collidable_objects: list[util.GameObject] = []
         self.global_fonts: dict[str, pygame.font.Font] = {}
         self.object_collision_rects: list[pygame.Rect] = []
+        self.objects2be_removed: list[util.GameObject] = []
 
     def mainloop(self):
         done = False
@@ -67,6 +68,16 @@ class GameRoot:
                     gm.update()
             # _________________
 
+            # ___ REMOVE OBJECTS ___
+            for gm in self.objects2be_removed:
+                try:
+                    self.game_objects.pop(gm.name)
+                except KeyError:
+                    pass
+                self.remove_collidable_object(gm)
+            self.objects2be_removed.clear()
+            # _________________
+
             # __ BLIT THINGS ON THE SCREEN __
             self.display.fill(self.background)
             for gm in self.game_objects.values():
@@ -84,9 +95,12 @@ class GameRoot:
     def add_collidable_object(self, gameObject: util.GameObject) -> None:
         self.collidable_objects.append(gameObject)
 
-    def is_colliding(self, rect: pygame.Rect, exclude: Optional[str] = None) -> int:
+    def calculate_collision_rects(self) -> None:
         if len(self.object_collision_rects) == 0:
             self.object_collision_rects = list(map(lambda obj: obj.get_collision_rect(), self.collidable_objects))
+
+    def is_colliding(self, rect: pygame.Rect, exclude: Optional[str] = None) -> int:
+        self.calculate_collision_rects()
         il = rect.collidelistall(self.object_collision_rects)
         for i in il:
             if i > len(self.collidable_objects) - 1:
@@ -95,12 +109,26 @@ class GameRoot:
                 return i
         return -1
 
+    def collide_all(self, rect: pygame.Rect, exclude: Optional[str] = None) -> tuple[int]:
+        self.calculate_collision_rects()
+        il = rect.collidelistall(self.object_collision_rects)
+        ret = []
+        for i in il:
+            if i > len(self.collidable_objects) - 1:
+                continue
+            if self.collidable_objects[i].name != exclude:
+                ret.append(i)
+        return tuple(ret)
+
     def remove_collidable_object(self, obj: util.GameObject) -> bool:
         for i, o in enumerate(self.collidable_objects):
             if o == obj:
                 self.collidable_objects.pop(i)
                 return True
         return False
+
+    def remove_object(self, obj: util.GameObject):
+        self.objects2be_removed.append(obj)
 
     def clear_objects(self):
         self.game_objects.clear()

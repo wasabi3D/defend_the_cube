@@ -19,6 +19,7 @@ import time
 class Enemy(GameObject):  # Every enemy related class must inherit this
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str):
         super().__init__(pos, rotation, image, name)
+        self.hp = 100  # TMP
 
 
 class TestEnemy(Enemy):
@@ -33,8 +34,12 @@ class TestEnemy(Enemy):
         self.last_checked = time.time()
         self.map = sing.ROOT.game_objects["terrain"].over_terrain
         self.movement_gen = MovementGenerator(self.image, self)
+        sing.ROOT.add_collidable_object(self)
 
     def update(self) -> None:
+        if self.hp < 0:
+            sing.ROOT.remove_object(self)
+            return
         player_pos = sing.ROOT.game_objects["player"].get_real_pos()
         dist = (self.get_real_pos().x - player_pos.x) ** 2 + (self.get_real_pos().y - player_pos.y) ** 2
 

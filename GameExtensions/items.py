@@ -1,5 +1,5 @@
 from GameExtensions.inventory import InventoryObject
-from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE, SWORD
+from GameExtensions.locals import ITEM_SPRITE_SIZE, HOLDABLE, PLACEABLE, SLASHABLE
 
 from GameManager.resources import load_img
 import GameManager.singleton as sing
@@ -10,7 +10,7 @@ import pygame
 class Apple(InventoryObject):
     def __init__(self, n: int, font: pygame.font.Font):
         super().__init__("apple", load_img("resources/items/apple.png", ITEM_SPRITE_SIZE), n, font)
-        self.tag.append(SWORD)
+        self.tag.append(SLASHABLE)
 
     def copy(self):
         return Apple(self.n, self.font)
@@ -60,10 +60,16 @@ class WoodBlockItem(InventoryObject):
             self.n -= 1  # There's a problem with this thing
 
 
-class Sword(InventoryObject):
-    def __init__(self, n: int, font: pygame.font.Font):
-        super().__init__("iron_sword", load_img("resources/items/iron_sword.png"), n, font)
-        self.tag.append(SWORD)
+class Weapon(InventoryObject):
+    def __init__(self, name: str, img: pygame.Surface, n: int, damage: int):
+        super().__init__(name, img, n)
+        self.damage = damage
+        self.tag.append(SLASHABLE)
+
+
+class Sword(Weapon):
+    def __init__(self, n: int):
+        super().__init__("iron_sword", load_img("resources/items/iron_sword.png"), n, 10)
 
     def copy(self):
         return WoodBlockItem(self.n, self.font)

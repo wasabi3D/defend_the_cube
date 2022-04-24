@@ -7,7 +7,9 @@ import GameManager.singleton as sing
 from GameExtensions.util import Animation, Animator, MovementGenerator, get_grid_pos
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
-from GameExtensions.locals import HOLDABLE, PLACEABLE, SWORD
+from GameExtensions.locals import HOLDABLE, PLACEABLE, SLASHABLE
+from GameExtensions.items import Weapon
+from GameExtensions.enemy import Enemy
 
 import pygame
 from pygame.locals import *
@@ -152,8 +154,9 @@ class Player(GameObject):
             dx += -1
             self.facing = Player.LEFT
 
+        # Calcul du vecteur mouvement final
         self.knockback -= self.knockback * Player.KNOCKBACK_RECOVER
-        mov = Vector2(dx, dy)
+        mov = Vector2(dx, dy)  # l'input du joueur
         if mov.length_squared() != 0:
             mov.normalize_ip()
             mov *= sing.ROOT.delta * Player.SPEED
@@ -163,38 +166,54 @@ class Player(GameObject):
             if pressed[K_LSHIFT]:
                 mov *= Player.DECEL_SHIFT
 
-        sum_vec = mov + self.knockback * sing.ROOT.delta
+        sum_vec = mov + self.knockback * sing.ROOT.delta  # vecteur final
 
         self.translate(self.movment.move(sum_vec.x, sum_vec.y))
         sing.ROOT.camera_pos = self.get_real_pos().copy()
 
+        # Affichage de l'item que le joueur selectionne
         selected = self.inventory.hotbar[self.inventory.selected]
         if selected.name != self.last_hold:
             self.last_hold = selected.name
             self.children["item_holder"].children.clear()
 
             self.children["hands"].children["right_hand"].children.clear()
-            new_img = pygame.Surface((0, 0)) if selected.name == 'empty' else pygame.transform.scale(selected.img, (12, 12))
-            self.children["hands"].children["right_hand"].children.add_gameobject(GameObject(Vector2(2, -6), 0, new_img, "item"))
 
             if HOLDABLE in selected.tag:
                 img = selected.img.copy()
                 self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item",
                                                                                 tags=selected.tag))
+            else:
+                new_img = pygame.Surface((0, 0)) if selected.name == 'empty' else pygame.transform.scale(selected.img,
+                                                                                                         (12, 12))
+                self.children["hands"].children["right_hand"].children.add_gameobject(
+                    GameObject(Vector2(2, -6), 0, new_img, "item"))
 
+        # Click gauche
         if sing.ROOT.mouse_downs[MOUSE_LEFT]:
-            if SWORD in selected.tag:
+            if SLASHABLE in selected.tag:
                 self.children["hands"].punch(sword_mode=True)
                 self.children["slash"].slash()
-            else:
+            elif HOLDABLE not in selected.tag:
                 self.children["hands"].punch(sword_mode=False)
-            ph = self.generate_punch_hitbox()
-            hit = sing.ROOT.is_colliding(ph)
-            if hit != -1:
-                obj = sing.ROOT.collidable_objects[hit]
-                if isinstance(obj, Resource):
-                    obj.on_mine()
 
+            ph = self.generate_punch_hitbox()
+            if isinstance(selected, Weapon):
+                hits = sing.ROOT.collide_all(ph)
+                for i in hits:
+                    obj = sing.ROOT.collidable_objects[i]
+                    if isinstance(obj, Resource):
+                        obj.on_mine()
+                    elif isinstance(obj, Enemy):
+                        obj.hp -= 10  # TMP
+            else:
+                hit = sing.ROOT.is_colliding(ph)
+                if hit != -1:
+                    obj = sing.ROOT.collidable_objects[hit]
+                    if isinstance(obj, Resource):
+                        obj.on_mine()
+
+        # Mise a jour de la barre en bas qui indique la vie
         hpb = sing.ROOT.game_objects["HPBar"]
         hpb.prop = self.hp / Player.MAX_HP
 

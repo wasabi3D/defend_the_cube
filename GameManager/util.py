@@ -121,6 +121,8 @@ class GameObject(Sprite):
         :param screen: La fenêtre où on affiche l'objet.
         :param apply_alpha: Si on comine l'image avec self.surf_mult(=transparence) ou pas
         """
+        if not self.enabled:
+            return
         at = self.get_screen_pos()
         screen.blit(self.alpha_converted() if apply_alpha else self.image, self.image.get_rect(center=(at.x, at.y)))
         for child in self.children.values():

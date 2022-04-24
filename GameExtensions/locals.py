@@ -36,7 +36,7 @@ ITEM_SPRITE_SIZE: Final = (32, 32)
 
 HOLDABLE: Final = "holdable"
 PLACEABLE: Final = "placeable"
-SWORD: Final = "sword"
+SLASHABLE: Final = "sword"
 
 CHUNK_SIZE: Final = 40
 

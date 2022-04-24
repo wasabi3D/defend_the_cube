@@ -2,14 +2,17 @@ import typing
 import pygame
 import GameExtensions.locals as loc
 from GameManager.util import GameObject
+import GameManager.singleton as sing
 
 
 # Classe pour les objets d'inventaire
 class InventoryObject:
-    def __init__(self, name: str, img: pygame.Surface, n: int, font: pygame.font.Font):
+    def __init__(self, name: str, img: pygame.Surface, n: int, font: typing.Optional[pygame.font.Font] = None):
         self.name = name
         self.img = img
         self.n = n
+        if font is None:
+            font = sing.ROOT.global_fonts[loc.ITEM_FONT_NAME]
         self.font = font
         self.n_img = font.render(str(self.n), False, loc.NUMBER_COLOR)
         self.max_n = loc.SPE_OBJ[self.name] if self.name in loc.SPE_OBJ else loc.MAX_OBJ
