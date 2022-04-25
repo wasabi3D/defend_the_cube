@@ -17,7 +17,6 @@
 <li> ressources </li>
 <li> Randomly Generated </li>
 <li> inventory </li>
-<li> quests </li>
 </ol>
  
 <br>
@@ -29,26 +28,20 @@ destroy objects<br>
 bot<br>
 fruit<br>
 capturing<br>
-Everything Is Connected<br>
 Zombie<br>
 Runner<br>
-You Are The Weapon<br>
-Treasure hunt<br>
 one life only<br>
 Hidden Object<br>
 Enemies as weapons<br>
 
-Multiplayer
 
 <br>
 
 ## Refs
-[Amits game programming info](http://www-cs-students.stanford.edu/%7Eamitp/gameprog.html) <br>
-Voronoi diagram (terrain generation)
 About python [circular import](https://youtu.be/UnKa_t-M_kM) <- very important
 
 
-## Yes
+## YesYesYesYesYesYesYesYesYesYesYesYesYes
 = Base? au milieu qu'on defend <br>
 
 = type de ressources: wood; stone; iron; <br>
