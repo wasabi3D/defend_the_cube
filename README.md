@@ -53,6 +53,6 @@ About python [circular import](https://youtu.be/UnKa_t-M_kM) <- very important
 
 = type de ressources: wood; stone; iron; <br>
 = wave system  <br>
-= food(pomme) <br>
+= food(pomme) bread steak rotten flesh <br>
 
-= biomes: forest, plain, 
+= biomes: forest, plain, lake, beach, desert, dark plains, 
