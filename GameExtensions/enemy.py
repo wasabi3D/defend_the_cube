@@ -40,7 +40,10 @@ class TestEnemy(Enemy):
         if self.hp <= 0:
             sing.ROOT.remove_object(self)
             return
+        core_pos = sing.ROOT.game_objects["core"].get_real_pos()
         player_pos = sing.ROOT.game_objects["player"].get_real_pos()
+        if core_pos.distance_squared_to(self.get_real_pos()) < player_pos.distance_squared_to(self.get_real_pos()):
+            player_pos = core_pos.copy()
         dist = (self.get_real_pos().x - player_pos.x) ** 2 + (self.get_real_pos().y - player_pos.y) ** 2
 
         if get_chunk_pos(self.get_real_pos()) != self.cur_chunk or (len(self.objectives) == 0 and dist > 50):

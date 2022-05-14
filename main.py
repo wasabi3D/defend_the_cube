@@ -14,6 +14,7 @@ from GameExtensions.locals import *
 from GameExtensions.player import Player
 from GameExtensions.enemy import Zombie
 from GameExtensions.items import *
+from GameExtensions.field_objects import Core
 from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
@@ -52,7 +53,8 @@ class GameLoader(GameObject):
 
             root.add_gameObject(self.ter,
                                 inventory) \
-                .add_gameObject(Player(Vector2(0, 0), 0, "player")) \
+                .add_gameObject(Core()) \
+                .add_gameObject(Player(Vector2(-80, 80), 0, "player")) \
                 .add_gameObject(Zombie(Vector2(-50, 100), "zombie")) \
                 .add_gameObject(RenderOverTerrain()) \
                 .game_objects.move_to_end("inventory")

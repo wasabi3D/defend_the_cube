@@ -86,25 +86,31 @@ class MagicBullet(GameObject):
     SPEED = 180
     DIR_CORRECTION = 0.8
     TARGET_DETECT_DISTANCE = 140
+    LIFE_DURATION = 5
 
     def __init__(self, pos: Vector2, direction: Vector2):
         super().__init__(pos, 0, load_img("resources/player/magic_bullet.png", (16, 16)),
                          f"mb{pygame.time.get_ticks()}")
         self.direction = direction
         self.target: Optional[GameObject] = None
+        self.timer = 0
 
     def update(self) -> None:
         self.translate(self.direction * MagicBullet.SPEED * sing.ROOT.delta)
 
         if self.target is None:
+            self.timer += sing.ROOT.delta
+            if self.timer > MagicBullet.LIFE_DURATION:
+                sing.ROOT.remove_object(self)
             for gm in sing.ROOT.get_obj_list_by_tag(ENEMY):
                 if gm.get_real_pos().distance_squared_to(self.get_real_pos()) <= MagicBullet.TARGET_DETECT_DISTANCE ** 2:
                     self.target = gm
                     break
+
         else:
             if self.image.get_rect(center=self.get_real_pos()).colliderect(
                     self.target.image.get_rect(center=self.target.get_real_pos())):
-                sing.ROOT.objects2be_removed.append(self)
+                sing.ROOT.remove_object(self)
                 return
             self.direction += (self.target.get_real_pos() - self.get_real_pos()).normalize() * MagicBullet.DIR_CORRECTION
             self.direction.normalize_ip()

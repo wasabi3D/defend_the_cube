@@ -405,3 +405,41 @@ class Entity(GameObject):
         self.mov_gen.update_knockback()
 
 
+class HPBar(GameObject):
+    """
+    La classe pour la barre qui affiche l'HP
+    """
+
+    class RedFill(GameObject):
+        """
+        La partie rouge de la barre
+        """
+        def __init__(self, prop: float, size):
+            """
+
+            :param prop: Proportion de la taille par rapport à l'image originale
+            """
+            super().__init__(Vector2(0, 0), 0, load_img("resources/UI/hp_bar_fill.png", size), "red")
+            self.prop = prop
+
+        def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
+            rect = self.image.get_rect(center=self.get_screen_pos())
+            rect.update(rect.left, rect.top, rect.width * self.prop, rect.height)
+            screen.blit(self.image, rect.topleft, (0, 0, rect.width, rect.height))
+
+    def __init__(self, pos: Vector2, proportion=1, size=(480, 48)):
+        """
+
+        :param pos: La position sur l'écran
+        :param proportion: Proportion de la taille de la barre rouge par rapport à l'image originale
+        """
+        super().__init__(pos, 0, load_img("resources/UI/hp_bar_frame.png", size), "HPBar")
+
+        self.prop = proportion
+        self.children.add_gameobject(HPBar.RedFill(self.prop, size))
+        self.size = size
+
+    def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
+        self.children["red"].prop = self.prop
+        super().blit(screen, apply_alpha)
+

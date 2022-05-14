@@ -30,6 +30,7 @@ class GameRoot:
         self.objects2be_removed: list[util.GameObject] = []
         self.objects2be_added: list[util.GameObject] = []
         self.objects_by_tag: dict[str, list[util.GameObject]] = {}
+        self.new_object_index = 0
 
     def mainloop(self):
         done = False

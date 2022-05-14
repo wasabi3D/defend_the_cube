@@ -3,7 +3,7 @@ from __future__ import annotations  # Avoid circular import
 import typing
 
 import GameExtensions.generate_terrain
-from GameExtensions.util import get_grid_pos
+from GameExtensions.util import get_grid_pos, HPBar
 
 from GameManager.util import GameObject
 import GameManager.singleton as sing
@@ -44,6 +44,12 @@ class Placeable(GameObject, metaclass=ABCMeta):
         rel_pos = rel_pos // dim_per_block
         rel_pos += Vector2(len(self.terrain.over_terrain[0]) // 2, len(self.terrain.over_terrain) // 2)
         return rel_pos
+
+
+class Core(Placeable):
+    def __init__(self):
+        super().__init__(Vector2(0, 0), load_img("resources/core.png", (64, 64)), "core")
+        self.children.add_gameobject(HPBar(Vector2(0, -40), size=(120, 12)))
 
 
 class WoodBlock(Placeable):

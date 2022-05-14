@@ -60,6 +60,8 @@ class BaseUIObject(GameObject):
             return pre + pygame.Vector2(-x_modif, y_modif)
         elif self.anchor == NW:
             return pre + pygame.Vector2(-x_modif, -y_modif)
+        else:
+            return pre
 
     def get_screen_pos(self) -> pygame.Vector2:
         # return self.get_real_pos() - pygame.Vector2(sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2)
@@ -146,12 +148,12 @@ class HPBar(BaseUIObject):
         """
         La partie rouge de la barre
         """
-        def __init__(self, prop: float):
+        def __init__(self, prop: float, size):
             """
 
             :param prop: Proportion de la taille par rapport à l'image originale
             """
-            super().__init__(Vector2(0, 0), 0, load_img("resources/UI/hp_bar_fill.png", HPBar.SIZE), "red",
+            super().__init__(Vector2(0, 0), 0, load_img("resources/UI/hp_bar_fill.png", size), "red",
                              anchor=CENTER)
             self.prop = prop
 
@@ -160,17 +162,18 @@ class HPBar(BaseUIObject):
             rect.update(rect.left, rect.top, rect.width * self.prop, rect.height)
             screen.blit(self.image, rect.topleft, (0, 0, rect.width, rect.height))
 
-    def __init__(self, pos: Vector2, anchor: str, proportion=1):
+    def __init__(self, pos: Vector2, anchor: str, proportion=1, size=(480, 48)):
         """
 
         :param pos: La position sur l'écran
         :param anchor: Un str qui permet de définir où est le (0, 0)
         :param proportion: Proportion de la taille de la barre rouge par rapport à l'image originale
         """
-        super().__init__(pos, 0, load_img("resources/UI/hp_bar_frame.png", HPBar.SIZE), "HPBar", anchor=anchor)
+        super().__init__(pos, 0, load_img("resources/UI/hp_bar_frame.png", size), "HPBar", anchor=anchor)
 
         self.prop = proportion
-        self.children.add_gameobject(HPBar.RedFill(self.prop))
+        self.children.add_gameobject(HPBar.RedFill(self.prop, size))
+        self.size = size
 
     def blit(self, screen: pygame.Surface, apply_alpha=False) -> None:
         self.children["red"].prop = self.prop
