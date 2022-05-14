@@ -50,6 +50,15 @@ class Core(Placeable):
     def __init__(self):
         super().__init__(Vector2(0, 0), load_img("resources/core.png", (64, 64)), "core")
         self.children.add_gameobject(HPBar(Vector2(0, -40), size=(120, 12)))
+        self.maxHP = 200
+        self.HP = self.maxHP
+
+    def early_update(self) -> None:
+        super().early_update()
+        self.children["HPBar"].prop = self.HP / self.maxHP
+
+    def damage(self, amount):
+        self.HP = max(self.HP - amount, 0)
 
 
 class WoodBlock(Placeable):

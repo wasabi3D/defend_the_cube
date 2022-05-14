@@ -1,3 +1,4 @@
+import multiprocessing.pool
 import os
 import threading
 import time
@@ -5,6 +6,7 @@ import sys
 from typing import Optional
 
 import pygame
+import pyparsing
 from pygame.math import Vector2
 
 import GameExtensions.inventory as inv
@@ -21,6 +23,24 @@ from GameManager.util import GameObject
 
 root = GameRoot((720, 480), (30, 30, 30), "Game", os.path.dirname(os.path.realpath(__file__)),
                 Vector2(0, 0), 1000)
+
+
+class GameRestarter(GameObject):
+    def __init__(self):
+        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "restarter")
+
+    def early_update(self) -> None:
+        if sing.ROOT.game_objects["core"].HP == 0:
+            game_over_label = TextLabel(Vector2(0, 40), 0, sing.ROOT.global_fonts["title_font"], "GAME OVER",
+                                        (200, 200, 200), "game_over", anchor=N)
+            gm_over_btn = Button(Vector2(0, 0), 0, load_img("resources/UI/button.png", (60, 32)), "gm_over_btn",
+                                 on_mouse_up_func=self.restart, text="menu", font=sing.ROOT.global_fonts["menu_font"],
+                                 text_color=(200, 200, 200), anchor=CENTER)
+            sing.ROOT.add_gameObject(game_over_label, gm_over_btn)
+
+    def restart(self):
+        sing.ROOT.clear_objects()
+        main()
 
 
 class GameLoader(GameObject):
@@ -69,6 +89,7 @@ class GameLoader(GameObject):
             inventory.add_obj_ins(Sword(1))
             inventory.add_obj_ins(Book())
             time.sleep(2)
+            root.add_gameObject(GameRestarter())
             root.game_objects.pop("loader")
             root.game_objects.pop("loading_label")
             root.game_objects.pop("state_label")

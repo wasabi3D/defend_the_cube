@@ -113,7 +113,7 @@ class TestEnemy(Enemy):
 
 
 class Zombie(TestEnemy):
-    ATK = 10
+    ATK = 50
     ATK_COOLDOWN = 2
     ATK_RANGE = 50
     KNOCKBACK_FORCE = 550
@@ -127,8 +127,12 @@ class Zombie(TestEnemy):
     def update(self) -> None:
         super().update()
         dist = self.player.get_real_pos().distance_squared_to(self.get_real_pos())
+        dist_core = sing.ROOT.game_objects["core"].get_real_pos().distance_squared_to(self.get_real_pos())
         if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= Zombie.ATK_COOLDOWN:
             self.timer = 0
             self.player.get_damage(self.ATK, (self.player.get_real_pos() - self.get_real_pos()).normalize() * \
                                    Zombie.KNOCKBACK_FORCE)
+        elif dist_core <= (Zombie.ATK_RANGE + 20) ** 2 and self.timer >= Zombie.ATK_COOLDOWN:
+            self.timer = 0
+            sing.ROOT.game_objects["core"].damage(self.ATK)
         self.timer += sing.ROOT.delta

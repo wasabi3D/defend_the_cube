@@ -87,6 +87,7 @@ class MagicBullet(GameObject):
     DIR_CORRECTION = 0.8
     TARGET_DETECT_DISTANCE = 140
     LIFE_DURATION = 5
+    DAMAGE = 10
 
     def __init__(self, pos: Vector2, direction: Vector2):
         super().__init__(pos, 0, load_img("resources/player/magic_bullet.png", (16, 16)),
@@ -111,6 +112,7 @@ class MagicBullet(GameObject):
             if self.image.get_rect(center=self.get_real_pos()).colliderect(
                     self.target.image.get_rect(center=self.target.get_real_pos())):
                 sing.ROOT.remove_object(self)
+                self.target.get_damage(MagicBullet.DAMAGE, Vector2(0, 0))
                 return
             self.direction += (self.target.get_real_pos() - self.get_real_pos()).normalize() * MagicBullet.DIR_CORRECTION
             self.direction.normalize_ip()
