@@ -165,6 +165,12 @@ class Terrain(GameObject):
                         sing.ROOT.add_collidable_object(tr)
 
     def blit(self, scr: pygame.Surface, apply_alpha=False) -> None:
+        """
+        Affiche la map sur l'écran
+
+        :param scr: L'écran
+        :param apply_alpha: Si on applique la transparence ou pas
+        """
         center_x = self.get_real_pos().x
         center_y = self.get_real_pos().y
         x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
@@ -183,6 +189,11 @@ class Terrain(GameObject):
                 scr.blit(c, c.get_rect(center=(x, y)))
 
     def blit_over_terrain(self, scr: pygame.Surface):
+        """
+        Affiche les objets qui sont sur la map
+
+        :param scr: L'écran
+        """
         center_x = self.get_real_pos().x
         center_y = self.get_real_pos().y
         x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2

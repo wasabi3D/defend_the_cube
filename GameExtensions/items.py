@@ -12,7 +12,15 @@ from typing import Optional
 
 
 class Apple(InventoryObject):
+    """
+    La classe pour définir une pomme
+    """
     def __init__(self, n: int, font: pygame.font.Font):
+        """
+
+        :param n: Nombre de pommes
+        :param font: Police pour afficher le nombre des pommes
+        """
         super().__init__("apple", load_img("resources/items/apple.png", ITEM_SPRITE_SIZE), n, font)
         self.tag.append(SLASHABLE)
 
@@ -24,6 +32,9 @@ class Apple(InventoryObject):
 
 
 class Log(InventoryObject):
+    """
+    La classe pour définir du bois
+    """
     def __init__(self, n: int, font: pygame.font.Font):
         super().__init__("log", load_img("resources/items/log.png", ITEM_SPRITE_SIZE), n, font)
 
@@ -35,6 +46,9 @@ class Log(InventoryObject):
 
 
 class Stone(InventoryObject):
+    """
+    La classe pour définir de la roche
+    """
     def __init__(self, n: int, font: pygame.font.Font):
         super().__init__("stone", load_img("resources/items/stone.png", ITEM_SPRITE_SIZE), n, font)
 
@@ -46,6 +60,9 @@ class Stone(InventoryObject):
 
 
 class WoodBlockItem(InventoryObject):
+    """
+    La classe pour définir l'item des blocks de bois
+    """
     def __init__(self, n: int, font: pygame.font.Font):
         super().__init__("wood_block", load_img("resources/items/wood_block.png"), n, font)
         self.tag.append(HOLDABLE)
@@ -65,6 +82,9 @@ class WoodBlockItem(InventoryObject):
 
 
 class Weapon(InventoryObject):
+    """
+    Une classe pour généraliser les item des armes
+    """
     def __init__(self, name: str, img: pygame.Surface, n: int, damage: int):
         super().__init__(name, img, n)
         self.damage = damage
@@ -72,6 +92,9 @@ class Weapon(InventoryObject):
 
 
 class Sword(Weapon):
+    """
+    La classe pour définir l'item de l'épée
+    """
     def __init__(self, n: int):
         super().__init__("iron_sword", load_img("resources/items/iron_sword.png"), n, 10)
 
@@ -83,6 +106,9 @@ class Sword(Weapon):
 
 
 class MagicBullet(GameObject):
+    """
+    La boule magique shooté quand le joueur utilise un livre
+    """
     SPEED = 180
     DIR_CORRECTION = 0.8
     TARGET_DETECT_DISTANCE = 140
@@ -119,6 +145,9 @@ class MagicBullet(GameObject):
 
 
 class Book(Weapon):
+    """
+    La classe pour définir le livre pour tirer des boules magiques
+    """
     def __init__(self):
         super().__init__("book", load_img("resources/items/book.png"), 1, 10)
         self.tag.append(DONT_SLASH)

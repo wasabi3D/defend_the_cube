@@ -181,6 +181,9 @@ class HPBar(BaseUIObject):
 
 
 class Button(BaseUIObject):
+    """
+    La classe pour définir un bouton.
+    """
     HOVERING_ALPHA = 210
     CLICKED_ALPHA = 155
     CL_ALPH_DURATION = 0.02
@@ -196,6 +199,19 @@ class Button(BaseUIObject):
                  font: typing.Optional[pygame.font.Font] = None,
                  text_color: typing.Optional[tuple[int, int, int]] = None,
                  anchor=NW):
+        """
+
+        :param pos: La position sur l'écran
+        :param rotation: La rotation initiale
+        :param image: L'image du bouton
+        :param name: Le nom
+        :param on_mouse_down_func: La fonction executée quand le joueur appuie le bouton
+        :param on_mouse_up_func: La fonction executée quand le joueur lache le bouton
+        :param text: Le texte qu'on souhaite afficher
+        :param font: La police
+        :param text_color: La couleur du texte
+        :param anchor: Un str qui permet de définir où est le (0, 0)
+        """
         super().__init__(pos, rotation, image, name, anchor=anchor)
         self.mouse_down_f = on_mouse_down_func
         self.mouse_up_f = on_mouse_up_func
@@ -245,21 +261,43 @@ class Button(BaseUIObject):
         self.hovering = False
 
     def change_text_rgb(self, value: int) -> None:
+        """
+        Change la clarté du texte
+
+        :param value: La clarté allant de 0 à 255
+        """
         if self.text:
             self.children["text_label"].surf_mult.set_rgb(value)
 
 
 class MenuManager(GameObject):
+    """
+    La classe pour la gestion des menus
+    """
     def __init__(self, name="MenuManager"):
+        """
+
+        :param name: Le nom de cet objet
+        """
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), name)
         self.menus: dict[str, GameObject] = {"": GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "")}
         self.current: str = ""
 
     def add_menus(self, *menus: GameObject):
+        """
+        Ajoute un nouveau menu(ou des menus)
+
+        :param menus: Le menu qu'on ajoute
+        """
         for menu in menus:
             self.menus[menu.name] = menu
 
     def switch_menu(self, next_menu_name: str):
+        """
+        Change le menu séléctionné
+
+        :param next_menu_name: Le nom du nouveau menu séléctionné
+        """
         self.current = next_menu_name
 
     def early_update(self) -> None:

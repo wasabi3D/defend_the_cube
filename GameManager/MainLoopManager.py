@@ -6,8 +6,22 @@ from collections import OrderedDict
 
 
 class GameRoot:
+    """
+
+    La classe pour la géstion du jeu entière
+    """
     def __init__(self, screen_dimension: tuple[int, int], default_background_color: tuple[int, int, int], title: str,
                  resources_root_path: str, camera_pos: pygame.Vector2, fps_limit=60, display_flag=pygame.SCALED):
+        """
+
+        :param screen_dimension: La dimension de la fenêtre
+        :param default_background_color: La couleur du fond
+        :param title: Le titre
+        :param resources_root_path: La base du path pour tous les ressources(images, polices...)
+        :param camera_pos: La position de la caméra
+        :param fps_limit: La limite de l'fps
+        :param display_flag: Option pour la fenêtre du pygame
+        """
         pygame.init()
         sing.ROOT = self
         self.display: pygame.Surface = pygame.display.set_mode(screen_dimension, flags=display_flag)
@@ -33,6 +47,9 @@ class GameRoot:
         self.new_object_index = 0
 
     def mainloop(self):
+        """
+        Fonction pour lancer le jeu
+        """
         done = False
 
         self.delta = 0
@@ -97,18 +114,39 @@ class GameRoot:
             self.clock.tick(self.fps_limit)
 
     def add_gameObject(self, *gameObject: util.GameObject):
+        """
+        Fonction pour ajouter un objet
+
+        :param gameObject: L'objet qu'on veut ajouter
+        """
         for g in gameObject:
             self.game_objects.setdefault(g.name, g)
         return self
 
     def add_collidable_object(self, gameObject: util.GameObject) -> None:
+        """
+        Fonction pour ajouter un objet qui possède un hitbox
+
+        :param gameObject: L'objet qu'on veut ajouter
+        """
         self.collidable_objects.append(gameObject)
 
     def calculate_collision_rects(self) -> None:
+        """
+        Calcule les hitboxes pour tous les objets
+
+        """
         if len(self.object_collision_rects) == 0:
             self.object_collision_rects = list(map(lambda obj: obj.get_collision_rect(), self.collidable_objects))
 
     def is_colliding(self, rect: pygame.Rect, exclude: Optional[str] = None) -> int:
+        """
+        Fonction pour vérifier si le rect donné est en contact avec un autre objet
+
+        :param rect: Le rect qu'on veut vérifier
+        :param exclude: Exception pour pas détecter une collision avec
+        :return: L'index de l'objet si il est en contact sinon -1
+        """
         self.calculate_collision_rects()
         il = rect.collidelistall(self.object_collision_rects)
         for i in il:
@@ -119,6 +157,13 @@ class GameRoot:
         return -1
 
     def collide_all(self, rect: pygame.Rect, exclude: Optional[str] = None) -> tuple[int]:
+        """
+        Pareil que is_colliding mais peut détecter plusieurs objets
+
+        :param rect: Le rect qu'on veut vérifier
+        :param exclude: Exceptions pour pas détecter une collision avec
+        :return: Les indexes des objets si le rect est en contact sinon un tuple vide
+        """
         self.calculate_collision_rects()
         il = rect.collidelistall(self.object_collision_rects)
         ret = []
@@ -130,6 +175,12 @@ class GameRoot:
         return tuple(ret)
 
     def remove_collidable_object(self, obj: util.GameObject) -> bool:
+        """
+        Supprime un objet possédant un hitbox
+
+        :param obj: L'objet qu'on veut supprimer
+        :return: True si il réussit sinon False
+        """
         for i, o in enumerate(self.collidable_objects):
             if o == obj:
                 self.collidable_objects.pop(i)
@@ -137,14 +188,28 @@ class GameRoot:
         return False
 
     def remove_object(self, obj: util.GameObject):
+        """
+        Supprime un objet
+
+        :param obj: L'objet qu'on veut supprimer
+        """
         self.objects2be_removed.append(obj)
 
     def clear_objects(self):
+        """
+        Supprime tous les objets du jeu
+        """
         self.game_objects.clear()
         self.collidable_objects.clear()
         self.object_collision_rects.clear()
 
     def get_obj_list_by_tag(self, tag: str) -> list[util.GameObject]:
+        """
+        Fonction pour obtenir une liste des objets qui possèdent un tag donné
+
+        :param tag: Le tag
+        :return: La liste des objets
+        """
         if tag not in self.objects_by_tag.keys():
             self.objects_by_tag[tag] = []
 

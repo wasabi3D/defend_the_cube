@@ -383,6 +383,9 @@ class MovementGenerator:
 
 
 class Entity(GameObject):
+    """
+    Une clase qui généralise les entités comme les ennemis, le joueur.
+    """
     def __init__(self, pos: Vector2,
                  rotation: float,
                  image: pygame.Surface,
@@ -390,12 +393,28 @@ class Entity(GameObject):
                  hp: int,
                  max_hp: int,
                  hitbox: Optional[pygame.Surface] = None):
+        """
+
+        :param pos: La position initiale
+        :param rotation: La rotation
+        :param image: L'image de l'entité
+        :param name: Le nom de l'entité
+        :param hp: La quantité de la vie que cette entité possède
+        :param max_hp: Le maximum de la quantité de la vie
+        :param hitbox: La hitbox de cette entité
+        """
         super().__init__(pos, rotation, image, name)
         self.mov_gen = MovementGenerator(hitbox if hitbox is not None else self.image, self)
         self.hp = hp
         self.max_hp = max_hp
 
     def get_damage(self, amount: int, knockback_force: Optional[Vector2] = None) -> None:
+        """
+        Fonction pour donner du dégat
+
+        :param amount: La quantité du dégat
+        :param knockback_force: Un vecteur qui représente comment cette entité est repoussé
+        """
         self.hp = max(min(self.hp - amount, self.max_hp), 0)
         if knockback_force is not None:
             self.mov_gen.knockback += knockback_force

@@ -16,13 +16,37 @@ import time
 
 
 class Enemy(Entity):  # Every enemy related class must inherit this
+    """
+    La base de tous les ennemis
+    """
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str, hp: int, max_hp: int):
+        """
+
+        :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
+        :param rotation: La rotation en radian initiale de l'objet. La valeur par défaut est 0.
+        :param image: L'image de l'objet initiale.
+        :param name: Le nom de l'objet.
+        :param hp: La vie que l'ennemi possède
+        :param max_hp: Max de vie que cet ennemi peut avoir
+        """
         super().__init__(pos, rotation, image, name, hp, max_hp, image)
         self.tags.append(ENEMY)
 
 
 class TestEnemy(Enemy):
+    """
+    Un modèle d'ennemi qui possède un système pour trouver un chemin vers le joueur
+    L'algorithme utilisé ici est A*
+    """
     def __init__(self, pos: Vector2, image: pygame.Surface, name: str, hp: int, speed: int):
+        """
+        :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
+        :param rotation: La rotation en radian initiale de l'objet. La valeur par défaut est 0.
+        :param image: L'image de l'objet initiale.
+        :param name: Le nom de l'objet.
+        :param hp: La vie que l'ennemi possède
+        :param speed: La vitesse dont cet ennemi avance
+        """
         super().__init__(pos, 0, image, name, hp, hp)
         self.objectives: list[Vector2] = [self.get_real_pos()]
         self.cur_chunk: Optional[Vector2] = None
@@ -90,6 +114,12 @@ class TestEnemy(Enemy):
             self.objectives.pop(0)
 
     def calculate_path(self, player_pos):
+        """
+        Calcule un chemin qui permet de trouver un chemin qui va vers le joueur en utilisant l'algorithme A*
+
+        :param player_pos: La position du joueur
+
+        """
         self.cur_chunk = get_chunk_pos(self.get_real_pos())
         self.objective_chunk = get_next_chunk(self.cur_chunk, get_chunk_pos(player_pos))
         chunk_diff = self.objective_chunk - self.cur_chunk
@@ -113,6 +143,9 @@ class TestEnemy(Enemy):
 
 
 class Zombie(TestEnemy):
+    """
+    Classe qui définit le zombie
+    """
     ATK = 50
     ATK_COOLDOWN = 2
     ATK_RANGE = 50
@@ -120,6 +153,11 @@ class Zombie(TestEnemy):
     MAX_HP = 100
 
     def __init__(self, pos: Vector2, name: str):
+        """
+
+        :param pos: La position initiale
+        :param name: Le nom de cet objet
+        """
         super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name, Zombie.MAX_HP, 0.5)
         self.timer = 0
         self.player = sing.ROOT.game_objects["player"]

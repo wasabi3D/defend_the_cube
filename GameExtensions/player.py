@@ -19,6 +19,9 @@ import math
 
 
 class Slash(GameObject):
+    """
+    La classe pour l'animation des slash quand le joueur utilise une épée
+    """
     def __init__(self, pos: Vector2):
         super().__init__(pos, math.pi / 2, load_img("resources/anim/slash/5.png"), "slash")
         self.animator = Animator()
@@ -29,6 +32,9 @@ class Slash(GameObject):
         self.animator.start_anim("calm")
 
     def slash(self) -> None:
+        """
+        Commence l'animation
+        """
         self.animator.start_anim("slash")
 
     def update(self) -> None:
@@ -37,12 +43,19 @@ class Slash(GameObject):
 
 
 class Hands(GameObject):
+    """
+    La classe pour les 2 mains du joueur
+    """
     DEFAULT_Y = 12
     ANIM_TIME = 0.15
     SWORD_ANIM_TIME = 0.2
     ANIM_DIST = 15
 
     def __init__(self, pos: Vector2):
+        """
+
+        :param pos: La position des mains
+        """
         super().__init__(pos, 0, pygame.Surface((0, 0)), "hands")
         hand_img = load_img("resources/player/hand.png", (10, 10))
         self.children.add_gameobject(GameObject(Vector2(0, Hands.DEFAULT_Y), 0, hand_img, "right_hand"))
@@ -84,6 +97,10 @@ class Hands(GameObject):
                     self.children["left_hand"].translate(Vector2(0, -Hands.DEFAULT_Y), False)
 
     def punch(self, sword_mode=False):
+        """
+        Déclanche l'animation d'un coup de poing
+        :param sword_mode: Si on utilise l'animation pour l'épée ou pas
+        """
         self.sword_mode = sword_mode
         self.fw = True
         self.time_remain = Hands.SWORD_ANIM_TIME if sword_mode else Hands.ANIM_TIME / 2
@@ -233,6 +250,11 @@ class Player(Entity):
             return self.punch_hitbox.get_rect(center=p + Vector2(0, 20))
 
     def get_direction_vec(self) -> Vector2:
+        """
+        Calcule un vecteur normalisé qui représente la rotation du joueur
+
+        :return: Un Vector2
+        """
         x = math.cos(self.rotation)
         y = -math.sin(self.rotation)
         return Vector2(x, y).normalize()
