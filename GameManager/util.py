@@ -296,6 +296,16 @@ class ChildrenHolder(dict):
         obj.parent = self.parent
         self.setdefault(obj.name, obj)
 
+    def add_gameobjects(self, *objects: GameObject) -> None:
+        """
+        Permet de ajouter des gameobjects à un gameobject en tant que objet enfant.
+
+        :param objects: Les objets qu'on veut ajouter.
+        :return:
+        """
+        for obj in objects:
+            self.add_gameobject(obj)
+
     def get_child_by_name(self, name: str) -> Union[GameObject, None]:
         """
         Retourne l'objet qui possède le nom donné.

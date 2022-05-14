@@ -189,6 +189,9 @@ class Button(BaseUIObject):
                  name: str,
                  on_mouse_down_func=None,
                  on_mouse_up_func=None,
+                 text: typing.Optional[str] = None,
+                 font: typing.Optional[pygame.font.Font] = None,
+                 text_color: typing.Optional[tuple[int, int, int]] = None,
                  anchor=NW):
         super().__init__(pos, rotation, image, name, anchor=anchor)
         self.mouse_down_f = on_mouse_down_func
@@ -196,19 +199,29 @@ class Button(BaseUIObject):
         self.timer = 0
         self.clicking = False
         self.hovering = False
+        if text is None:
+            self.text = False
+        else:
+            self.text = True
+            txt_font = font if font is not None else pygame.font.SysFont("Arial", 16, False, False)
+            label = TextLabel(Vector2(0, 0), 0, txt_font, text, text_color, "text_label", True, CENTER)
+            self.children.add_gameobject(label)
 
     def early_update(self) -> None:
         super().early_update()
         if self.surf_mult.r != 255 and not self.clicking:
             self.timer += sing.ROOT.delta
             if self.timer >= Button.CL_ALPH_DURATION:
-                self.surf_mult.set_rgb(255 if not self.hovering else Button.HOVERING_ALPHA)
+                value = 255 if not self.hovering else Button.HOVERING_ALPHA
+                self.surf_mult.set_rgb(value)
+                self.change_text_rgb(value)
 
     def on_mouse_down(self, button: int):
         if button == MOUSE_LEFT:
             self.timer = 0
             self.clicking = True
             self.surf_mult.set_rgb(Button.CLICKED_ALPHA)
+            self.change_text_rgb(Button.CLICKED_ALPHA)
             if self.mouse_down_f is not None:
                 self.mouse_down_f()
 
@@ -220,10 +233,42 @@ class Button(BaseUIObject):
 
     def on_mouse_rect_enter(self):
         self.surf_mult.set_rgb(Button.HOVERING_ALPHA)
+        self.change_text_rgb(Button.HOVERING_ALPHA)
         self.hovering = True
 
     def on_mouse_rect_exit(self):
         self.surf_mult.set_rgb(255)
+        self.change_text_rgb(255)
         self.hovering = False
+
+    def change_text_rgb(self, value: int) -> None:
+        if self.text:
+            self.children["text_label"].surf_mult.set_rgb(value)
+
+
+class MenuManager(GameObject):
+    def __init__(self, name="MenuManager"):
+        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), name)
+        self.menus: dict[str, GameObject] = {"": GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "")}
+        self.current: str = ""
+
+    def add_menus(self, *menus: GameObject):
+        for menu in menus:
+            self.menus[menu.name] = menu
+
+    def switch_menu(self, next_menu_name: str):
+        self.current = next_menu_name
+
+    def early_update(self) -> None:
+        self.menus[self.current].early_update()
+
+    def update(self) -> None:
+        self.menus[self.current].early_update()
+
+    def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
+        self.menus[self.current].blit(screen, apply_alpha)
+
+
+
 
 
