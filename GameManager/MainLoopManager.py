@@ -119,8 +119,8 @@ class GameRoot:
                 if gm.enabled:
                     gm.blit(self.display)
             pygame.display.update()
-            self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)
+            self.delta = (pygame.time.get_ticks() - t) / 1000
 
     def add_gameObject(self, *gameObject: util.GameObject, immediate=False):
         """

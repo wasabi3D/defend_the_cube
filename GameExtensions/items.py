@@ -77,8 +77,9 @@ class WoodBlockItem(InventoryObject):
         holding = pl.children["item_holder"].children
         if len(holding) > 0:
             pos = tuple(holding.values())[0].get_real_pos()
-            WoodBlock(pos)
-            self.n -= 1  # There's a problem with this thing
+            block = WoodBlock(pos)
+            if block.register():
+                self.n -= 1
 
 
 class Weapon(InventoryObject):

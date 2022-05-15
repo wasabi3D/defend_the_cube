@@ -16,7 +16,7 @@ from GameManager.MainLoopManager import GameRoot
 from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
 
-root = GameRoot((720, 480), (30, 30, 30), "Game", os.path.dirname(os.path.realpath(__file__)),
+root = GameRoot((720, 480), (30, 30, 30), "Defend the cube!", os.path.dirname(os.path.realpath(__file__)),
                 Vector2(0, 0), 1000)
 
 
@@ -140,7 +140,7 @@ def main():
     # region ===MAIN MENU===
     main_menu = BaseUIObject(Vector2(0, 0), 0, load_img("resources/blank.png", (720, 480)),
                              "main_menu", anchor=CENTER)
-    title_label = TextLabel(Vector2(0, 30), 0, root.global_fonts["title_font"], "Game title here", (200, 200, 200),
+    title_label = TextLabel(Vector2(0, 30), 0, root.global_fonts["title_font"], "Defend the cube!", (200, 200, 200),
                             "title_label", True, N)
     new_game_btn = Button(Vector2(0, -15), 0,
                           load_img("resources/UI/button.png", (168, 32)),

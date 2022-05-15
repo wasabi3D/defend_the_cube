@@ -40,13 +40,20 @@ class Placeable(GameObject, metaclass=ABCMeta):
         grid_pos = get_grid_pos(self.get_real_pos())
         self.translate(self.terrain.get_real_pos() + grid_pos * self.terrain.block_px_size
                        - tuple2Vec2(self.terrain.size) * self.terrain.block_px_size / 2, additive=False)
+
+    def register(self) -> bool:
+        """
+        Essaye de placer le block si possible
+
+        :return: True s'il reussit à placer False sinon
+        """
+        grid_pos = get_grid_pos(self.get_real_pos())
         if self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] is None and\
                 sing.ROOT.is_colliding(self.image.get_rect(center=self.get_real_pos())) == -1:
             self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] = self
             sing.ROOT.add_collidable_object(self)
-
-        # print(grid_pos)
-        # print(self.get_real_pos())
+            return True
+        return False
 
     def get_grid_pos(self) -> Vector2:
         """
