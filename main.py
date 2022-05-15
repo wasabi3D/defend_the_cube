@@ -4,16 +4,10 @@ import threading
 import time
 import sys
 import random
-from typing import Optional
-
-import pygame
-import pyparsing
-from pygame.math import Vector2
 
 import GameExtensions.inventory as inv
 from GameExtensions.UI import FPS_Label, HPBar, Button, TextLabel, BaseUIObject, MenuManager
 from GameExtensions.generate_terrain import Terrain, RenderOverTerrain
-from GameExtensions.locals import *
 from GameExtensions.player import Player
 from GameExtensions.enemy import Zombie
 from GameExtensions.items import *
@@ -44,16 +38,28 @@ class EnemySpawner(GameObject):
 class GameRestarter(GameObject):
     def __init__(self):
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "restarter")
+        self.curtain_started = False
 
     def early_update(self) -> None:
-        if sing.ROOT.game_objects["core"].HP == 0:
-            sing.ROOT.clear_objects()
-            game_over_label = TextLabel(Vector2(0, 40), 0, sing.ROOT.global_fonts["title_font"], "GAME OVER",
-                                        (200, 200, 200), "game_over", anchor=N)
-            gm_over_btn = Button(Vector2(0, 0), 0, load_img("resources/UI/button.png", (60, 32)), "gm_over_btn",
-                                 on_mouse_up_func=self.restart, text="menu", font=sing.ROOT.global_fonts["menu_font"],
-                                 text_color=(200, 200, 200), anchor=CENTER)
-            sing.ROOT.add_gameObject(game_over_label, gm_over_btn)
+        if self.curtain_started:
+            sing.ROOT.game_objects["gr"].surf_mult.add_alpha(120 * sing.ROOT.delta)
+            if sing.ROOT.game_objects["gr"].surf_mult.a > 250:
+                sing.ROOT.clear_objects()
+
+                game_over_label = TextLabel(Vector2(0, 40), 0, sing.ROOT.global_fonts["title_font"], "GAME OVER",
+                                            (200, 200, 200), "game_over", anchor=N)
+                gm_over_btn = Button(Vector2(0, 0), 0, load_img("resources/UI/button.png", (60, 32)), "gm_over_btn",
+                                     on_mouse_up_func=self.restart, text="menu", font=sing.ROOT.global_fonts["menu_font"],
+                                     text_color=(200, 200, 200), anchor=CENTER)
+                sing.ROOT.add_gameObject(game_over_label, gm_over_btn)
+
+        elif sing.ROOT.game_objects["core"].HP == 0:
+            gray_thing = BaseUIObject(Vector2(0, 0), 0, load_img("resources/UI/gray_background.png", (720, 480)), "gr",
+                                      anchor=CENTER)
+            gray_thing.surf_mult.set_alpha(0)
+            sing.ROOT.add_gameObject(gray_thing)
+            self.curtain_started = True
+
 
     def restart(self):
         sing.ROOT.clear_objects()

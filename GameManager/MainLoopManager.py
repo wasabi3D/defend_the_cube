@@ -52,10 +52,9 @@ class GameRoot:
         """
         Fonction pour lancer le jeu
         """
-        done = False
 
         self.delta = 0
-        while not done:
+        while True:
             self.object_collision_rects.clear()
             for l in self.objects_by_tag.values():
                 l.clear()
@@ -64,7 +63,8 @@ class GameRoot:
             self.key_downs.clear()
             self.mouse_ups = [False, False, False]
             self.mouse_downs = [False, False, False]
-            # ___START___
+
+            # _____EVENTS_____
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -165,8 +165,6 @@ class GameRoot:
         for i in il:
             if i > len(self.collidable_objects) - 1:
                 continue
-            # if self.collidable_objects[i].name != exclude:
-            #     return i
             if exclude is None or not re.match(exclude, self.collidable_objects[i].name):
                 return i
         return -1
