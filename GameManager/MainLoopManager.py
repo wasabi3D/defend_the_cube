@@ -2,6 +2,7 @@ import pygame
 import sys
 import GameManager.singleton as sing
 import GameManager.util as util
+import re
 from typing import Optional
 from collections import OrderedDict
 
@@ -164,7 +165,9 @@ class GameRoot:
         for i in il:
             if i > len(self.collidable_objects) - 1:
                 continue
-            if self.collidable_objects[i].name != exclude:
+            # if self.collidable_objects[i].name != exclude:
+            #     return i
+            if exclude is None or not re.match(exclude, self.collidable_objects[i].name):
                 return i
         return -1
 
@@ -182,7 +185,7 @@ class GameRoot:
         for i in il:
             if i > len(self.collidable_objects) - 1:
                 continue
-            if self.collidable_objects[i].name != exclude:
+            if exclude is None or not re.match(exclude, self.collidable_objects[i].name):
                 ret.append(i)
         return tuple(ret)
 

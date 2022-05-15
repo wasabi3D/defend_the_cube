@@ -300,7 +300,6 @@ def get_path2target(current_pos: Vector2,
                         nxt in cur.coords:
                     continue
 
-
             new_path = cur.copy()
             new_path.coords.append(nxt)
             new_path.cost = (len(new_path.coords) + (((target_x - nxt.x) if target_x is not None else 0) ** 2 +
@@ -337,11 +336,16 @@ class MovementGenerator:
     Classe qui permet de générer un mouvement qui respecte les hiboxes
     """
 
-    def __init__(self, hitbox: pygame.Surface, ref: GameObject, knockback_decay: float = 0.1):
+    def __init__(self,
+                 hitbox: pygame.Surface,
+                 ref: GameObject,
+                 knockback_decay: float = 0.1,
+                 exclude: Optional[str] = None):
         """
 
         :param hitbox: Un pygame.Surface qui définit la taille du hitbox
         :param ref: le gameobject qui utilise cette instance
+        :param exclude: Le nom des objets exclus lors de la détection des collisions
         """
         from GameExtensions.generate_terrain import Terrain
         self.hitbox = hitbox
@@ -349,6 +353,7 @@ class MovementGenerator:
         self.terrain: Terrain = sing.ROOT.game_objects["terrain"]
         self.knockback = Vector2(0, 0)
         self.kb_decay = knockback_decay
+        self.exclude = ref.name if exclude is None else exclude
 
     def update_knockback(self):
         self.knockback -= self.knockback * self.kb_decay
@@ -369,9 +374,9 @@ class MovementGenerator:
         rp = self.ref.get_real_pos()
         dx_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(dx, 0))
         dy_tmp_rect = self.hitbox.get_rect(center=rp + Vector2(0, dy))
-        if sing.ROOT.is_colliding(dx_tmp_rect, exclude=self.ref.name) != -1:
+        if sing.ROOT.is_colliding(dx_tmp_rect, exclude=self.exclude) != -1:
             dx = 0
-        if sing.ROOT.is_colliding(dy_tmp_rect, exclude=self.ref.name) != -1:
+        if sing.ROOT.is_colliding(dy_tmp_rect, exclude=self.exclude) != -1:
             dy = 0
 
         vec = Vector2(dx, dy)

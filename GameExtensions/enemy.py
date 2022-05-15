@@ -162,6 +162,7 @@ class Zombie(TestEnemy):
         super().__init__(pos, load_img("resources/enemy/test_zombie.png"), name, Zombie.MAX_HP, 0.5)
         self.timer = 0
         self.player = sing.ROOT.game_objects["player"]
+        self.mov_gen.exclude = "Zombie.*"
 
     def update(self) -> None:
         super().update()
