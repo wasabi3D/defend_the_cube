@@ -13,10 +13,6 @@ from GameExtensions.field_objects import Placeable
 
 
 class Terrain(GameObject):
-    terrain = []
-    mineral_layer = []
-    over_terrain = []
-
     def __init__(self, seed: int,
                  size: tuple[int, int],
                  biome_types: list[pygame.Surface],
@@ -48,6 +44,10 @@ class Terrain(GameObject):
         :param minkowski_exponent: exponentiel pour calculer les distances de Minkowski pour le bruit de Veronoi
         """
         super().__init__(pygame.Vector2(0, 0), 0, pygame.Surface((0, 0)), "terrain")
+
+        self.terrain = []
+        self.mineral_layer = []
+        self.over_terrain = []
 
         self.seed = seed
 

@@ -66,7 +66,8 @@ class TestEnemy(Enemy):
             return
         core_pos = sing.ROOT.game_objects["core"].get_real_pos()
         player_pos = sing.ROOT.game_objects["player"].get_real_pos()
-        if core_pos.distance_squared_to(self.get_real_pos()) < player_pos.distance_squared_to(self.get_real_pos()):
+        if core_pos.distance_squared_to(self.get_real_pos()) < player_pos.distance_squared_to(self.get_real_pos())\
+                or sing.ROOT.game_objects["player"].ghost_mode:
             player_pos = core_pos.copy()
         dist = (self.get_real_pos().x - player_pos.x) ** 2 + (self.get_real_pos().y - player_pos.y) ** 2
 
@@ -146,7 +147,7 @@ class Zombie(TestEnemy):
     """
     Classe qui définit le zombie
     """
-    ATK = 50
+    ATK = 5
     ATK_COOLDOWN = 2
     ATK_RANGE = 50
     KNOCKBACK_FORCE = 550
@@ -166,7 +167,7 @@ class Zombie(TestEnemy):
         super().update()
         dist = self.player.get_real_pos().distance_squared_to(self.get_real_pos())
         dist_core = sing.ROOT.game_objects["core"].get_real_pos().distance_squared_to(self.get_real_pos())
-        if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= Zombie.ATK_COOLDOWN:
+        if dist <= Zombie.ATK_RANGE ** 2 and self.timer >= Zombie.ATK_COOLDOWN and not self.player.ghost_mode:
             self.timer = 0
             self.player.get_damage(self.ATK, (self.player.get_real_pos() - self.get_real_pos()).normalize() * \
                                    Zombie.KNOCKBACK_FORCE)

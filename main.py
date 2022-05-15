@@ -3,6 +3,7 @@ import os
 import threading
 import time
 import sys
+import random
 from typing import Optional
 
 import pygame
@@ -25,12 +26,28 @@ root = GameRoot((720, 480), (30, 30, 30), "Game", os.path.dirname(os.path.realpa
                 Vector2(0, 0), 1000)
 
 
+class EnemySpawner(GameObject):
+    def __init__(self):
+        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "enemyspawner")
+        self.timer = 0
+        self.counter = 0
+
+    def early_update(self) -> None:
+        self.timer = max(0, self.timer - sing.ROOT.delta)
+        if self.timer == 0:
+            sing.ROOT.add_gameObject(Zombie(Vector2(random.randint(-1500, 1500), random.randint(-1500, 1500)),
+                                            f"Zombie{self.counter}"))
+            self.counter += 1
+            self.timer = random.random() * 10
+
+
 class GameRestarter(GameObject):
     def __init__(self):
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "restarter")
 
     def early_update(self) -> None:
         if sing.ROOT.game_objects["core"].HP == 0:
+            sing.ROOT.clear_objects()
             game_over_label = TextLabel(Vector2(0, 40), 0, sing.ROOT.global_fonts["title_font"], "GAME OVER",
                                         (200, 200, 200), "game_over", anchor=N)
             gm_over_btn = Button(Vector2(0, 0), 0, load_img("resources/UI/button.png", (60, 32)), "gm_over_btn",
@@ -72,15 +89,14 @@ class GameLoader(GameObject):
             )
 
             root.add_gameObject(self.ter,
-                                inventory) \
-                .add_gameObject(Core()) \
-                .add_gameObject(Player(Vector2(-80, 80), 0, "player")) \
-                .add_gameObject(Zombie(Vector2(-50, 100), "zombie")) \
-                .add_gameObject(RenderOverTerrain()) \
+                                inventory, immediate=True) \
+                .add_gameObject(Player(Vector2(-80, 80), 0, "player"), immediate=True) \
+                .add_gameObject(RenderOverTerrain(), immediate=True) \
+                .add_gameObject(Core(), immediate=True) \
                 .game_objects.move_to_end("inventory")
 
             root.add_gameObject(FPS_Label(Vector2(50, 20)),
-                                HPBar(Vector2(0, -20), S)) \
+                                HPBar(Vector2(0, -20), S), immediate=True) \
                 .add_collidable_object(root.game_objects["player"])
 
             inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
@@ -89,7 +105,8 @@ class GameLoader(GameObject):
             inventory.add_obj_ins(Sword(1))
             inventory.add_obj_ins(Book())
             time.sleep(2)
-            root.add_gameObject(GameRestarter())
+            root.add_gameObject(GameRestarter(), immediate=True)
+            root.add_gameObject(EnemySpawner(), immediate=True)
             root.game_objects.pop("loader")
             root.game_objects.pop("loading_label")
             root.game_objects.pop("state_label")
@@ -106,7 +123,7 @@ class GameLoader(GameObject):
 
 def start_game():
     root.clear_objects()
-    root.add_gameObject(GameLoader())
+    root.add_gameObject(GameLoader(), immediate=True)
 
 
 def main():
@@ -132,7 +149,7 @@ def main():
 
     def quit_game():
         pygame.quit()
-        sys.exit()
+        sys.exit(0)
 
     quit_btn = Button(Vector2(42, 30), 0,
                       load_img("resources/UI/button.png", (84, 32)),

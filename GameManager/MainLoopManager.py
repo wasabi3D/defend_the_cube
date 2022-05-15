@@ -1,4 +1,5 @@
 import pygame
+import sys
 import GameManager.singleton as sing
 import GameManager.util as util
 from typing import Optional
@@ -65,7 +66,8 @@ class GameRoot:
             # ___START___
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    done = True
+                    pygame.quit()
+                    sys.exit(0)
                 elif event.type == pygame.KEYDOWN:
                     self.key_downs.append(event.key)
                 elif event.type == pygame.KEYUP:
@@ -80,19 +82,25 @@ class GameRoot:
                     self.mouse_downs[event.button - 1] = True
             # ___________
 
-            for gm in self.game_objects.values():
-                if gm.enabled:
-                    gm.early_update()
-
             # ___MAIN UPDATE___
-            for gm in self.game_objects.values():
-                if gm.enabled:
-                    gm.update()
+            try:
+                for gm in self.game_objects.values():
+                    if gm.enabled:
+                        gm.early_update()
+            except RuntimeError:
+                pass
+
+            try:
+                for gm in self.game_objects.values():
+                    if gm.enabled:
+                        gm.update()
+            except RuntimeError:
+                pass
             # _________________
 
             # ___ ADD/REMOVE OBJECTS ___
             for gm in self.objects2be_added:
-                self.add_gameObject(gm)
+                self.game_objects.setdefault(gm.name, gm)
 
             for gm in self.objects2be_removed:
                 try:
@@ -113,14 +121,18 @@ class GameRoot:
             self.delta = (pygame.time.get_ticks() - t) / 1000
             self.clock.tick(self.fps_limit)
 
-    def add_gameObject(self, *gameObject: util.GameObject):
+    def add_gameObject(self, *gameObject: util.GameObject, immediate=False):
         """
         Fonction pour ajouter un objet
 
+        :param immediate: Si on l'ajoute immediatement
         :param gameObject: L'objet qu'on veut ajouter
         """
-        for g in gameObject:
-            self.game_objects.setdefault(g.name, g)
+        if not immediate:
+            self.objects2be_added += list(gameObject)
+        else:
+            for g in gameObject:
+                self.game_objects.setdefault(g.name, g)
         return self
 
     def add_collidable_object(self, gameObject: util.GameObject) -> None:
@@ -202,6 +214,9 @@ class GameRoot:
         self.game_objects.clear()
         self.collidable_objects.clear()
         self.object_collision_rects.clear()
+        self.objects2be_removed.clear()
+        self.objects2be_added.clear()
+        self.objects_by_tag.clear()
 
     def get_obj_list_by_tag(self, tag: str) -> list[util.GameObject]:
         """

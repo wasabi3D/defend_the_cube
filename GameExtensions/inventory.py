@@ -332,7 +332,7 @@ class Inventory(GameObject):
                 if 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
                     self.selected = hotbar_cell[0]
 
-                elif not self.is_pressed["bool"]:
+                elif not self.is_pressed["bool"] and not sing.ROOT.game_objects["player"].ghost_mode:
                     self.hotbar[self.selected].on_use()
                     self.is_pressed["bool"] = True
             elif self.is_pressed["bool"]:

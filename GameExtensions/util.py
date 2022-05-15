@@ -300,6 +300,7 @@ def get_path2target(current_pos: Vector2,
                         nxt in cur.coords:
                     continue
 
+
             new_path = cur.copy()
             new_path.coords.append(nxt)
             new_path.cost = (len(new_path.coords) + (((target_x - nxt.x) if target_x is not None else 0) ** 2 +

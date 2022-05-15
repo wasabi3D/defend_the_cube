@@ -105,6 +105,15 @@ class Hands(GameObject):
         self.fw = True
         self.time_remain = Hands.SWORD_ANIM_TIME if sword_mode else Hands.ANIM_TIME / 2
 
+    def set_hands_alpha(self, value: int) -> None:
+        """
+        Change la transparence des mains
+
+        :param value: La valeur de alpha
+        """
+        self.children["right_hand"].surf_mult.set_alpha(value)
+        self.children["left_hand"].surf_mult.set_alpha(value)
+
 
 class Player(Entity):
     """
@@ -121,6 +130,7 @@ class Player(Entity):
     HAND_OFFSET = Vector2(15, -5)
     HITBOX_SIZE = (26, 26)
     MAX_HP = 100
+    GHOST_TIME = 6
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         """
@@ -132,7 +142,7 @@ class Player(Entity):
         super().__init__(pos, rotation, load_img("resources/player/topdown/player_east.png", Player.SPRITE_SIZE), name,
                          Player.MAX_HP, Player.MAX_HP, pygame.Surface(Player.HITBOX_SIZE))
         self.mov_gen.kb_decay = 0.08
-        self.punch_hitbox = pygame.Surface((15, 15))
+        self.punch_hitbox = pygame.Surface((25, 25))
         # self.player_hitbox = pygame.Surface(Player.HITBOX_SIZE)
         self.facing = Player.RIGHT
         self.children.add_gameobject(GameObject(Vector2(0, 0), 0, pygame.Surface((0, 0)), "item_holder"))
@@ -143,9 +153,27 @@ class Player(Entity):
             raise TypeError("Not an instance of Inventory")
 
         self.last_hold = ""
+        self.ghost_timer = 0
+        self.ghost_mode = False
 
     def update(self) -> None:
         super().update()
+
+        # GHOST
+        self.ghost_timer = max(0, self.ghost_timer - sing.ROOT.delta)
+        if self.ghost_timer > 0:
+            self.surf_mult.set_alpha(150)
+            self.children["hands"].set_hands_alpha(150)
+        else:
+            self.surf_mult.set_alpha(255)
+            self.children["hands"].set_hands_alpha(255)
+            self.ghost_mode = False
+
+        if self.hp <= 0:
+            self.ghost_mode = True
+            self.ghost_timer = Player.GHOST_TIME
+            self.hp = self.max_hp
+
         # MOVEMENT
         pressed = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -203,29 +231,30 @@ class Player(Entity):
                     GameObject(Vector2(2, -6), 0, new_img, "item"))
 
         # Click gauche
-        if sing.ROOT.mouse_downs[MOUSE_LEFT]:
-            if SLASHABLE in selected.tag:
-                self.children["hands"].punch(sword_mode=True)
-                self.children["slash"].slash()
-            elif HOLDABLE not in selected.tag and DONT_SLASH not in selected.tag:
-                self.children["hands"].punch(sword_mode=False)
+        if not self.ghost_mode:
+            if sing.ROOT.mouse_downs[MOUSE_LEFT]:
+                if SLASHABLE in selected.tag:
+                    self.children["hands"].punch(sword_mode=True)
+                    self.children["slash"].slash()
+                elif HOLDABLE not in selected.tag and DONT_SLASH not in selected.tag:
+                    self.children["hands"].punch(sword_mode=False)
 
-            ph = self.generate_punch_hitbox()
-            if isinstance(selected, Weapon):
-                hits = sing.ROOT.collide_all(ph)
-                for i in hits:
-                    obj = sing.ROOT.collidable_objects[i]
-                    if isinstance(obj, Resource):
-                        obj.on_mine()
-                    elif isinstance(obj, Enemy):
-                        vec = (obj.get_real_pos() - self.get_real_pos()).normalize()
-                        obj.get_damage(10, vec * 1000)
-            else:
-                hit = sing.ROOT.is_colliding(ph)
-                if hit != -1:
-                    obj = sing.ROOT.collidable_objects[hit]
-                    if isinstance(obj, Resource):
-                        obj.on_mine()
+                ph = self.generate_punch_hitbox()
+                if isinstance(selected, Weapon):
+                    hits = sing.ROOT.collide_all(ph)
+                    for i in hits:
+                        obj = sing.ROOT.collidable_objects[i]
+                        if isinstance(obj, Resource):
+                            obj.on_mine()
+                        elif isinstance(obj, Enemy):
+                            vec = (obj.get_real_pos() - self.get_real_pos()).normalize()
+                            obj.get_damage(10, vec * 1000)
+                else:
+                    hit = sing.ROOT.is_colliding(ph)
+                    if hit != -1:
+                        obj = sing.ROOT.collidable_objects[hit]
+                        if isinstance(obj, Resource):
+                            obj.on_mine()
 
         # Mise a jour de la barre en bas qui indique la vie
         hpb = sing.ROOT.game_objects["HPBar"]
@@ -260,5 +289,5 @@ class Player(Entity):
         return Vector2(x, y).normalize()
 
     def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
-        screen.blit(self.image, self.image.get_rect(center=tuple2Vec2(sing.ROOT.screen_dim) / 2))
+        screen.blit(self.alpha_converted(), self.image.get_rect(center=tuple2Vec2(sing.ROOT.screen_dim) / 2))
         super().blit_children(screen, apply_alpha)
