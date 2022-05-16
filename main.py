@@ -127,7 +127,7 @@ class GameLoader(GameObject):
         bs = 32
         biomes = [load_img("resources/environment/terrain/dark_grass.png", (bs, bs)),
                   load_img("resources/environment/terrain/grass.png", (bs, bs))]
-        ter = Terrain(500, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
+        ter = Terrain(SEED, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
         self.ter = ter
 
 

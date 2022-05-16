@@ -120,8 +120,9 @@ class GameRoot:
                 if self.game_objects[gm].enabled and gm not in self.display_priority:
                     self.game_objects[gm].blit(self.display)
             for gm in reversed(self.display_priority):
-                if self.game_objects[gm].enabled:
-                    self.game_objects[gm].blit(self.display)
+                if gm in self.game_objects:
+                    if self.game_objects[gm].enabled:
+                        self.game_objects[gm].blit(self.display)
             pygame.display.update()
             self.clock.tick(self.fps_limit)
             self.delta = (pygame.time.get_ticks() - t) / 1000

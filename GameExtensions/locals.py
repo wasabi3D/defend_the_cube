@@ -1,3 +1,4 @@
+import random
 from typing import Final
 
 N: Final = "n"
@@ -9,6 +10,9 @@ SW: Final = "sw"
 W: Final = "w"
 NW: Final = "nw"
 CENTER: Final = "center"
+
+
+SEED = random.randint(1, 100000)
 
 
 INV_IMG_SIZE: Final = (380, 290)
