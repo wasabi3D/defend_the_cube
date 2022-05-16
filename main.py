@@ -1,6 +1,5 @@
 import os
 import threading
-import time
 import sys
 
 import GameExtensions.inventory as inv

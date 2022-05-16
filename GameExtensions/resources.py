@@ -4,7 +4,7 @@ from GameManager.funcs import resize_surface
 from GameManager.resources import load_img
 
 from GameExtensions.util import ShakeGenerator
-from GameExtensions.items import Log, Stone, IronOre
+from GameExtensions.items import *
 from GameExtensions.locals import ITEM_FONT_NAME
 
 from pygame.math import Vector2
@@ -65,6 +65,9 @@ class Tree(Resource):
     """
     Arbre.
     """
+
+    APPLE_PROBABILITY = 0.3
+
     def __init__(self, pos: Vector2, name: str, size_min=64, size_max=96, apple_probability=0.1):
         """
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -83,10 +86,13 @@ class Tree(Resource):
 
     def on_mine(self):
         super().on_mine()
-        sing.ROOT.game_objects["inventory"].add_obj_ins(self.log_item.copy())
+        inventory = sing.ROOT.game_objects["inventory"]
+        inventory.add_obj_ins(self.log_item.copy())
         self.shake.y_intensity *= -1 if random() > 0.5 else 1
         self.shake.begin(0)
         self.sound.play()
+        if self.has_apple and random() <= Tree.APPLE_PROBABILITY:
+            inventory.add_obj_ins(Apple(1, sing.ROOT.global_fonts[ITEM_FONT_NAME]))
 
 
 class Rock(Resource):

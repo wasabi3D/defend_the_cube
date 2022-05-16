@@ -172,11 +172,9 @@ class Inventory(GameObject):
         for i, el in enumerate(self.hotbar):
             if el.get_name() == item.get_name():
                 rest = self.hotbar[i].add_n(item.get_n())
-                print(rest)
                 if rest:
                     item = item.copy()
                     item.set_n(rest)
-                    print(item.name, item.get_n())
                 else: return True
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
@@ -277,7 +275,6 @@ class Inventory(GameObject):
                 if el.get_name() != "empty":
                     if not el.remove_one():
                         self.crafting_station[0][i][j] = self.empty_cell
-        print(self.crafting_station[1][0])
         self.add_obj_ins(self.crafting_station[1][0])
         self.crafting_station[1][0] = self.empty_cell
 

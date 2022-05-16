@@ -75,6 +75,11 @@ class Apple(InventoryObject):
     def copy(self):
         return Apple(self.n, self.font)
 
+    def on_use(self):
+        player = sing.ROOT.game_objects["player"]
+        player.hp += 20
+        return self.remove_one()
+
 
 class Log(InventoryObject):
     """
@@ -151,7 +156,7 @@ class Sword(Weapon):
         super().__init__(IRON_SWORD, load_img("resources/items/iron_sword.png"), n, 10)
 
     def copy(self):
-        return WoodBlockItem(self.n, self.font)
+        return Sword(self.n, self.font)
 
     def on_use(self):
         return True
