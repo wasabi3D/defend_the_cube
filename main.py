@@ -106,10 +106,6 @@ class GameLoader(GameObject):
                 .add_collidable_object(root.game_objects["player"])
 
             inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
-            inventory.add_obj_ins(WoodBlockItem(10, inventory.font))
-            inventory.add_obj_ins(Sword(1))
-            inventory.add_obj_ins(Book())
-            time.sleep(2)
             root.add_gameObject(GameRestarter(), immediate=True)
             root.add_gameObject(EnemySpawner(), immediate=True)
             root.game_objects.pop("loader")
