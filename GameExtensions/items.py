@@ -1,4 +1,3 @@
-from GameExtensions.inventory import InventoryObject
 from GameExtensions.locals import *
 
 from GameManager.resources import load_img
@@ -11,6 +10,55 @@ from pygame.math import Vector2
 from typing import Optional
 
 
+# Classe pour les objets d'inventaire
+class InventoryObject:
+    def __init__(self, name: str, img: pygame.Surface, n: int, font: Optional[pygame.font.Font] = None):
+        self.name = name
+        self.img = img
+        self.n = n
+        if font is None:
+            font = sing.ROOT.global_fonts[ITEM_FONT_NAME]
+        self.font = font
+        self.n_img = font.render(str(self.n), False, NUMBER_COLOR)
+        self.max_n = SPE_OBJ[self.name] if self.name in SPE_OBJ else MAX_OBJ
+        self.tag: list[str] = []
+
+    def get_img(self) -> pygame.Surface:
+        return self.img
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_n(self) -> int:
+        return self.n
+
+    def get_n_img(self) -> pygame.Surface:
+        return self.n_img
+
+    def set_n(self, n: int):
+        self.n = n
+        self.n_img = self.font.render(str(self.n), False, NUMBER_COLOR)
+
+    def add_n(self, n: int):
+        tmp = self.n
+        self.n = min(self.n + n, self.max_n)
+        self.n_img = self.font.render(str(self.n), False, NUMBER_COLOR)
+        return max(tmp + n - self.max_n, 0)
+
+    def remove_one(self):
+        self.n -= 1
+        self.n_img = self.font.render(str(self.n), False, NUMBER_COLOR)
+        if self.n <= 0:
+            return False
+        return True
+
+    def copy(self):
+        return InventoryObject(self.name, self.img, self.n, self.font)
+
+    def on_use(self):
+        return True
+
+
 class Apple(InventoryObject):
     """
     La classe pour définir une pomme
@@ -21,14 +69,11 @@ class Apple(InventoryObject):
         :param n: Nombre de pommes
         :param font: Police pour afficher le nombre des pommes
         """
-        super().__init__("apple", load_img("resources/items/apple.png", ITEM_SPRITE_SIZE), n, font)
+        super().__init__(APPLE, load_img("resources/items/apple.png", ITEM_SPRITE_SIZE), n, font)
         self.tag.append(SLASHABLE)
 
     def copy(self):
         return Apple(self.n, self.font)
-
-    def on_use(self):
-        pass
 
 
 class Log(InventoryObject):
@@ -36,13 +81,10 @@ class Log(InventoryObject):
     La classe pour définir du bois
     """
     def __init__(self, n: int, font: pygame.font.Font):
-        super().__init__("log", load_img("resources/items/log.png", ITEM_SPRITE_SIZE), n, font)
+        super().__init__(LOG, load_img("resources/items/log.png", ITEM_SPRITE_SIZE), n, font)
 
     def copy(self):
         return Log(self.n, self.font)
-
-    def on_use(self):
-        pass
 
 
 class Stone(InventoryObject):
@@ -55,16 +97,13 @@ class Stone(InventoryObject):
     def copy(self):
         return Stone(self.n, self.font)
 
-    def on_use(self):
-        pass
-
 
 class WoodBlockItem(InventoryObject):
     """
     La classe pour définir l'item des blocks de bois
     """
     def __init__(self, n: int, font: pygame.font.Font):
-        super().__init__("wood_block", load_img("resources/items/wood_block.png"), n, font)
+        super().__init__(WOOD_BLOCK, load_img("resources/items/wood_block.png"), n, font)
         self.tag.append(HOLDABLE)
         self.tag.append(PLACEABLE)
 
@@ -79,7 +118,8 @@ class WoodBlockItem(InventoryObject):
             pos = tuple(holding.values())[0].get_real_pos()
             block = WoodBlock(pos)
             if block.register():
-                self.n -= 1
+                return self.remove_one()
+        return True
 
 
 class Weapon(InventoryObject):
@@ -96,14 +136,14 @@ class Sword(Weapon):
     """
     La classe pour définir l'item de l'épée
     """
-    def __init__(self, n: int):
-        super().__init__("iron_sword", load_img("resources/items/iron_sword.png"), n, 10)
+    def __init__(self, n: int, *args):
+        super().__init__(IRON_SWORD, load_img("resources/items/iron_sword.png"), n, 10)
 
     def copy(self):
         return WoodBlockItem(self.n, self.font)
 
     def on_use(self):
-        pass
+        return True
 
 
 class MagicBullet(GameObject):
@@ -114,7 +154,7 @@ class MagicBullet(GameObject):
     DIR_CORRECTION = 0.8
     TARGET_DETECT_DISTANCE = 140
     LIFE_DURATION = 5
-    DAMAGE = 10
+    DAMAGE = 2
 
     def __init__(self, pos: Vector2, direction: Vector2):
         super().__init__(pos, 0, load_img("resources/player/magic_bullet.png", (16, 16)),
@@ -131,7 +171,8 @@ class MagicBullet(GameObject):
             if self.timer > MagicBullet.LIFE_DURATION:
                 sing.ROOT.remove_object(self)
             for gm in sing.ROOT.get_obj_list_by_tag(ENEMY):
-                if gm.get_real_pos().distance_squared_to(self.get_real_pos()) <= MagicBullet.TARGET_DETECT_DISTANCE ** 2:
+                if gm.get_real_pos().distance_squared_to(self.get_real_pos()) <= \
+                        MagicBullet.TARGET_DETECT_DISTANCE ** 2:
                     self.target = gm
                     break
 
@@ -141,7 +182,8 @@ class MagicBullet(GameObject):
                 sing.ROOT.remove_object(self)
                 self.target.get_damage(MagicBullet.DAMAGE, Vector2(0, 0))
                 return
-            self.direction += (self.target.get_real_pos() - self.get_real_pos()).normalize() * MagicBullet.DIR_CORRECTION
+            self.direction += (self.target.get_real_pos() - self.get_real_pos()).normalize() * \
+                              MagicBullet.DIR_CORRECTION
             self.direction.normalize_ip()
 
 
@@ -149,8 +191,8 @@ class Book(Weapon):
     """
     La classe pour définir le livre pour tirer des boules magiques
     """
-    def __init__(self):
-        super().__init__("book", load_img("resources/items/book.png"), 1, 10)
+    def __init__(self, *args):
+        super().__init__(BOOK, load_img("resources/items/book.png"), 1, 10)
         self.tag.append(DONT_SLASH)
         self.player = sing.ROOT.game_objects["player"]
 
@@ -159,3 +201,22 @@ class Book(Weapon):
 
     def on_use(self):
         sing.ROOT.objects2be_added.append(MagicBullet(self.player.get_real_pos(), self.player.get_direction_vec()))
+        return True
+
+
+def get_recipes() -> \
+        dict[tuple[tuple[str, str, str], tuple[str, str, str], tuple[str, str, str]], tuple]:
+    """ Nous donne toutes les combinaisons possibles dans le menu de craft"""
+    return {
+        ((LOG, LOG, EMPTY),
+         (LOG, LOG, EMPTY),
+         (EMPTY, EMPTY, EMPTY)): (WoodBlockItem, 2),
+
+        ((STONE, STONE, STONE),
+         (EMPTY, EMPTY, EMPTY),
+         (EMPTY, EMPTY, EMPTY)): (Apple, 1),
+
+        ((LOG, STONE, EMPTY),
+         (STONE, STONE, EMPTY),
+         (EMPTY, EMPTY, EMPTY)): (Book, 1)
+    }

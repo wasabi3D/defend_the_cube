@@ -64,7 +64,7 @@ class Placeable(GameObject, metaclass=ABCMeta):
         map_pos = self.terrain.get_real_pos()
         dim_per_block = self.terrain.block_px_size
         rel_pos = self.get_real_pos() - map_pos + Vector2(self.terrain.block_px_size, self.terrain.block_px_size) / 2
-        rel_pos = rel_pos // dim_per_block
+        rel_pos //= dim_per_block
         rel_pos += Vector2(len(self.terrain.over_terrain[0]) // 2, len(self.terrain.over_terrain) // 2)
         return rel_pos
 

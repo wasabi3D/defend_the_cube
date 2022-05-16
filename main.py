@@ -1,4 +1,3 @@
-import multiprocessing.pool
 import os
 import threading
 import time
@@ -17,7 +16,7 @@ from GameManager.resources import load_img, load_font
 from GameManager.util import GameObject
 
 root = GameRoot((720, 480), (30, 30, 30), "Defend the cube!", os.path.dirname(os.path.realpath(__file__)),
-                Vector2(0, 0), 1000)
+                Vector2(), 1000)
 
 
 class EnemySpawner(GameObject):
@@ -68,7 +67,7 @@ class GameRestarter(GameObject):
 
 class GameLoader(GameObject):
     def __init__(self):
-        super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "loader")
+        super().__init__(Vector2(), 0, pygame.Surface((0, 0)), "loader")
         root.add_gameObject(TextLabel(Vector2(0, -25), 0, root.global_fonts["menu_font"], "Loading...", (200, 200, 200),
                                       "loading_label", anchor=S),
                             TextLabel(Vector2(0, -50), 0, root.global_fonts["menu_font"], "Generating terrain...",
@@ -89,6 +88,7 @@ class GameLoader(GameObject):
                 (8, 6), Vector2(40, 40),
                 load_img("resources/UI/inventory.png"),
                 load_img("resources/UI/hotbar.png"),
+                load_img("resources/UI/crafting_space.png"),
                 load_img("resources/UI/selected_item.png"),
                 "inventory",
                 root.global_fonts[ITEM_FONT_NAME]
@@ -105,7 +105,6 @@ class GameLoader(GameObject):
                                 HPBar(Vector2(0, -20), S), immediate=True) \
                 .add_collidable_object(root.game_objects["player"])
 
-            inventory.add_obj("sand", load_img("resources/test/grid/grid_one.png"), 5)
             inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
             inventory.add_obj_ins(WoodBlockItem(10, inventory.font))
             inventory.add_obj_ins(Sword(1))

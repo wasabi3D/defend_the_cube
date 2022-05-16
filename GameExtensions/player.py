@@ -64,7 +64,7 @@ class Hands(GameObject):
         self.fw = True  # si la main droite avance ou pas
         self.sword_mode = False
         self.time_remain = 0
-        self.distance_from_parent = Vector2(0, 0).distance_to(self.pos + self.children["right_hand"].pos)
+        self.distance_from_parent = Vector2().distance_to(self.pos + self.children["right_hand"].pos)
         self.x_dist_from_parent = self.pos.x + self.children["right_hand"].pos.x
 
     def update(self):
@@ -74,7 +74,7 @@ class Hands(GameObject):
 
             if self.sword_mode:
                 time = Hands.SWORD_ANIM_TIME
-                angle = (math.pi / 2) * (((time - self.time_remain) / time)) - (math.pi / 2) * 1
+                angle = (math.pi / 2) * ((time - self.time_remain) / time) - (math.pi / 2) * 1
                 x = math.cos(angle) * self.distance_from_parent
                 y = math.sin(angle) * self.distance_from_parent
                 self.children["right_hand"].translate(Vector2(x, -y) - Vector2(self.x_dist_from_parent, 0), False)
