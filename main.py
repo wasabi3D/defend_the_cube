@@ -116,6 +116,11 @@ class GameLoader(GameObject):
             root.game_objects.pop("loading_label")
             root.game_objects.pop("state_label")
             # endregion
+            root.setup_priority([
+                "inventory",
+                "HPBar",
+                "RenderOverTerrain"
+            ])
 
     def generate_ter(self):
         load_font("resources/test/fonts/square-deal.ttf", FONT_SIZE, global_font=True, name=ITEM_FONT_NAME)

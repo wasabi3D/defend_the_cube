@@ -47,6 +47,7 @@ class GameRoot:
         self.objects2be_added: list[util.GameObject] = []
         self.objects_by_tag: dict[str, list[util.GameObject]] = {}
         self.new_object_index = 0
+        self.display_priority: list[str] = []
 
     def mainloop(self):
         """
@@ -115,9 +116,12 @@ class GameRoot:
 
             # __ BLIT THINGS ON THE SCREEN __
             self.display.fill(self.background)
-            for gm in self.game_objects.values():
-                if gm.enabled:
-                    gm.blit(self.display)
+            for gm in self.game_objects:
+                if self.game_objects[gm].enabled and gm not in self.display_priority:
+                    self.game_objects[gm].blit(self.display)
+            for gm in reversed(self.display_priority):
+                if self.game_objects[gm].enabled:
+                    self.game_objects[gm].blit(self.display)
             pygame.display.update()
             self.clock.tick(self.fps_limit)
             self.delta = (pygame.time.get_ticks() - t) / 1000
@@ -235,4 +239,7 @@ class GameRoot:
                     self.objects_by_tag[tag].append(gm)
 
         return self.objects_by_tag[tag]
+
+    def setup_priority(self, order: list[str]) -> None:
+        self.display_priority = [x for x in order if x in self.game_objects]
 
