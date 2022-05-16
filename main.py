@@ -114,9 +114,11 @@ class GameLoader(GameObject):
             root.game_objects.pop("state_label")
             # endregion
             root.setup_priority([
+                "gr",
                 "inventory",
                 "HPBar",
-                "RenderOverTerrain"
+                "dead_label",
+                "RenderOverTerrain",
             ])
 
     def generate_ter(self):

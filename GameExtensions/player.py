@@ -10,6 +10,7 @@ from GameExtensions.inventory import Inventory
 from GameExtensions.locals import *
 from GameExtensions.items import Weapon
 from GameExtensions.enemy import Enemy
+from GameExtensions.UI import TextLabel
 
 import pygame
 from pygame.locals import *
@@ -170,12 +171,19 @@ class Player(Entity):
         else:
             self.surf_mult.set_alpha(255)
             self.children["hands"].set_hands_alpha(255)
+            if self.ghost_mode:
+                sing.ROOT.remove_object(sing.ROOT.game_objects["dead_label"])
             self.ghost_mode = False
 
         if self.hp <= 0:
             self.ghost_mode = True
             self.ghost_timer = Player.GHOST_TIME
             self.hp = self.max_hp
+
+            dead_label = TextLabel(Vector2(0, 35), 0, sing.ROOT.global_fonts["menu_font"], "You died! Ghost mode "
+                                                                                           "activated.",
+                                   (200, 150, 150), "dead_label", anchor=N)
+            sing.ROOT.add_gameObject(dead_label)
 
         # MOVEMENT
         pressed = pygame.key.get_pressed()

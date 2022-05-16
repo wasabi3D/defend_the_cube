@@ -147,19 +147,28 @@ class Weapon(InventoryObject):
         self.damage = damage
         self.tag.append(SLASHABLE)
 
+    def on_use(self):
+        return True
+
 
 class Sword(Weapon):
     """
     La classe pour définir l'item de l'épée
     """
-    def __init__(self, n: int, *args):
-        super().__init__(IRON_SWORD, load_img("resources/items/iron_sword.png"), n, 10)
+    def __init__(self, *args):
+        super().__init__(IRON_SWORD, load_img("resources/items/iron_sword.png"), 1, 10)
 
     def copy(self):
         return Sword(self.n, self.font)
 
-    def on_use(self):
-        return True
+
+class GoldenSword(Weapon):
+    """ Meilleur epee"""
+    def __init__(self, *args):
+        super().__init__(GOLDEN_SWORD, load_img("resources/test/frog.png"), 1, 30)
+
+    def copy(self):
+        return GoldenSword()
 
 
 class MagicBullet(GameObject):
@@ -170,7 +179,7 @@ class MagicBullet(GameObject):
     DIR_CORRECTION = 0.8
     TARGET_DETECT_DISTANCE = 140
     LIFE_DURATION = 5
-    DAMAGE = 2
+    DAMAGE = 5
 
     def __init__(self, pos: Vector2, direction: Vector2):
         super().__init__(pos, 0, load_img("resources/player/magic_bullet.png", (16, 16)),
@@ -234,5 +243,13 @@ def get_recipes() -> \
 
         ((EMPTY, EMPTY, IRON_ORE),
          (EMPTY, IRON_ORE, EMPTY),
-         (LOG, EMPTY, EMPTY)): (Sword, 1)
+         (LOG, EMPTY, EMPTY)): (Sword, 1),
+
+        ((APPLE, APPLE, APPLE),
+         (APPLE, APPLE, APPLE),
+         (APPLE, APPLE, APPLE)): (Book, 1),
+
+        ((STONE, IRON_SWORD, STONE),
+         (IRON_SWORD, STONE, IRON_SWORD),
+         (STONE, IRON_SWORD, STONE)): (GoldenSword, 1)
     }

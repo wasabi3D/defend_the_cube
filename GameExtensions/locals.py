@@ -31,7 +31,7 @@ HOTBAR_CELL_IMPERFECTION: Final = -0.2, 0.1
 FONT_SIZE: Final = 20
 ITEM_FONT_NAME: Final = "square-deal"
 NUMBER_SIZE: Final = 20, 20
-NUMBER_COLOR: Final = 200, 200, 200
+NUMBER_COLOR: Final = 30, 30, 30
 
 MAX_OBJ: Final = 100
 
@@ -44,11 +44,13 @@ IRON_SWORD = "iron_sword"
 BOOK = "book"
 EMPTY = "empty"
 IRON_ORE = "iron_ore"
+GOLDEN_SWORD = "golden_sword"
 
 SPE_OBJ = {
     APPLE: 10,
     IRON_SWORD: 1,
-    BOOK: 1
+    BOOK: 1,
+    GOLDEN_SWORD: 1
 }
 
 ITEM_SPRITE_SIZE: Final = (32, 32)
