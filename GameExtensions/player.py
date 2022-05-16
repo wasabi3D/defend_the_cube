@@ -17,6 +17,8 @@ from pygame.math import Vector2
 
 import math
 
+from typing import Optional
+
 
 class Slash(GameObject):
     """
@@ -149,6 +151,7 @@ class Player(Entity):
         self.children.add_gameobject(Hands(Vector2(18, 0)))
         self.children.add_gameobject(Slash(Vector2(35, 10)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
+        self.hurt_sound = pygame.mixer.Sound("resources/sounds/hurt.wav")
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
@@ -261,6 +264,10 @@ class Player(Entity):
         hpb.prop = self.hp / Player.MAX_HP
 
         super().update()
+
+    def get_damage(self, amount: int, knockback_force: Optional[Vector2] = None) -> None:
+        super().get_damage(amount, knockback_force)
+        self.hurt_sound.play()
 
     def generate_punch_hitbox(self) -> pygame.Rect:
         """

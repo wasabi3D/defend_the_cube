@@ -98,6 +98,17 @@ class Stone(InventoryObject):
         return Stone(self.n, self.font)
 
 
+class IronOre(InventoryObject):
+    """
+    La classe pour définir du fer
+    """
+    def __init__(self, n: int, font: pygame.font.Font):
+        super().__init__(IRON_ORE, load_img("resources/items/iron_ore.png", ITEM_SPRITE_SIZE), n, font)
+
+    def copy(self):
+        return IronOre(self.n, self.font)
+
+
 class WoodBlockItem(InventoryObject):
     """
     La classe pour définir l'item des blocks de bois
@@ -216,7 +227,7 @@ def get_recipes() -> \
          (EMPTY, EMPTY, EMPTY),
          (EMPTY, EMPTY, EMPTY)): (Apple, 1),
 
-        ((LOG, STONE, EMPTY),
-         (STONE, STONE, EMPTY),
-         (EMPTY, EMPTY, EMPTY)): (Book, 1)
+        ((EMPTY, EMPTY, IRON_ORE),
+         (EMPTY, IRON_ORE, EMPTY),
+         (LOG, EMPTY, EMPTY)): (Sword, 1)
     }

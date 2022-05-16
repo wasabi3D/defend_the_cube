@@ -2,7 +2,6 @@ import os
 import threading
 import time
 import sys
-import random
 
 import GameExtensions.inventory as inv
 from GameExtensions.UI import FPS_Label, HPBar, Button, TextLabel, BaseUIObject, MenuManager
@@ -24,14 +23,17 @@ class EnemySpawner(GameObject):
         super().__init__(Vector2(0, 0), 0, pygame.Surface((0, 0)), "enemyspawner")
         self.timer = 0
         self.counter = 0
+        self.game_time = 0
 
     def early_update(self) -> None:
         self.timer = max(0, self.timer - sing.ROOT.delta)
+        self.game_time += sing.ROOT.delta
         if self.timer == 0:
-            sing.ROOT.add_gameObject(Zombie(Vector2(random.randint(-1500, 1500), random.randint(-1500, 1500)),
-                                            f"Zombie{self.counter}"))
-            self.counter += 1
-            self.timer = random.random() * 10
+            if random.random() <= (0.0003 * (self.game_time ** 2) + 6) / 100:
+                self.counter += 1
+                sing.ROOT.add_gameObject(Zombie(Vector2(random.randint(-1500, 1500), random.randint(-1500, 1500)),
+                                                f"Zombie{self.counter}"))
+            self.timer = 1
 
 
 class GameRestarter(GameObject):
@@ -141,6 +143,8 @@ def main():
     load_font("resources/fonts/square-deal.ttf", 20, True, "menu_font")
     menu_manager = MenuManager()
 
+    btn_sound = pygame.mixer.Sound("resources/sounds/button.wav")
+
     # region ===MAIN MENU===
     main_menu = BaseUIObject(Vector2(0, 0), 0, load_img("resources/blank.png", (720, 480)),
                              "main_menu", anchor=CENTER)
@@ -150,12 +154,12 @@ def main():
                           load_img("resources/UI/button.png", (168, 32)),
                           "new_game_btn", lambda: start_game(), text="Start a new game",
                           font=root.global_fonts["menu_font"], text_color=(200, 200, 200),
-                          anchor=CENTER)
+                          anchor=CENTER, on_click_sound=btn_sound)
     settings_btn = Button(Vector2(-42, 30), 0,
                           load_img("resources/UI/button.png", (84, 32)),
                           "settings_btn", lambda: menu_manager.switch_menu("settings"), text="Settings",
                           font=root.global_fonts["menu_font"], text_color=(200, 200, 200),
-                          anchor=CENTER)
+                          anchor=CENTER, on_click_sound=btn_sound)
 
     def quit_game():
         pygame.quit()
@@ -165,7 +169,7 @@ def main():
                       load_img("resources/UI/button.png", (84, 32)),
                       "quit_btn", quit_game, text="Quit",
                       font=root.global_fonts["menu_font"], text_color=(200, 200, 200),
-                      anchor=CENTER)
+                      anchor=CENTER, on_click_sound=btn_sound)
     main_menu.children.add_gameobjects(title_label, settings_btn, quit_btn, new_game_btn)
     # endregion
 
@@ -180,7 +184,7 @@ def main():
                   load_img("resources/UI/button.png", (60, 32)),
                   "back_btn", lambda: menu_manager.switch_menu("main_menu"), text="Back",
                   font=root.global_fonts["menu_font"], text_color=(200, 200, 200),
-                  anchor=CENTER)
+                  anchor=CENTER, on_click_sound=btn_sound)
 
     settings.children.add_gameobjects(title_label, back)
 

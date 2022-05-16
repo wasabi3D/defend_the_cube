@@ -43,6 +43,7 @@ STONE = "stone"
 IRON_SWORD = "iron_sword"
 BOOK = "book"
 EMPTY = "empty"
+IRON_ORE = "iron_ore"
 
 SPE_OBJ = {
     APPLE: 10,

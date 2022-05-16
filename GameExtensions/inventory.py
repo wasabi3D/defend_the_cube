@@ -172,9 +172,11 @@ class Inventory(GameObject):
         for i, el in enumerate(self.hotbar):
             if el.get_name() == item.get_name():
                 rest = self.hotbar[i].add_n(item.get_n())
+                print(rest)
                 if rest:
                     item = item.copy()
                     item.set_n(rest)
+                    print(item.name, item.get_n())
                 else: return True
         for y, line in enumerate(self.objects):
             for x, el in enumerate(line):
@@ -195,17 +197,23 @@ class Inventory(GameObject):
         def get_what_menu(co: tuple[int, int]) -> tuple[list[items.InventoryObject], int]:
             """Nous rend le menu et la ligne dans lequel sont les coordonnées"""
             if 0 <= co[0] < self.grid_size[0] and 0 <= co[1] < self.grid_size[1]:
+                print("test2")
                 return self.objects[co[1]], co[0]
             elif co[1] == self.grid_size[1]:
+                print("test3")
                 return self.hotbar, co[0]
             elif self.grid_size[0] <= co[0] < self.grid_size[0] + 3 and 0 <= co[1] < 3:
+                print("test4")
                 return self.crafting_station[0][co[1]], co[0] - self.grid_size[0]
             elif co[0] == self.grid_size[0] + 4 and co[1] == 1:
+                print("test1", self.crafting_station[1])
                 return self.crafting_station[1], 0
 
         o1 = get_what_menu(place1)
         el1 = o1[0][o1[1]]
         o2 = get_what_menu(place2)
+        if o2[0] is None:
+            return
         el2 = o2[0][o2[1]]
 
         if el1.get_name() == el2.get_name() and not swap:
@@ -269,6 +277,7 @@ class Inventory(GameObject):
                 if el.get_name() != "empty":
                     if not el.remove_one():
                         self.crafting_station[0][i][j] = self.empty_cell
+        print(self.crafting_station[1][0])
         self.add_obj_ins(self.crafting_station[1][0])
         self.crafting_station[1][0] = self.empty_cell
 

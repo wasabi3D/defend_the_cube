@@ -198,6 +198,7 @@ class Button(BaseUIObject):
                  text: typing.Optional[str] = None,
                  font: typing.Optional[pygame.font.Font] = None,
                  text_color: typing.Optional[tuple[int, int, int]] = None,
+                 on_click_sound: typing.Optional[pygame.mixer.Sound] = None,
                  anchor=NW):
         """
 
@@ -218,6 +219,7 @@ class Button(BaseUIObject):
         self.timer = 0
         self.clicking = False
         self.hovering = False
+        self.sound = on_click_sound
         if text is None:
             self.text = False
         else:
@@ -243,6 +245,8 @@ class Button(BaseUIObject):
             self.change_text_rgb(Button.CLICKED_ALPHA)
             if self.mouse_down_f is not None:
                 self.mouse_down_f()
+                if self.sound is not None:
+                    self.sound.play()
 
     def on_mouse_up(self, button: int):
         if button == MOUSE_LEFT:
