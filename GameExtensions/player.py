@@ -118,6 +118,18 @@ class Hands(GameObject):
         self.children["left_hand"].surf_mult.set_alpha(value)
 
 
+class RespawnTimerLabel(TextLabel):
+    def __init__(self, pos: Vector2, respawn_time: int, name: str):
+        super().__init__(pos, 0, sing.ROOT.global_fonts["arcade_font"], "", (240, 50, 50), name, anchor=N)
+        self.time = respawn_time
+
+    def early_update(self) -> None:
+        prev = int(self.time)
+        self.time -= sing.ROOT.delta
+        if int(self.time) != prev:
+            self.set_text(f"Respawn in {int(self.time) + 1} seconds")
+
+
 class Player(Entity):
     """
     Classe qui définit le joueur.
@@ -133,7 +145,6 @@ class Player(Entity):
     HAND_OFFSET = Vector2(15, -5)
     HITBOX_SIZE = (26, 26)
     MAX_HP = 100
-    GHOST_TIME = 6
 
     def __init__(self, pos: Vector2, rotation: float, name: str):
         """
@@ -159,6 +170,7 @@ class Player(Entity):
         self.last_hold = ""
         self.ghost_timer = 0
         self.ghost_mode = False
+        self.respawn_time = 5
 
     def update(self) -> None:
         super().update()
@@ -173,17 +185,20 @@ class Player(Entity):
             self.children["hands"].set_hands_alpha(255)
             if self.ghost_mode:
                 sing.ROOT.remove_object(sing.ROOT.game_objects["dead_label"])
+                sing.ROOT.remove_object(sing.ROOT.game_objects["respawn_label"])
             self.ghost_mode = False
 
         if self.hp <= 0:
             self.ghost_mode = True
-            self.ghost_timer = Player.GHOST_TIME
+            self.ghost_timer = self.respawn_time
             self.hp = self.max_hp
+            self.respawn_time = int(self.respawn_time * 1.3)
 
             dead_label = TextLabel(Vector2(0, 35), 0, sing.ROOT.global_fonts["menu_font"], "You died! Ghost mode "
                                                                                            "activated.",
                                    (200, 150, 150), "dead_label", anchor=N)
-            sing.ROOT.add_gameObject(dead_label)
+            timer_label = RespawnTimerLabel(Vector2(0, 65), self.ghost_timer, "respawn_label")
+            sing.ROOT.add_gameObject(dead_label, timer_label)
 
         # MOVEMENT
         pressed = pygame.key.get_pressed()
@@ -236,10 +251,11 @@ class Player(Entity):
                 self.children["item_holder"].children.add_gameobject(GameObject(Vector2(32, 0), 0, img, "item",
                                                                                 tags=selected.tag))
             else:
+                new_size = WEAPON_HOLD_SIZE if isinstance(selected, Weapon) else ITEM_HOLD_SIZE
                 new_img = pygame.Surface((0, 0)) if selected.name == 'empty' else pygame.transform.scale(selected.img,
-                                                                                                         (12, 12))
+                                                                                                         new_size)
                 self.children["hands"].children["right_hand"].children.add_gameobject(
-                    GameObject(Vector2(2, -6), 0, new_img, "item"))
+                    GameObject(Vector2(9, -8), 0, new_img, "item"))
 
         # Click gauche
         if not self.ghost_mode:
@@ -259,7 +275,7 @@ class Player(Entity):
                             obj.on_mine()
                         elif isinstance(obj, Enemy):
                             vec = (obj.get_real_pos() - self.get_real_pos()).normalize()
-                            obj.get_damage(10, vec * 1000)
+                            obj.get_damage(selected.damage, vec * 1000)
                 else:
                     hit = sing.ROOT.is_colliding(ph)
                     if hit != -1:

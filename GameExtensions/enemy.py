@@ -6,6 +6,7 @@ from GameExtensions.util import get_grid_pos, get_chunk_pos, Entity
 from GameExtensions.util import grid_pos2world_pos, get_path2target, get_next_chunk, get_path2nxt_chunk
 from GameExtensions.locals import N, W, S, E, CHUNK_SIZE, DIRS, ENEMY
 from GameExtensions.resources import load_img
+from GameExtensions.field_objects import Placeable
 
 import pygame
 from pygame.math import Vector2
@@ -73,16 +74,15 @@ class TestEnemy(Enemy):
 
         if get_chunk_pos(self.get_real_pos()) != self.cur_chunk or (len(self.objectives) == 0 and dist > 50):
             self.calculate_path(player_pos)
-        if time.time() - self.last_checked > 5:
+        if time.time() - self.last_checked > 1.5:
             if (self.get_real_pos() - self.check_pos).magnitude_squared() < 1:
                 grid_pos = get_grid_pos(self.get_real_pos())
                 for d in DIRS:
                     obj = self.map[int(grid_pos.y + d[0])][int(grid_pos.x + d[1])]
                     if obj is None:
                         continue
-                    sing.ROOT.remove_collidable_object(obj)
-                    self.map[int(grid_pos.y + d[0])][int(grid_pos.x + d[1])] = None
-
+                    elif isinstance(obj, Placeable):
+                        obj.damage(5)
                 self.objectives.clear()
                 self.calculate_path(player_pos)
             self.check_pos = self.get_real_pos().copy()

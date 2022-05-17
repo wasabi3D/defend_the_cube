@@ -76,7 +76,7 @@ class Tree(Resource):
         size = randint(size_min, size_max)
         self.has_apple = random() <= apple_probability
         if self.has_apple:
-            img = load_img("resources/environment/tree_with_apple.png", (size, size))
+            img = load_img("resources/environment/tree_topdown_with_apple.png", (size, size))
         else:
             img = load_img("resources/environment/tree_topdown.png", (size, size))
         super().__init__(pos, name, img, pygame.Surface((size * 0.4, size * 0.4)), Vector2(0, 20),

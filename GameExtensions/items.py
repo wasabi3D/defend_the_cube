@@ -119,7 +119,7 @@ class WoodBlockItem(InventoryObject):
     La classe pour définir l'item des blocks de bois
     """
     def __init__(self, n: int, font: pygame.font.Font):
-        super().__init__(WOOD_BLOCK, load_img("resources/items/wood_block.png"), n, font)
+        super().__init__(WOOD_BLOCK, load_img("resources/items/wood_block.png", ITEM_SPRITE_SIZE), n, font)
         self.tag.append(HOLDABLE)
         self.tag.append(PLACEABLE)
 
@@ -133,6 +133,30 @@ class WoodBlockItem(InventoryObject):
         if len(holding) > 0:
             pos = tuple(holding.values())[0].get_real_pos()
             block = WoodBlock(pos)
+            if block.register():
+                return self.remove_one()
+        return True
+
+
+class StoneBlockItem(InventoryObject):
+    """
+    La classe pour définir l'item des blocks de pierre
+    """
+    def __init__(self, n: int, font: pygame.font.Font):
+        super().__init__(STONE_BLOCK, load_img("resources/items/stone_block.png", ITEM_SPRITE_SIZE), n, font)
+        self.tag.append(HOLDABLE)
+        self.tag.append(PLACEABLE)
+
+    def copy(self):
+        return WoodBlockItem(self.n, self.font)
+
+    def on_use(self):
+        from GameExtensions.field_objects import StoneBlock
+        pl = sing.ROOT.game_objects["player"]
+        holding = pl.children["item_holder"].children
+        if len(holding) > 0:
+            pos = tuple(holding.values())[0].get_real_pos()
+            block = StoneBlock(pos)
             if block.register():
                 return self.remove_one()
         return True
@@ -156,7 +180,7 @@ class Sword(Weapon):
     La classe pour définir l'item de l'épée
     """
     def __init__(self, *args):
-        super().__init__(IRON_SWORD, load_img("resources/items/iron_sword.png"), 1, 10)
+        super().__init__(IRON_SWORD, load_img("resources/items/iron_sword.png", ITEM_SLOT_SIZE), 1, 10)
 
     def copy(self):
         return Sword(self.n, self.font)
@@ -165,7 +189,7 @@ class Sword(Weapon):
 class GoldenSword(Weapon):
     """ Meilleur epee"""
     def __init__(self, *args):
-        super().__init__(GOLDEN_SWORD, load_img("resources/test/frog.png"), 1, 30)
+        super().__init__(GOLDEN_SWORD, load_img("resources/items/golden_sword.png", ITEM_SLOT_SIZE), 1, 30)
 
     def copy(self):
         return GoldenSword()
@@ -217,7 +241,7 @@ class Book(Weapon):
     La classe pour définir le livre pour tirer des boules magiques
     """
     def __init__(self, *args):
-        super().__init__(BOOK, load_img("resources/items/book.png"), 1, 10)
+        super().__init__(BOOK, load_img("resources/items/book.png", ITEM_SLOT_SIZE), 1, 10)
         self.tag.append(DONT_SLASH)
         self.player = sing.ROOT.game_objects["player"]
 
@@ -251,5 +275,10 @@ def get_recipes() -> \
 
         ((STONE, IRON_SWORD, STONE),
          (IRON_SWORD, STONE, IRON_SWORD),
-         (STONE, IRON_SWORD, STONE)): (GoldenSword, 1)
+         (STONE, IRON_SWORD, STONE)): (GoldenSword, 1),
+
+        ((STONE, STONE, EMPTY),
+         (STONE, STONE, EMPTY),
+         (EMPTY, EMPTY, EMPTY)): (StoneBlockItem, 2)
+
     }

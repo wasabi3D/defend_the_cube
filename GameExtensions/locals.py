@@ -45,6 +45,7 @@ BOOK = "book"
 EMPTY = "empty"
 IRON_ORE = "iron_ore"
 GOLDEN_SWORD = "golden_sword"
+STONE_BLOCK = "stone_block"
 
 SPE_OBJ = {
     APPLE: 10,
@@ -67,6 +68,10 @@ DIRS: Final = ((1, 0), (0, 1), (-1, 0), (0, -1))
 WATER_DECEL: Final = 0.45
 
 ENEMY = "enemy"
+
+ITEM_SLOT_SIZE = (40, 40)
+ITEM_HOLD_SIZE = (16, 16)
+WEAPON_HOLD_SIZE = (24, 24)
 
 RECIPES: Final = (
     (((LOG, LOG, EMPTY),

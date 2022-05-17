@@ -1,3 +1,4 @@
+import multiprocessing.pool
 import os
 import threading
 import sys
@@ -31,7 +32,7 @@ class Timer(TextLabel):
         minutes = seconds // 60
         seconds %= 60
         if self.last_sec != seconds:
-            self.set_text(f"{minutes}:{seconds}")
+            self.set_text(f"{minutes:0=2}:{seconds:0=2}", antialias=True)
             self.last_sec = seconds
 
 
@@ -62,6 +63,10 @@ class GameRestarter(GameObject):
         if self.curtain_started:
             sing.ROOT.game_objects["gr"].surf_mult.add_alpha(120 * sing.ROOT.delta)
             if sing.ROOT.game_objects["gr"].surf_mult.a > 250:
+                time = sing.ROOT.game_objects["timer"].timer
+                seconds = int(time)
+                minutes = seconds // 60
+                seconds %= 60
                 sing.ROOT.clear_objects()
 
                 game_over_label = TextLabel(Vector2(0, 40), 0, sing.ROOT.global_fonts["title_font"], "GAME OVER",
@@ -69,7 +74,10 @@ class GameRestarter(GameObject):
                 gm_over_btn = Button(Vector2(0, 0), 0, load_img("resources/UI/button.png", (60, 32)), "gm_over_btn",
                                      on_mouse_up_func=self.restart, text="menu", font=sing.ROOT.global_fonts["menu_font"],
                                      text_color=(200, 200, 200), anchor=CENTER)
-                sing.ROOT.add_gameObject(game_over_label, gm_over_btn)
+                time_label = TextLabel(Vector2(0, -30), 0, sing.ROOT.global_fonts["arcade_font"],
+                                       f"Your time: {minutes:0=2};{seconds:0=2}",
+                                       (170, 200, 190), "time_label", anchor=CENTER)
+                sing.ROOT.add_gameObject(game_over_label, gm_over_btn, time_label)
 
         elif sing.ROOT.game_objects["core"].HP == 0:
             gray_thing = BaseUIObject(Vector2(0, 0), 0, load_img("resources/UI/gray_background.png", (720, 480)), "gr",
@@ -77,7 +85,6 @@ class GameRestarter(GameObject):
             gray_thing.surf_mult.set_alpha(0)
             sing.ROOT.add_gameObject(gray_thing)
             self.curtain_started = True
-
 
     def restart(self):
         sing.ROOT.clear_objects()
@@ -127,7 +134,8 @@ class GameLoader(GameObject):
             inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
             root.add_gameObject(GameRestarter(), immediate=True)
             root.add_gameObject(EnemySpawner(), immediate=True)
-            root.add_gameObject(Timer(Vector2(-50, 50), pygame.font.SysFont("Arial", 20), (240, 240, 240), "timer"))
+            root.add_gameObject(Timer(Vector2(-50, 30), sing.ROOT.global_fonts["arcade_font"]
+                                , (240, 240, 240), "timer"))
             root.game_objects.pop("loader")
             root.game_objects.pop("loading_label")
             root.game_objects.pop("state_label")
@@ -157,6 +165,7 @@ def start_game():
 def main():
     load_font("resources/fonts/square-deal.ttf", 30, True, "title_font")
     load_font("resources/fonts/square-deal.ttf", 20, True, "menu_font")
+    load_font("resources/fonts/arcade.ttf", 24, True, "arcade_font")
     menu_manager = MenuManager()
 
     btn_sound = pygame.mixer.Sound("resources/sounds/button.wav")

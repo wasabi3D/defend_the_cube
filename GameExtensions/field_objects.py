@@ -23,7 +23,7 @@ class Placeable(GameObject, metaclass=ABCMeta):
     """
     Une classe qui généralise tous les objets qu'on peut placer sur le terrain
     """
-    def __init__(self, pos: Vector2, image: pygame.Surface, name: str, rotation=0):
+    def __init__(self, pos: Vector2, image: pygame.Surface, name: str, rotation=0, block_health=10):
         """
 
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -37,9 +37,10 @@ class Placeable(GameObject, metaclass=ABCMeta):
         if not isinstance(self.terrain, GameExtensions.generate_terrain.Terrain):
             raise TypeError("terrain is not an instance of Terrain")
 
-        grid_pos = get_grid_pos(self.get_real_pos())
-        self.translate(self.terrain.get_real_pos() + grid_pos * self.terrain.block_px_size
+        self.grid_pos = get_grid_pos(self.get_real_pos())
+        self.translate(self.terrain.get_real_pos() + self.grid_pos * self.terrain.block_px_size
                        - tuple2Vec2(self.terrain.size) * self.terrain.block_px_size / 2, additive=False)
+        self.block_health = block_health
 
     def register(self) -> bool:
         """
@@ -47,10 +48,9 @@ class Placeable(GameObject, metaclass=ABCMeta):
 
         :return: True s'il reussit à placer False sinon
         """
-        grid_pos = get_grid_pos(self.get_real_pos())
-        if self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] is None and\
+        if self.terrain.over_terrain[int(self.grid_pos.y)][int(self.grid_pos.x)] is None and\
                 sing.ROOT.is_colliding(self.image.get_rect(center=self.get_real_pos())) == -1:
-            self.terrain.over_terrain[int(grid_pos.y)][int(grid_pos.x)] = self
+            self.terrain.over_terrain[int(self.grid_pos.y)][int(self.grid_pos.x)] = self
             sing.ROOT.add_collidable_object(self)
             return True
         return False
@@ -68,6 +68,12 @@ class Placeable(GameObject, metaclass=ABCMeta):
         rel_pos += Vector2(len(self.terrain.over_terrain[0]) // 2, len(self.terrain.over_terrain) // 2)
         return rel_pos
 
+    def damage(self, amount: int):
+        self.block_health -= amount
+        if self.block_health <= 0:
+            self.terrain.over_terrain[int(self.grid_pos.y)][int(self.grid_pos.x)] = None
+            sing.ROOT.remove_collidable_object(self)
+
 
 class Core(Placeable):
     """
@@ -78,6 +84,7 @@ class Core(Placeable):
         self.children.add_gameobject(HPBar(Vector2(0, -40), size=(120, 12)))
         self.maxHP = 200
         self.HP = self.maxHP
+        self.register()
 
     def early_update(self) -> None:
         super().early_update()
@@ -100,8 +107,17 @@ class WoodBlock(Placeable):
         """
         :param pos: La position sur la map
         """
-        super().__init__(pos, load_img("resources/items/wood_block.png"), "wood_block")
+        super().__init__(pos, load_img("resources/items/wood_block.png"), "wood_block", block_health=50)
 
 
+class StoneBlock(Placeable):
+    """
+    La classe pour les blocks en pierre
+    """
+    def __init__(self, pos: Vector2):
+        """
+        :param pos: La position sur la map
+        """
+        super().__init__(pos, load_img("resources/items/stone_block.png"), "stone_block", block_health=65)
 
 
