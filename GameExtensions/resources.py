@@ -4,8 +4,7 @@ from GameManager.funcs import resize_surface
 from GameManager.resources import load_img
 
 from GameExtensions.util import ShakeGenerator
-from GameExtensions.items import Log, Stone
-from GameExtensions.inventory import Inventory
+from GameExtensions.items import *
 from GameExtensions.locals import ITEM_FONT_NAME
 
 from pygame.math import Vector2
@@ -66,6 +65,9 @@ class Tree(Resource):
     """
     Arbre.
     """
+
+    APPLE_PROBABILITY = 0.4
+
     def __init__(self, pos: Vector2, name: str, size_min=64, size_max=96, apple_probability=0.1):
         """
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
@@ -80,12 +82,17 @@ class Tree(Resource):
         super().__init__(pos, name, img, pygame.Surface((size * 0.4, size * 0.4)), Vector2(0, 20),
                          ShakeGenerator(15, -22, 13, 23, 0, 0.1, 0.9, 0.86))
         self.log_item = Log(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
+        self.sound = pygame.mixer.Sound("resources/sounds/wood_farm.wav")
 
     def on_mine(self):
         super().on_mine()
-        sing.ROOT.game_objects["inventory"].add_obj_ins(self.log_item.copy())
+        inventory = sing.ROOT.game_objects["inventory"]
+        inventory.add_obj_ins(self.log_item.copy())
         self.shake.y_intensity *= -1 if random() > 0.5 else 1
         self.shake.begin(0)
+        self.sound.play()
+        if self.has_apple and random() <= Tree.APPLE_PROBABILITY:
+            inventory.add_obj_ins(Apple(1, sing.ROOT.global_fonts[ITEM_FONT_NAME]))
 
 
 class Rock(Resource):
@@ -102,9 +109,15 @@ class Rock(Resource):
         super().__init__(pos, name, load_img(f"resources/environment/{choice(img)}", (size, size)),
                          pygame.Surface((size * 0.6, size * 0.4)), Vector2(0, 15),
                          ShakeGenerator(11, 8, 13, 17, 0, 0, 0.9, 0.9))
+        self.sound = pygame.mixer.Sound("resources/sounds/rock_farm.wav")
         self.stone_item = Stone(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
 
     def on_mine(self):
         super().on_mine()
-        sing.ROOT.game_objects["inventory"].add_obj_ins(self.stone_item.copy())
+
+        inventory = sing.ROOT.game_objects["inventory"]
+        inventory.add_obj_ins(self.stone_item.copy())
+        if random() <= 0.14:
+            inventory.add_obj_ins(IronOre(randint(1, 2), sing.ROOT.global_fonts[ITEM_FONT_NAME]))
         self.shake.begin(0)
+        self.sound.play()

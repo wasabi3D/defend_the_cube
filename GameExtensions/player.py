@@ -10,12 +10,15 @@ from GameExtensions.inventory import Inventory
 from GameExtensions.locals import *
 from GameExtensions.items import Weapon
 from GameExtensions.enemy import Enemy
+from GameExtensions.UI import TextLabel
 
 import pygame
 from pygame.locals import *
 from pygame.math import Vector2
 
 import math
+
+from typing import Optional
 
 
 class Slash(GameObject):
@@ -64,7 +67,7 @@ class Hands(GameObject):
         self.fw = True  # si la main droite avance ou pas
         self.sword_mode = False
         self.time_remain = 0
-        self.distance_from_parent = Vector2(0, 0).distance_to(self.pos + self.children["right_hand"].pos)
+        self.distance_from_parent = Vector2().distance_to(self.pos + self.children["right_hand"].pos)
         self.x_dist_from_parent = self.pos.x + self.children["right_hand"].pos.x
 
     def update(self):
@@ -74,7 +77,7 @@ class Hands(GameObject):
 
             if self.sword_mode:
                 time = Hands.SWORD_ANIM_TIME
-                angle = (math.pi / 2) * (((time - self.time_remain) / time)) - (math.pi / 2) * 1
+                angle = (math.pi / 2) * ((time - self.time_remain) / time) - (math.pi / 2) * 1
                 x = math.cos(angle) * self.distance_from_parent
                 y = math.sin(angle) * self.distance_from_parent
                 self.children["right_hand"].translate(Vector2(x, -y) - Vector2(self.x_dist_from_parent, 0), False)
@@ -149,6 +152,7 @@ class Player(Entity):
         self.children.add_gameobject(Hands(Vector2(18, 0)))
         self.children.add_gameobject(Slash(Vector2(35, 10)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
+        self.hurt_sound = pygame.mixer.Sound("resources/sounds/hurt.wav")
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
@@ -167,12 +171,19 @@ class Player(Entity):
         else:
             self.surf_mult.set_alpha(255)
             self.children["hands"].set_hands_alpha(255)
+            if self.ghost_mode:
+                sing.ROOT.remove_object(sing.ROOT.game_objects["dead_label"])
             self.ghost_mode = False
 
         if self.hp <= 0:
             self.ghost_mode = True
             self.ghost_timer = Player.GHOST_TIME
             self.hp = self.max_hp
+
+            dead_label = TextLabel(Vector2(0, 35), 0, sing.ROOT.global_fonts["menu_font"], "You died! Ghost mode "
+                                                                                           "activated.",
+                                   (200, 150, 150), "dead_label", anchor=N)
+            sing.ROOT.add_gameObject(dead_label)
 
         # MOVEMENT
         pressed = pygame.key.get_pressed()
@@ -261,6 +272,10 @@ class Player(Entity):
         hpb.prop = self.hp / Player.MAX_HP
 
         super().update()
+
+    def get_damage(self, amount: int, knockback_force: Optional[Vector2] = None) -> None:
+        super().get_damage(amount, knockback_force)
+        self.hurt_sound.play()
 
     def generate_punch_hitbox(self) -> pygame.Rect:
         """

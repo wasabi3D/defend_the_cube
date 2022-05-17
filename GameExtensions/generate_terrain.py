@@ -83,6 +83,9 @@ class Terrain(GameObject):
 
         self.create_terrain(self.per, size)
 
+    def set_over_ter(self, pos: tuple[int, int], obj):
+        self.over_terrain[pos[1]][pos[0]] = obj
+
     @staticmethod
     def get_distance_squared(pos1: tuple[int, int], pos2: tuple[int, int]) -> int:
         return (pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2
@@ -148,8 +151,8 @@ class Terrain(GameObject):
                         x * self.forest_density_scale, y * self.forest_density_scale
                     ) > self.tree_dens_lim:
                         tr = Tree(pygame.Vector2(x * self.block_px_size - x_half,
-                                                                      y * self.block_px_size - y_half),
-                                                       f"TREE {x} {y}")
+                                                 y * self.block_px_size - y_half),
+                                  f"TREE {x} {y}")
                         self.over_terrain[y][x] = tr
                         sing.ROOT.add_collidable_object(tr)
 
@@ -219,6 +222,19 @@ class Terrain(GameObject):
                     else:
                         scr.blit(obj, obj.get_rect(center=(x, y)))
 
+    def get_ter_index_to_pos(self, pos: tuple[int, int]) -> tuple[int, int]:
+        center_x = self.get_real_pos().x
+        center_y = self.get_real_pos().y
+        x_dim_half, y_dim_half = self.size[0] * self.block_px_size / 2, self.size[1] * self.block_px_size / 2
+        scr_width_half, scr_height_half = sing.ROOT.screen_dim[0] / 2, sing.ROOT.screen_dim[1] / 2
+        top_start_index, bottom_index, left_start_index, right_index = self.get_render_index()
+
+        y = (pos[1] - center_y + y_dim_half + sing.ROOT.camera_pos.y - scr_height_half) \
+            / self.block_px_size - top_start_index
+        x = (pos[0] - center_x + x_dim_half + sing.ROOT.camera_pos.x - scr_width_half) \
+            / self.block_px_size - left_start_index
+        return x, y
+
     def get_render_index(self) -> tuple[int, int, int, int]:
         """
         Fonction pour déterminer quelle partie du terrain est visible par le joueur. Cela permet de afficher que
@@ -247,7 +263,7 @@ class Terrain(GameObject):
 
 # Classe permettant de générer un bruit de Voronoi qu'on utilise pour délimiter des zones
 class Voronoi:
-    points = {}  # cette variable permet de rendre la génération de terrain plus rapide
+    points = {}  # cette variable permet de rendre la génération de terrain plus rapide en sauvgardant les données
 
     def __init__(self, seed: int, chunk_size: int, chunk_types: list, minkowski_exponent: float = 2):
         """
