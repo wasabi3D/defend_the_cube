@@ -1,10 +1,10 @@
 from GameManager.util import GameObject
-from GameManager.resources import load_img
+from GameManager.resources import load_img, load_sound
 from GameManager.locals import MOUSE_LEFT
 from GameManager.funcs import tuple2Vec2
 import GameManager.singleton as sing
 
-from GameExtensions.util import Animation, Animator, MovementGenerator, Entity
+from GameExtensions.util import Animation, Animator, Entity
 from GameExtensions.resources import Resource
 from GameExtensions.inventory import Inventory
 from GameExtensions.locals import *
@@ -163,7 +163,7 @@ class Player(Entity):
         self.children.add_gameobject(Hands(Vector2(18, 0)))
         self.children.add_gameobject(Slash(Vector2(35, 10)))
         self.inventory: Inventory = sing.ROOT.game_objects["inventory"]
-        self.hurt_sound = pygame.mixer.Sound("resources/sounds/hurt.wav")
+        load_sound("resources/sounds/hurt.wav", "player_hurt")
         if not isinstance(self.inventory, Inventory):
             raise TypeError("Not an instance of Inventory")
 
@@ -291,7 +291,7 @@ class Player(Entity):
 
     def get_damage(self, amount: int, knockback_force: Optional[Vector2] = None) -> None:
         super().get_damage(amount, knockback_force)
-        self.hurt_sound.play()
+        sing.ROOT.sounds["player_hurt"].play()
 
     def generate_punch_hitbox(self) -> pygame.Rect:
         """

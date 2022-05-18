@@ -1,7 +1,5 @@
-import GameManager.singleton as sing
-from GameManager.util import GameObject
 from GameManager.funcs import resize_surface
-from GameManager.resources import load_img
+from GameManager.resources import load_sound
 
 from GameExtensions.util import ShakeGenerator
 from GameExtensions.items import *
@@ -82,7 +80,7 @@ class Tree(Resource):
         super().__init__(pos, name, img, pygame.Surface((size * 0.4, size * 0.4)), Vector2(0, 20),
                          ShakeGenerator(15, -22, 13, 23, 0, 0.1, 0.9, 0.86))
         self.log_item = Log(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
-        self.sound = pygame.mixer.Sound("resources/sounds/wood_farm.wav")
+        load_sound("resources/sounds/wood_farm.wav", "wood_farm")
 
     def on_mine(self):
         super().on_mine()
@@ -90,7 +88,7 @@ class Tree(Resource):
         inventory.add_obj_ins(self.log_item.copy())
         self.shake.y_intensity *= -1 if random() > 0.5 else 1
         self.shake.begin(0)
-        self.sound.play()
+        sing.ROOT.sounds["wood_farm"].play()
         if self.has_apple and random() <= Tree.APPLE_PROBABILITY:
             inventory.add_obj_ins(Apple(1, sing.ROOT.global_fonts[ITEM_FONT_NAME]))
 
@@ -109,7 +107,7 @@ class Rock(Resource):
         super().__init__(pos, name, load_img(f"resources/environment/{choice(img)}", (size, size)),
                          pygame.Surface((size * 0.6, size * 0.4)), Vector2(0, 15),
                          ShakeGenerator(11, 8, 13, 17, 0, 0, 0.9, 0.9))
-        self.sound = pygame.mixer.Sound("resources/sounds/rock_farm.wav")
+        load_sound("resources/sounds/rock_farm.wav", "rock_farm")
         self.stone_item = Stone(1, sing.ROOT.global_fonts[ITEM_FONT_NAME])
 
     def on_mine(self):
@@ -120,4 +118,4 @@ class Rock(Resource):
         if random() <= 0.14:
             inventory.add_obj_ins(IronOre(randint(1, 2), sing.ROOT.global_fonts[ITEM_FONT_NAME]))
         self.shake.begin(0)
-        self.sound.play()
+        sing.ROOT.sounds["rock_farm"].play()

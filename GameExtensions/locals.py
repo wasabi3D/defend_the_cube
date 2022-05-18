@@ -73,6 +73,9 @@ ITEM_SLOT_SIZE = (40, 40)
 ITEM_HOLD_SIZE = (16, 16)
 WEAPON_HOLD_SIZE = (24, 24)
 
+CUST_SEED: Final = "custom_seed"
+RAND_SEED: Final = "randomize_seed"
+
 RECIPES: Final = (
     (((LOG, LOG, EMPTY),
      (LOG, LOG, EMPTY),

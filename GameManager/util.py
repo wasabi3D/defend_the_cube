@@ -111,6 +111,8 @@ class GameObject(Sprite):
         self.enabled = enabled
         self.tags = [] if tags is None else tags
         self.simple_mouseup = simple_mouse_up
+        self.early_update_done, self.update_done = False, False
+        self.last_early_update, self.last_update = 0, 0
 
         self.mouse_in_rect = False
 
@@ -186,7 +188,10 @@ class GameObject(Sprite):
         """
         Fonction appellée au début d'une frame, avant les events.
         """
-        # print(pygame.mouse.get_pos(), self.image.get_rect(center=self.get_screen_pos()))
+        if sing.ROOT.tick_count != self.last_early_update:
+            self.early_update_done = False
+        if self.early_update_done:
+            return
         if is_included(tuple2Vec2(pygame.mouse.get_pos()), self.image.get_rect(center=self.get_screen_pos())):
             if not self.mouse_in_rect:
                 self.on_mouse_rect_enter()
@@ -209,6 +214,9 @@ class GameObject(Sprite):
                     if state:
                         self.on_mouse_up(btn)
 
+        self.early_update_done = True
+        self.last_early_update = sing.ROOT.tick_count
+
         for child in self.children.values():
             child.early_update()
 
@@ -217,6 +225,13 @@ class GameObject(Sprite):
         Fonction appellée après early_update() et les events.
         Permet de mettre à jour l'objet et de performer certains actions en overload-ant cette fonction.
         """
+        if sing.ROOT.tick_count != self.last_update:
+            self.update_done = False
+        if self.update_done:
+            return
+
+        self.last_update = sing.ROOT.tick_count
+
         for child in self.children.values():
             child.update()
 

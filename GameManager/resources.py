@@ -40,12 +40,12 @@ def load_font(filename: typing.Union[str, pathlib.Path], font_size: int, global_
     return fnt
 
 
-def load_sound(filename: typing.Union[str, pathlib.Path], override_volume: Optional[float] = None) \
-        -> pygame.mixer.Sound:
+def load_sound(filename: typing.Union[str, pathlib.Path], name: str, override_volume: Optional[float] = None) -> None:
     """
     Fonction pour charger un fichier audio
 
     :param filename: Le nom du fichier
+    :param name: Le nom du son chargé
     :param override_volume: Si on souhaite utiliser un volume spécifique ou pas
     """
     sound = pygame.mixer.Sound(os.path.join(sing.ROOT.resources_path, filename))
@@ -55,4 +55,5 @@ def load_sound(filename: typing.Union[str, pathlib.Path], override_volume: Optio
         sound.set_volume(override_volume)
     else:
         sound.set_volume(1)
-    return sound
+
+    sing.ROOT.sounds[name] = sound

@@ -379,18 +379,18 @@ class CheckBox(Button):
         self.on_click = on_check_func
         self.state = default_state
         self.children["check"].set_enabled(self.state)
-        self.last_click = 0
-        if self.on_click is not None:
-            self.on_click(self.state)
 
     def on_clicked(self):
-        if pygame.time.get_ticks() - self.last_click < 100:
-            return
+        # if pygame.time.get_ticks() - self.last_click < 100:
+        #     return
         self.state = not self.state
         self.children["check"].set_enabled(self.state)
         if self.on_click is not None:
             self.on_click(self.state)
-        self.last_click = pygame.time.get_ticks()
+        # print(sing.ROOT.tick_count)
+
+    def early_update(self) -> None:
+        super().early_update()
 
 
 class TextBox(BaseUIObject):
@@ -409,7 +409,6 @@ class TextBox(BaseUIObject):
         self.children.add_gameobject(text_label)
         self.edit_mode = False
         self.allowed = allowed_chars
-        self.last_input = 0
         self.on_typed = on_new_text_typed
 
     def on_mouse_down(self, button: int):
@@ -423,7 +422,7 @@ class TextBox(BaseUIObject):
                 and sing.ROOT.mouse_downs[MOUSE_LEFT]:
             self.edit_mode = False
 
-        if self.edit_mode and pygame.time.get_ticks() - self.last_input > 5:
+        if self.edit_mode:
             for key in sing.ROOT.key_downs:
                 if key == pygame.K_BACKSPACE or key == pygame.K_DELETE:
                     self.delete_char()
@@ -431,7 +430,6 @@ class TextBox(BaseUIObject):
                     self.add_chr(key)
             if self.on_typed is not None:
                 self.on_typed(self.text)
-            self.last_input = pygame.time.get_ticks()
 
     def add_chr(self, key):
         """Fonction qui permet de ajouter une lettre dans le textbox

@@ -1,5 +1,4 @@
 import multiprocessing.pool
-import os
 import threading
 import sys
 
@@ -10,9 +9,11 @@ from GameExtensions.player import Player
 from GameExtensions.enemy import Zombie
 from GameExtensions.items import *
 from GameExtensions.field_objects import Core
+from GameExtensions.locals import *
 from GameManager.MainLoopManager import GameRoot
-from GameManager.resources import load_img, load_font
+from GameManager.resources import *
 from GameManager.util import GameObject
+from GameManager.locals import VOLUME
 
 root = GameRoot((720, 480), (30, 30, 30), "Defend the cube!", os.path.dirname(os.path.realpath(__file__)),
                 Vector2(), 1000)
@@ -153,7 +154,12 @@ class GameLoader(GameObject):
         bs = 32
         biomes = [load_img("resources/environment/terrain/dark_grass.png", (bs, bs)),
                   load_img("resources/environment/terrain/grass.png", (bs, bs))]
-        ter = Terrain(SEED, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
+
+        if sing.ROOT.parameters[RAND_SEED]:
+            seed = SEED
+        else:
+            seed = int(sing.ROOT.parameters[CUST_SEED])
+        ter = Terrain(seed, (150, 150), biomes, bs, forest_density_scale=1100, forest_size_scale=2000, tree_dens_lim=0.7)
         self.ter = ter
 
 
@@ -168,11 +174,13 @@ def main():
     load_font("resources/fonts/arcade.ttf", 24, True, "arcade_font")
     menu_manager = MenuManager()
 
-    btn_sound = pygame.mixer.Sound("resources/sounds/button.wav")
+    load_sound("resources/sounds/button.wav", "button_click")
+    btn_sound = sing.ROOT.sounds["button_click"]
 
     # region ===MAIN MENU===
     main_menu = BaseUIObject(Vector2(0, 0), 0, load_img("resources/blank.png", (720, 480)),
                              "main_menu", anchor=CENTER)
+
     title_label = TextLabel(Vector2(0, 30), 0, root.global_fonts["title_font"], "Defend the cube!", (200, 200, 200),
                             "title_label", True, N)
     new_game_btn = Button(Vector2(0, -15), 0,
@@ -208,29 +216,50 @@ def main():
     volume_label = TextLabel(Vector2(-160, 105), 0, sing.ROOT.global_fonts["menu_font"], "Volume",
                              (190, 190, 190), "volume_label", anchor=N)
 
+    default_vol = 0.7
+    sing.ROOT.set_parameter(VOLUME, default_vol)
     volume_slider = Slider(Vector2(0, 105), load_img("resources/UI/bar.png", (192, 8)),
-                           load_img("resources/UI/circle.png"),
-                           "volume_slider", anchor=N, step=0.05, init_value=1)
+                           load_img("resources/UI/circle.png"), "volume_slider",
+                           on_slider_release_func=lambda b: sing.ROOT.modify_volume(sing.ROOT.parameters[VOLUME]),
+                           anchor=N, step=0.05, init_value=default_vol)
 
+    fps_default = False
+    sing.ROOT.set_parameter("FPS_LABEL", fps_default)
     fps_label = TextLabel(Vector2(-160, 145), 0, sing.ROOT.global_fonts["menu_font"], "Show FPS",
                           (190, 190, 190), "fps_label", anchor=N)
 
     fps_check = CheckBox(Vector2(0, 145), load_img("resources/UI/check_box.png"),
                          load_img("resources/UI/check_mark.png"), "fps_check",
-                         on_check_func=lambda b: sing.ROOT.set_parameter("FPS_LABEL", b), anchor=N)
-
-    seed_bool_label = TextLabel(Vector2(-160, 185), 0, sing.ROOT.global_fonts["menu_font"], "Randomize seed",
-                                (190, 190, 190), "seed_bool_label", anchor=N)
-
-    seed_check = CheckBox(Vector2(0, 185), load_img("resources/UI/check_box.png"),
-                          load_img("resources/UI/check_mark.png"), "seed_bool_check", anchor=N)
+                         on_check_func=lambda b: sing.ROOT.set_parameter("FPS_LABEL", b), anchor=N,
+                         default_state=fps_default)
 
     seed_inp_label = TextLabel(Vector2(-160, 225), 0, sing.ROOT.global_fonts["menu_font"], "Custom seed",
                                (190, 190, 190), "seed_inp_label", anchor=N)
 
+    default = "123"
+    sing.ROOT.set_parameter(CUST_SEED, default)
     seed_box = TextBox(Vector2(0, 225), load_img("resources/UI/textbox.png", (192, 16)),
                        sing.ROOT.global_fonts["menu_font"], (100, 120, 200),
-                       "seed_box", default_text="123", allowed_chars="0123456789", anchor=N)
+                       "seed_box", on_new_text_typed=lambda txt: sing.ROOT.set_parameter(CUST_SEED, txt),
+                       default_text=default, allowed_chars="0123456789", anchor=N)
+
+    seed_bool_label = TextLabel(Vector2(-160, 185), 0, sing.ROOT.global_fonts["menu_font"], "Randomize seed",
+                                (190, 190, 190), "seed_bool_label", anchor=N)
+
+    randomize = True
+    sing.ROOT.set_parameter(RAND_SEED, randomize)
+
+    def on_check(b):
+        sing.ROOT.set_parameter(RAND_SEED, b)
+        seed_box.set_enabled(not b)
+        seed_inp_label.set_enabled(not b)
+
+    on_check(randomize)
+
+    seed_check = CheckBox(Vector2(0, 185), load_img("resources/UI/check_box.png"),
+                          load_img("resources/UI/check_mark.png"),
+                          "seed_bool_check", on_check_func=on_check,
+                          anchor=N, default_state=randomize)
 
     back = Button(Vector2(0, 135), 0,
                   load_img("resources/UI/button.png", (60, 32)),
