@@ -399,7 +399,7 @@ class Inventory(GameObject):
                         if not self.add_obj_ins_at_place((hotbar_cell[0], self.grid_size[1]), self.is_pressed["cary"]):
                             self.add_obj_ins(self.is_pressed["cary"])
                         self.is_pressed["cary"] = self.empty_cell
-                elif 0 <= craft_cell[0] < 3 and 0 <= craft_cell[1] <= 3:
+                elif 0 <= craft_cell[0] < 3 and 0 <= craft_cell[1] < 3:
                     if self.is_pressed["bool"]:
                         self.is_pressed["bool"] = False
                         if self.is_pressed["inv_place"] != (craft_cell[0] + self.grid_size[0], craft_cell[1]):
