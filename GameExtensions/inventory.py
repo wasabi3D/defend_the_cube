@@ -54,8 +54,10 @@ class Inventory(GameObject):
                            self.cell_size[1] +
                            2 * self.cell_offset[1])).convert_alpha(), 1, self.font)
 
-        self.side_offset = tuple([self.size[0] * loc.INV_GRID_OFFSET_PROP_TO_W[0] / loc.INV_GRID_OFFSET_PROP_TO_W[1]
-                                  for _ in range(2)])
+        self.side_offset = (
+            self.size[0] * loc.INV_GRID_OFFSET_PROP_TO_W[0] / loc.INV_GRID_OFFSET_PROP_TO_W[1],
+            self.size[0] * loc.INV_GRID_OFFSET_PROP_TO_W[0] / loc.INV_GRID_OFFSET_PROP_TO_W[1]
+        )
         self.total_offset = (self.side_offset[0] + pos.x,
                              self.side_offset[1] + pos.y)
         self.numb_offset = (self.cell_size[0] - self.cell_offset[0] - loc.NUMBER_SIZE[0],
@@ -63,11 +65,10 @@ class Inventory(GameObject):
         self.grid_size = grid_size[0], grid_size[1]
         self.inv_img_size = (self.cell_size[0] - 2 * self.cell_offset[0] + 1,
                              self.cell_size[0] - 2 * self.cell_offset[0] + 1)
-
-        self.empty_cell = items.InventoryObject("empty", pygame.Surface((0, 0)), 1, self.font)
+        self.empty_cell = items.InventoryObject(loc.EMPTY, pygame.Surface((0, 0)), 1, self.font)
         self.is_pressed = {"bool": False,
                            "bool_right": False,
-                           "inv_place": (0, 0),
+                           "cary_list": ([self.empty_cell], 0),
                            "cary": self.empty_cell,
                            "crafted": False}
         self.objects = [[self.empty_cell for _ in range(grid_size[0])] for _ in range(grid_size[1])]
@@ -186,32 +187,32 @@ class Inventory(GameObject):
                     else: return True
         return self.add_obj_ins_empty_place(item)
 
+    def get_what_menu(self, co: tuple[int, int], get_result: bool = True) -> tuple[list[items.InventoryObject], int]:
+        """Nous rend le menu et la ligne dans lequel sont les coordonnées"""
+        if 0 <= co[0] < self.grid_size[0] and 0 <= co[1] < self.grid_size[1]:
+            return self.objects[co[1]], co[0]
+        elif co[1] == self.grid_size[1]:
+            return self.hotbar, co[0]
+        elif self.grid_size[0] <= co[0] < self.grid_size[0] + 3 and 0 <= co[1] < 3:
+            return self.crafting_station[0][co[1]], co[0] - self.grid_size[0]
+        elif co[0] == self.grid_size[0] + 4 and co[1] == 1:
+            if get_result:
+                return self.crafting_station[1], 0
+            else:
+                return [self.empty_cell], 0
+        else:
+            raise IndexError("The coordinates where out of the inventory capacity")
+
     def move_obj(self, place1: tuple[int, int], place2: tuple[int, int], swap: bool = False) -> None:
         """ Bouge un objet dans l'inventaire
         :param place1: position (x, y) de l'objet à déplacer
         :param place2: position (x, y) de la place que l'objet veut occuper
         :param swap: si un objet occupe déjà la place les échanger ou ne pas le faire
         """
-        def get_what_menu(co: tuple[int, int]) -> tuple[list[items.InventoryObject], int]:
-            """Nous rend le menu et la ligne dans lequel sont les coordonnées"""
-            if 0 <= co[0] < self.grid_size[0] and 0 <= co[1] < self.grid_size[1]:
-                print("test2")
-                return self.objects[co[1]], co[0]
-            elif co[1] == self.grid_size[1]:
-                print("test3")
-                return self.hotbar, co[0]
-            elif self.grid_size[0] <= co[0] < self.grid_size[0] + 3 and 0 <= co[1] < 3:
-                print("test4")
-                return self.crafting_station[0][co[1]], co[0] - self.grid_size[0]
-            elif co[0] == self.grid_size[0] + 4 and co[1] == 1:
-                print("test1", self.crafting_station[1])
-                return self.crafting_station[1], 0
 
-        o1 = get_what_menu(place1)
+        o1 = self.get_what_menu(place1)
         el1 = o1[0][o1[1]]
-        o2 = get_what_menu(place2)
-        if o2[0] is None:
-            return
+        o2 = self.get_what_menu(place2)
         el2 = o2[0][o2[1]]
 
         if el1.get_name() == el2.get_name() and not swap:
@@ -228,28 +229,31 @@ class Inventory(GameObject):
         :param pos: position (x, y) qu'on veut avoir
         :return: l'objet présent à pos
         """
-        if 0 <= pos[0] < self.objects[0].__len__() and 0 <= pos[1] < self.objects.__len__():
-            if self.objects[pos[1]][pos[0]] == self.empty_cell:
-                return
-            else:
-                return self.objects[pos[1]][pos[0]]
-        elif 0 <= pos[0] < self.grid_size[0] and pos[1] == self.grid_size[1]:
-            if self.hotbar[pos[0]] == self.empty_cell:
-                return
-            else:
-                return self.hotbar[pos[0]]
-        elif self.grid_size[0] <= pos[0] < self.grid_size[0] + 3 and 0 <= pos[1] < 3 and self.is_shown:
-            if self.crafting_station[0][pos[1]][pos[0] - self.grid_size[0]] == self.empty_cell:
-                return
-            else:
-                return self.crafting_station[0][pos[1]][pos[0] - self.grid_size[0]]
-        elif pos[0] == self.grid_size[0] + 4 and pos[1] == 1:
-            if self.crafting_station[1][0] == self.empty_cell:
-                return
-            else:
-                return self.crafting_station[1][0]
-        else:
-            raise IndexError("The position was out of the inventory capacity")
+        o1 = self.get_what_menu(pos)
+        el = o1[0][o1[1]]
+        return el
+        # if 0 <= pos[0] < self.objects[0].__len__() and 0 <= pos[1] < self.objects.__len__():
+        #     if self.objects[pos[1]][pos[0]] == self.empty_cell:
+        #         return
+        #     else:
+        #         return self.objects[pos[1]][pos[0]]
+        # elif 0 <= pos[0] < self.grid_size[0] and pos[1] == self.grid_size[1]:
+        #     if self.hotbar[pos[0]] == self.empty_cell:
+        #         return
+        #     else:
+        #         return self.hotbar[pos[0]]
+        # elif self.grid_size[0] <= pos[0] < self.grid_size[0] + 3 and 0 <= pos[1] < 3 and self.is_shown:
+        #     if self.crafting_station[0][pos[1]][pos[0] - self.grid_size[0]] == self.empty_cell:
+        #         return
+        #     else:
+        #         return self.crafting_station[0][pos[1]][pos[0] - self.grid_size[0]]
+        # elif pos[0] == self.grid_size[0] + 4 and pos[1] == 1:
+        #     if self.crafting_station[1][0] == self.empty_cell:
+        #         return
+        #     else:
+        #         return self.crafting_station[1][0]
+        # else:
+        #     raise IndexError("The position was out of the inventory capacity")
 
     def try_recipe(self):
         """fonction permettant de vérifier si on à la possibilité de crafter un objet"""
@@ -283,7 +287,8 @@ class Inventory(GameObject):
 
         # Détéction de si on appuie sur la souris ou le clavier
         pressed_keys = pygame.key.get_pressed()
-        mouse_but = pygame.mouse.get_pressed(5)
+        all_mouse_but = pygame.mouse.get_pressed(5)
+        mouse_but = (all_mouse_but[0], all_mouse_but[2])
         if not self.was_open_inv_pressed and pressed_keys[self.open_inv_key]:
             self.is_shown = not self.is_shown
             self.was_open_inv_pressed = True
@@ -302,72 +307,14 @@ class Inventory(GameObject):
         # On détecte les cases sur les quelles on appuie
         if self.is_shown:
             # si on à appuyé sur le click gauche
-            if (mouse_but[0] or mouse_but[2]) and \
-                    (not (self.is_pressed["bool"] or self.is_pressed["bool_right"])) and \
-                    (not self.is_pressed["crafted"]):
-                mouse_pos = pygame.Vector2(*pygame.mouse.get_pos())
+            final_cos: typing.Union[None, tuple[int, int]] = None
+            # On vérifie en premier si on a appuyé ou laché (suelement une fois) un des boutons de la souris
+            if (any(mouse_but) and not self.is_pressed["bool"] and not self.is_pressed["bool_right"]) or \
+                    (not any(mouse_but) and (self.is_pressed["bool"] or self.is_pressed["bool_right"])):
+                # On pourra avoir ducoup les coordonnées des positions
+                # de la souris transformées en coordonées d'"inventaire"
 
-                # on convertis les coordonnées de la souris en coordonnées de l'inventaire
-                get_grid_mouse_co = mouse_pos - self.side_offset - self.pos
-                get_hotbar_mouse_co = get_grid_mouse_co - loc.HOTBAR_POS_OFFSET
-                get_craft_mouse_co = get_grid_mouse_co - loc.CRAFT_POS_OFFSET
-                grid_cell = (int(get_grid_mouse_co.x // self.cell_size[0]),
-                             int(get_grid_mouse_co.y // self.cell_size[1]))
-                hotbar_cell = (int(get_hotbar_mouse_co.x // self.cell_size[0]),
-                               int(get_hotbar_mouse_co.y // self.cell_size[1]))
-                craft_cell = (int(get_craft_mouse_co.x // self.cell_size[0]),
-                               int(get_craft_mouse_co.y // self.cell_size[1]))
-
-                # au final on ne vérifie plus que si les coordonnées de reçues font partie de l'inventaire
-                if 0 <= grid_cell[0] < self.grid_size[0] and 0 <= grid_cell[1] < self.grid_size[1]:
-                    if self.get_obj(grid_cell) is not None:
-                        if mouse_but[0]:
-                            self.is_pressed["inv_place"] = grid_cell
-                            self.is_pressed["bool"] = True
-                        else:
-                            self.is_pressed["cary"] = self.objects[grid_cell[1]][grid_cell[0]].copy()
-                            self.is_pressed["cary"].set_n(1)
-                            self.objects[grid_cell[1]][grid_cell[0]].remove_one()
-                            if self.objects[grid_cell[1]][grid_cell[0]].get_n() <= 0:
-                                self.objects[grid_cell[1]][grid_cell[0]] = self.empty_cell
-                            self.is_pressed["bool_right"] = True
-                elif 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
-                    if self.get_obj((hotbar_cell[0], self.grid_size[1])) is not None:
-                        if mouse_but[0]:
-                            self.is_pressed["inv_place"] = hotbar_cell[0], self.grid_size[1]
-                            self.is_pressed["bool"] = True
-                        else:
-                            self.is_pressed["cary"] = self.hotbar[hotbar_cell[0]].copy()
-                            self.is_pressed["cary"].set_n(1)
-                            self.hotbar[hotbar_cell[0]].remove_one()
-                            if self.hotbar[hotbar_cell[0]].get_n() <= 0:
-                                self.hotbar[hotbar_cell[0]] = self.empty_cell
-                            self.is_pressed["bool_right"] = True
-                elif 0 <= craft_cell[0] < 3 and 0 <= craft_cell[1] < 3:
-                    if self.get_obj((craft_cell[0] + self.grid_size[0], craft_cell[1])) is not None:
-                        if mouse_but[0]:
-                            self.is_pressed["inv_place"] = craft_cell[0] + self.grid_size[0], craft_cell[1]
-                            self.is_pressed["bool"] = True
-                        else:
-                            self.is_pressed["cary"] = self.crafting_station[0][craft_cell[1]][craft_cell[0]].copy()
-                            self.is_pressed["cary"].set_n(1)
-                            self.crafting_station[0][craft_cell[1]][craft_cell[0]].remove_one()
-                            if self.crafting_station[0][craft_cell[1]][craft_cell[0]].get_n() <= 0:
-                                self.crafting_station[0][craft_cell[1]][craft_cell[0]] = self.empty_cell
-                            self.is_pressed["bool_right"] = True
-                elif craft_cell == (4, 1):
-                    if self.get_obj((craft_cell[0] + self.grid_size[0], craft_cell[1])) is not None:
-                        self.recuperate_recipe()
-                        self.is_pressed["crafted"] = True
-                        self.is_pressed["bool"] = True
-
-            elif self.is_pressed["crafted"] and not mouse_but[0]:  # Ceci est pour éviter de trop crafter en même temps
-                self.is_pressed["crafted"] = False
-                self.is_pressed["bool"] = False
-
-            # si on arrète d'appuyer sur le click gauche (et qu'on avait un objet)
-            # le procécus des coordonnées est le même que celui d'en haut
-            elif (not mouse_but[0] and self.is_pressed["bool"]) or (not mouse_but[2] and self.is_pressed["bool_right"]):
+                # On commence par donner les coordonnées de la souris dans chaque élément de l'inventaire
                 mouse_pos = pygame.Vector2(pygame.mouse.get_pos())
                 get_grid_mouse_co = mouse_pos - self.side_offset - self.pos
                 get_hotbar_mouse_co = get_grid_mouse_co - loc.HOTBAR_POS_OFFSET
@@ -378,50 +325,63 @@ class Inventory(GameObject):
                                int(get_hotbar_mouse_co.y // self.cell_size[1]))
                 craft_cell = (int(get_craft_mouse_co.x // self.cell_size[0]),
                                int(get_craft_mouse_co.y // self.cell_size[1]))
-
+                # puis on transcrit en coordonnées dans l'inventaire
                 if 0 <= grid_cell[0] < self.grid_size[0] and 0 <= grid_cell[1] < self.grid_size[1]:
-                    if self.is_pressed["bool"]:
-                        self.is_pressed["bool"] = False
-                        if self.is_pressed["inv_place"] != grid_cell:
-                            self.move_obj(self.is_pressed["inv_place"], grid_cell)
-                    elif self.is_pressed["bool_right"]:
-                        self.is_pressed["bool_right"] = False
-                        if not self.add_obj_ins_at_place(grid_cell, self.is_pressed["cary"]):
-                            self.add_obj_ins(self.is_pressed["cary"])
-                        self.is_pressed["cary"] = self.empty_cell
+                    final_cos = grid_cell
                 elif 0 <= hotbar_cell[0] < self.grid_size[0] and not hotbar_cell[1]:
-                    if self.is_pressed["bool"]:
+                    final_cos = hotbar_cell[0], self.grid_size[1]
+                elif 0 <= craft_cell[0] < 3 > craft_cell[1] >= 0:
+                    final_cos = craft_cell[0] + self.grid_size[0], craft_cell[1]
+                elif craft_cell == (4, 1) and any(mouse_but) and \
+                        not self.is_pressed["bool"] and not self.is_pressed["bool_right"]:
+                    final_cos = 4 + self.grid_size[0], 1
+            if final_cos is not None:
+                # si on a eu des coordonées, on en arrivera ici
+                ol = self.get_what_menu(final_cos)  # ol pour "object list"
+                fo = ol[0][ol[1]]  # fo pour "final object"
+                if fo != self.empty_cell and any(mouse_but):
+                    self.is_pressed["cary"] = fo.copy()
+                    self.is_pressed["cary_list"] = ol
+                    if mouse_but[0]:  # actions si ou a appuyé sur le click gauche
+                        self.is_pressed["bool"] = True
+                        ol[0][ol[1]] = self.empty_cell
+                    elif mouse_but[1]:  # actions si on a appuyé su le click droit
+                        tmp = fo.get_n()
+                        tmp1 = tmp // 2
+                        tmp -= tmp1
+                        self.is_pressed["cary"].set_n(tmp)
+                        if tmp:
+                            fo.set_n(tmp1)
+                        else:
+                            ol[0][ol[1]] = self.empty_cell
+                        self.is_pressed["bool_right"] = True
+                elif not any(mouse_but):  # Finalement, action si on à relaché un des clicks
+                    if self.is_pressed["bool_right"]:
+                        if fo == self.empty_cell:
+                            ol[0][ol[1]] = self.is_pressed["cary"]
+                            self.is_pressed["bool_right"] = False
+                        elif self.is_pressed["cary"].get_name() == fo.get_name():
+                            tmp = fo.add_n(self.is_pressed["cary"].get_n())
+                            if tmp:
+                                self.is_pressed["cary_list"][0][self.is_pressed["cary_list"][1]].add_n(tmp)
+                            self.is_pressed["bool_right"] = False
+                    else:
+                        if fo == self.empty_cell:
+                            ol[0][ol[1]] = self.is_pressed["cary"]
+                        elif self.is_pressed["cary"].get_name() == fo.get_name():
+                            tmp = fo.add_n(self.is_pressed["cary"].get_n())
+                            if tmp:
+                                tmp2 = fo.copy()
+                                tmp2.set_n(tmp)
+                                self.is_pressed["cary_list"][0][self.is_pressed["cary_list"][1]] = tmp2
+                        else:
+                            (ol[0][ol[1]],
+                             self.is_pressed["cary_list"][0][self.is_pressed["cary_list"][1]]) = (
+                                self.is_pressed["cary"], fo)
                         self.is_pressed["bool"] = False
-                        if self.is_pressed["inv_place"] != (hotbar_cell[0], self.grid_size[1]):
-                            self.move_obj(self.is_pressed["inv_place"], (hotbar_cell[0], self.grid_size[1]))
-                    elif self.is_pressed["bool_right"]:
-                        self.is_pressed["bool_right"] = False
-                        if not self.add_obj_ins_at_place((hotbar_cell[0], self.grid_size[1]), self.is_pressed["cary"]):
-                            self.add_obj_ins(self.is_pressed["cary"])
-                        self.is_pressed["cary"] = self.empty_cell
-                elif 0 <= craft_cell[0] < 3 and 0 <= craft_cell[1] < 3:
-                    if self.is_pressed["bool"]:
-                        self.is_pressed["bool"] = False
-                        if self.is_pressed["inv_place"] != (craft_cell[0] + self.grid_size[0], craft_cell[1]):
-                            self.move_obj(self.is_pressed["inv_place"], (craft_cell[0] + self.grid_size[0], craft_cell[1]))
-                    elif self.is_pressed["bool_right"]:
-                        self.is_pressed["bool_right"] = False
-                        if not self.add_obj_ins_at_place(
-                                (craft_cell[0] + self.grid_size[0], craft_cell[1]),
-                                self.is_pressed["cary"]
-                        ):
-                            self.add_obj_ins(self.is_pressed["cary"])
-                        self.is_pressed["cary"] = self.empty_cell
             self.try_recipe()
 
-
         if not self.is_shown:
-            # for event in pygame.event.get():
-            #     if event.type == pygame.MOUSEBUTTONDOWN:
-            #         if event.button == 4:
-            #             self.selected = self.selected + 1 if self.selected + 1 < self.grid_size[0] else 0
-            #         if event.button == 5:
-            #             self.selected = self.selected - 1 if self.selected - 1 >= 0 else self.grid_size[0] - 1
             if mouse_but[0]:
                 mouse_pos = pygame.Vector2(*pygame.mouse.get_pos())
 
@@ -509,37 +469,29 @@ class Inventory(GameObject):
                         loc.HOTBAR_POS_OFFSET[1] + self.cell_size[1] - 2 * self.cell_offset[1] + 0.3
                     )))
         for i, el in enumerate(self.hotbar):
-            if el != self.empty_cell and not (self.is_pressed["inv_place"] == (i, self.grid_size[1])
-                                              and self.is_pressed["bool"] and self.is_shown):
+            if el.get_name() != loc.EMPTY:
                 self.blit_cell(screen, (i, self.grid_size[1]), el)
 
         if self.is_shown:
             screen.blit(self.image, self.image.get_rect(topleft=self.pos))
             screen.blit(self.craft_img, self.craft_img.get_rect(topleft=tuple(self.craft_pos)))
-            for y, line in enumerate(self.objects):  # ici pour l'inventaire
+
+            # ici pour l'inventaire
+            for y, line in enumerate(self.objects):
                 for x, el in enumerate(line):
-                    if "empty" != el.get_name():
-                        # on n'affiche pas directement l'objet déplacé
-                        if not ((x, y) == self.is_pressed["inv_place"] and self.is_pressed["bool"]):
-                            self.blit_cell(screen, (x, y), el)
-            for y, line in enumerate(self.crafting_station[0]):  # ici pour le menu d'assemblage
+                    if loc.EMPTY != el.get_name():
+                        self.blit_cell(screen, (x, y), el)
+
+            # ici pour le menu d'assemblage
+            for y, line in enumerate(self.crafting_station[0]):
                 for x, el in enumerate(line):
-                    if "empty" != el.get_name():
-                        if not ((x + self.grid_size[0], y) == self.is_pressed["inv_place"] and self.is_pressed["bool"]):
-                            self.blit_cell(screen, (x + self.grid_size[0], y), el)
-            if "empty" != self.crafting_station[1][0].get_name():
-                if not ((self.grid_size[0] + 4, 1) == self.is_pressed["inv_place"] and self.is_pressed["bool"]):
-                    self.blit_cell(screen, (self.grid_size[0] + 4, 1), self.crafting_station[1][0])
-            # on affiche l'objet déplacé ici pour qu'il se retrouve devant
-            if self.is_pressed["bool"] and not self.is_pressed["crafted"]:
-                el = self.get_obj(self.is_pressed["inv_place"])
-                pos = pygame.mouse.get_pos()
-                screen.blit(el.get_img(), el.get_img().get_rect(center=pos))
-                screen.blit(
-                    el.get_n_img(),
-                    el.get_n_img().get_rect(center=(pos[0] + self.numb_offset[0] / 2, pos[1] + self.numb_offset[1] / 2))
-                )
-            elif self.is_pressed["bool_right"]:
+                    if loc.EMPTY != el.get_name():
+                        self.blit_cell(screen, (x + self.grid_size[0], y), el)
+            if loc.EMPTY != self.crafting_station[1][0].get_name():
+                self.blit_cell(screen, (self.grid_size[0] + 4, 1), self.crafting_station[1][0])
+
+            # on affiche l'objet déplacé en dernier pour qu'il se retrouve devant
+            if (self.is_pressed["bool"] or self.is_pressed["bool_right"]) and not self.is_pressed["crafted"]:
                 el = self.is_pressed["cary"]
                 pos = pygame.mouse.get_pos()
                 screen.blit(el.get_img(), el.get_img().get_rect(center=pos))

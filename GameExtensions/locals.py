@@ -31,7 +31,7 @@ HOTBAR_CELL_IMPERFECTION: Final = -0.2, 0.1
 FONT_SIZE: Final = 20
 ITEM_FONT_NAME: Final = "square-deal"
 NUMBER_SIZE: Final = 20, 20
-NUMBER_COLOR: Final = 30, 30, 30
+NUMBER_COLOR: Final = 10, 30, 30
 
 MAX_OBJ: Final = 100
 
