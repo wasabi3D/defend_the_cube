@@ -309,8 +309,9 @@ class Inventory(GameObject):
             # si on à appuyé sur le click gauche
             final_cos: typing.Union[None, tuple[int, int]] = None
             # On vérifie en premier si on a appuyé ou laché (suelement une fois) un des boutons de la souris
-            if (any(mouse_but) and not self.is_pressed["bool"] and not self.is_pressed["bool_right"]) or \
-                    (not any(mouse_but) and (self.is_pressed["bool"] or self.is_pressed["bool_right"])):
+            if ((any(mouse_but) and not self.is_pressed["bool"] and not self.is_pressed["bool_right"]) or
+                    (not any(mouse_but) and (self.is_pressed["bool"] or self.is_pressed["bool_right"])))\
+                    and not self.is_pressed["crafted"]:
                 # On pourra avoir ducoup les coordonnées des positions
                 # de la souris transformées en coordonées d'"inventaire"
 
@@ -332,9 +333,10 @@ class Inventory(GameObject):
                     final_cos = hotbar_cell[0], self.grid_size[1]
                 elif 0 <= craft_cell[0] < 3 > craft_cell[1] >= 0:
                     final_cos = craft_cell[0] + self.grid_size[0], craft_cell[1]
-                elif craft_cell == (4, 1) and any(mouse_but) and \
-                        not self.is_pressed["bool"] and not self.is_pressed["bool_right"]:
-                    final_cos = 4 + self.grid_size[0], 1
+                elif craft_cell == (4, 1) and any(mouse_but) and any(mouse_but):
+                    self.recuperate_recipe()
+                    self.is_pressed["bool"] = True
+                    self.is_pressed["crafted"] = True
             if final_cos is not None:
                 # si on a eu des coordonées, on en arrivera ici
                 ol = self.get_what_menu(final_cos)  # ol pour "object list"
@@ -379,6 +381,8 @@ class Inventory(GameObject):
                              self.is_pressed["cary_list"][0][self.is_pressed["cary_list"][1]]) = (
                                 self.is_pressed["cary"], fo)
                         self.is_pressed["bool"] = False
+            if self.is_pressed["bool"] and self.is_pressed["crafted"] and not any(mouse_but):
+                self.is_pressed["bool"], self.is_pressed["crafted"] = False, False
             self.try_recipe()
 
         if not self.is_shown:
