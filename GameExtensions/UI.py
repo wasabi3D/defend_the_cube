@@ -1,6 +1,6 @@
 from GameExtensions.locals import N, NE, NW, S, SE, SW, E, W, CENTER
 
-from GameManager.util import GameObject, tuple2Vec2
+from GameManager.util import GameObject, tuple2Vec2, is_included
 import GameManager.singleton as sing
 from GameManager.resources import load_img
 from GameManager.locals import MOUSE_LEFT
@@ -380,6 +380,8 @@ class CheckBox(Button):
         self.state = default_state
         self.children["check"].set_enabled(self.state)
         self.last_click = 0
+        if self.on_click is not None:
+            self.on_click(self.state)
 
     def on_clicked(self):
         if pygame.time.get_ticks() - self.last_click < 100:
@@ -389,3 +391,74 @@ class CheckBox(Button):
         if self.on_click is not None:
             self.on_click(self.state)
         self.last_click = pygame.time.get_ticks()
+
+
+class TextBox(BaseUIObject):
+    def __init__(self, pos: Vector2,
+                 box_image: pygame.Surface,
+                 text_font: pygame.font.Font,
+                 text_color: tuple[int, int, int],
+                 name: str,
+                 default_text: str = "",
+                 allowed_chars: str = "ALL",
+                 on_new_text_typed: Optional[Callable[[str], None]] = None,
+                 anchor=NW):
+        super().__init__(pos, 0, box_image, name, anchor=anchor)
+        self.text = default_text
+        text_label = TextLabel(Vector2(0, 0), 0, text_font, self.text, text_color, "text_label", anchor=CENTER)
+        self.children.add_gameobject(text_label)
+        self.edit_mode = False
+        self.allowed = allowed_chars
+        self.last_input = 0
+        self.on_typed = on_new_text_typed
+
+    def on_mouse_down(self, button: int):
+        if button == MOUSE_LEFT:
+            self.edit_mode = True
+
+    def early_update(self) -> None:
+        super().early_update()
+
+        if not is_included(tuple2Vec2(pygame.mouse.get_pos()), self.image.get_rect(center=self.get_screen_pos())) \
+                and sing.ROOT.mouse_downs[MOUSE_LEFT]:
+            self.edit_mode = False
+
+        if self.edit_mode and pygame.time.get_ticks() - self.last_input > 5:
+            for key in sing.ROOT.key_downs:
+                if key == pygame.K_BACKSPACE or key == pygame.K_DELETE:
+                    self.delete_char()
+                else:
+                    self.add_chr(key)
+            if self.on_typed is not None:
+                self.on_typed(self.text)
+            self.last_input = pygame.time.get_ticks()
+
+    def add_chr(self, key):
+        """Fonction qui permet de ajouter une lettre dans le textbox
+           :param key: Le nombre en décimal qui correspond au lettre dans le tableau ASCII."""
+        try:
+            if chr(key) in self.allowed or self.allowed == "ALL":
+                self.text += chr(key)
+                self.children["text_label"].set_text(self.text)
+        except ValueError:
+            return
+
+    def delete_char(self):
+        """Fonction qui permet de supprimer une lettre.
+        """
+        if len(self.text) > 0:
+            self.text = self.text[:-1]
+            self.children["text_label"].set_text(self.text)
+
+    def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
+        if not self.enabled:
+            return
+        screen.blit(self.alpha_converted() if apply_alpha else self.image,
+                    self.image.get_rect(center=self.get_screen_pos()))
+
+        text_lb: TextLabel = self.children["text_label"]
+        rect = text_lb.image.get_rect(center=self.get_screen_pos())
+        box_rect = self.image.get_rect(center=self.get_screen_pos())
+        rect.update(max(rect.left, box_rect.left), max(rect.top, box_rect.top),
+                    min(rect.width, box_rect.width), min(rect.height, box_rect.height))
+        screen.blit(text_lb.image, rect.topleft, (0, 0, rect.width, rect.height))

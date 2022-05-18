@@ -48,6 +48,7 @@ class GameRoot:
         self.objects_by_tag: dict[str, list[util.GameObject]] = {}
         self.new_object_index = 0
         self.display_priority: list[str] = []
+        self.parameters: dict = {}
 
     def mainloop(self):
         """
@@ -247,4 +248,7 @@ class GameRoot:
 
     def setup_priority(self, order: list[str]) -> None:
         self.display_priority = [x for x in order if x in self.game_objects]
+
+    def set_parameter(self, key, value) -> None:
+        self.parameters[key] = value
 

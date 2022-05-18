@@ -7,3 +7,4 @@ MOUSE_RIGHT: Final = 2
 MOUSE_MIDDLE: Final = 1
 MOUSE_LEFT: Final = 0
 
+VOLUME: Final = "volume"

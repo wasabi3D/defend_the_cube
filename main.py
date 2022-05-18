@@ -1,9 +1,10 @@
+import multiprocessing.pool
 import os
 import threading
 import sys
 
 import GameExtensions.inventory as inv
-from GameExtensions.UI import FPS_Label, HPBar, Button, TextLabel, BaseUIObject, MenuManager, Slider, CheckBox
+from GameExtensions.UI import *
 from GameExtensions.generate_terrain import Terrain, RenderOverTerrain
 from GameExtensions.player import Player
 from GameExtensions.enemy import Zombie
@@ -124,8 +125,10 @@ class GameLoader(GameObject):
                 .add_gameObject(Core(), immediate=True) \
                 .game_objects.move_to_end("inventory")
 
-            root.add_gameObject(FPS_Label(Vector2(50, 20)),
-                                HPBar(Vector2(0, -20), S), immediate=True) \
+            if "FPS_LABEL" not in sing.ROOT.parameters or sing.ROOT.parameters["FPS_LABEL"]:
+                root.add_gameObject(FPS_Label(Vector2(50, 20)))
+
+            root.add_gameObject(HPBar(Vector2(0, -20), S), immediate=True) \
                 .add_collidable_object(root.game_objects["player"])
 
             inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
@@ -213,7 +216,21 @@ def main():
                           (190, 190, 190), "fps_label", anchor=N)
 
     fps_check = CheckBox(Vector2(0, 145), load_img("resources/UI/check_box.png"),
-                         load_img("resources/UI/check_mark.png"), "fps_check", anchor=N)
+                         load_img("resources/UI/check_mark.png"), "fps_check",
+                         on_check_func=lambda b: sing.ROOT.set_parameter("FPS_LABEL", b), anchor=N)
+
+    seed_bool_label = TextLabel(Vector2(-160, 185), 0, sing.ROOT.global_fonts["menu_font"], "Randomize seed",
+                                (190, 190, 190), "seed_bool_label", anchor=N)
+
+    seed_check = CheckBox(Vector2(0, 185), load_img("resources/UI/check_box.png"),
+                          load_img("resources/UI/check_mark.png"), "seed_bool_check", anchor=N)
+
+    seed_inp_label = TextLabel(Vector2(-160, 225), 0, sing.ROOT.global_fonts["menu_font"], "Custom seed",
+                               (190, 190, 190), "seed_inp_label", anchor=N)
+
+    seed_box = TextBox(Vector2(0, 225), load_img("resources/UI/textbox.png", (192, 16)),
+                       sing.ROOT.global_fonts["menu_font"], (100, 120, 200),
+                       "seed_box", default_text="123", allowed_chars="0123456789", anchor=N)
 
     back = Button(Vector2(0, 135), 0,
                   load_img("resources/UI/button.png", (60, 32)),
@@ -221,7 +238,8 @@ def main():
                   font=root.global_fonts["menu_font"], text_color=(200, 200, 200),
                   anchor=CENTER, on_click_sound=btn_sound)
 
-    settings.children.add_gameobjects(title_label, volume_label, volume_slider, fps_label, fps_check, back)
+    settings.children.add_gameobjects(title_label, volume_label, volume_slider, fps_label, fps_check,
+                                      seed_bool_label, seed_check, seed_inp_label, seed_box, back)
 
     # endregion
 
