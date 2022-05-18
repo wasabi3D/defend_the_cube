@@ -62,6 +62,8 @@ class GameRoot:
             t = pygame.time.get_ticks()
             self.key_ups.clear()
             self.key_downs.clear()
+            last_mouse_ups = self.mouse_ups.copy()
+            last_mouse_downs = self.mouse_downs.copy()
             self.mouse_ups = [False, False, False]
             self.mouse_downs = [False, False, False]
 
@@ -77,11 +79,13 @@ class GameRoot:
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if event.button > 3:  # MOUSE SCROLL
                         continue
-                    self.mouse_ups[event.button - 1] = True
+                    if not last_mouse_ups[event.button - 1]:
+                        self.mouse_ups[event.button - 1] = True
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button > 3:  # MOUSE SCROLL
                         continue
-                    self.mouse_downs[event.button - 1] = True
+                    if not last_mouse_downs[event.button - 1]:
+                        self.mouse_downs[event.button - 1] = True
             # ___________
 
             # ___MAIN UPDATE___

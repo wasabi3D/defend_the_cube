@@ -88,13 +88,14 @@ class GameObject(Sprite):
     """
 
     def __init__(self, pos: Vector2, rotation: float, image: pygame.Surface, name: str, enabled=True,
-                 parent=None, alpha=255, tags: Optional[list[str]] = None):
+                 parent=None, alpha=255, tags: Optional[list[str]] = None, simple_mouse_up=False):
         """
         :param pos: La position initiale de l'objet. La valeur par défaut est pygame.Vector2(0, 0).
         :param rotation: La rotation en radian initiale de l'objet. La valeur par défaut est 0.
         :param image: L'image de l'objet initiale.
         :param enabled: Si l'objet est active quand ce dernier est crée ou pas.
         :param name: Le nom de l'objet.
+        :param simple_mouse_up: si on détecte le mouse up event même si la souris n'est pas dans l'image
         """
 
         super().__init__()
@@ -109,6 +110,7 @@ class GameObject(Sprite):
         self.surf_mult: SurfaceModifier = SurfaceModifier(255, 255, 255, alpha)
         self.enabled = enabled
         self.tags = [] if tags is None else tags
+        self.simple_mouseup = simple_mouse_up
 
         self.mouse_in_rect = False
 
@@ -191,7 +193,6 @@ class GameObject(Sprite):
                 self.mouse_in_rect = True
 
             for btn, state in enumerate(sing.ROOT.mouse_downs):
-
                 if state:
                     self.on_mouse_down(btn)
 
@@ -202,6 +203,11 @@ class GameObject(Sprite):
             if self.mouse_in_rect:
                 self.on_mouse_rect_exit()
                 self.mouse_in_rect = False
+
+            if self.simple_mouseup:
+                for btn, state in enumerate(sing.ROOT.mouse_ups):
+                    if state:
+                        self.on_mouse_up(btn)
 
         for child in self.children.values():
             child.early_update()

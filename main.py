@@ -1,12 +1,9 @@
-import multiprocessing.pool
 import os
 import threading
 import sys
 
-import pyparsing
-
 import GameExtensions.inventory as inv
-from GameExtensions.UI import FPS_Label, HPBar, Button, TextLabel, BaseUIObject, MenuManager
+from GameExtensions.UI import FPS_Label, HPBar, Button, TextLabel, BaseUIObject, MenuManager, Slider, CheckBox
 from GameExtensions.generate_terrain import Terrain, RenderOverTerrain
 from GameExtensions.player import Player
 from GameExtensions.enemy import Zombie
@@ -205,13 +202,26 @@ def main():
     title_label = TextLabel(Vector2(0, 30), 0, root.global_fonts["title_font"], "Settings", (200, 200, 200),
                             "title_label", True, N)
 
+    volume_label = TextLabel(Vector2(-160, 105), 0, sing.ROOT.global_fonts["menu_font"], "Volume",
+                             (190, 190, 190), "volume_label", anchor=N)
+
+    volume_slider = Slider(Vector2(0, 105), load_img("resources/UI/bar.png", (192, 8)),
+                           load_img("resources/UI/circle.png"),
+                           "volume_slider", anchor=N, step=0.05, init_value=1)
+
+    fps_label = TextLabel(Vector2(-160, 145), 0, sing.ROOT.global_fonts["menu_font"], "Show FPS",
+                          (190, 190, 190), "fps_label", anchor=N)
+
+    fps_check = CheckBox(Vector2(0, 145), load_img("resources/UI/check_box.png"),
+                         load_img("resources/UI/check_mark.png"), "fps_check", anchor=N)
+
     back = Button(Vector2(0, 135), 0,
                   load_img("resources/UI/button.png", (60, 32)),
                   "back_btn", lambda: menu_manager.switch_menu("main_menu"), text="Back",
                   font=root.global_fonts["menu_font"], text_color=(200, 200, 200),
                   anchor=CENTER, on_click_sound=btn_sound)
 
-    settings.children.add_gameobjects(title_label, back)
+    settings.children.add_gameobjects(title_label, volume_label, volume_slider, fps_label, fps_check, back)
 
     # endregion
 

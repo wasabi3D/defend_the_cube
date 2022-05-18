@@ -1,6 +1,6 @@
 from GameExtensions.locals import N, NE, NW, S, SE, SW, E, W, CENTER
 
-from GameManager.util import GameObject
+from GameManager.util import GameObject, tuple2Vec2
 import GameManager.singleton as sing
 from GameManager.resources import load_img
 from GameManager.locals import MOUSE_LEFT
@@ -8,12 +8,13 @@ from GameManager.locals import MOUSE_LEFT
 import pygame
 from pygame.math import Vector2
 
-import typing
+from typing import Optional, Callable
 
 
 class BaseUIObject(GameObject):
     """La classe que tous les autres objets UI vont succéder(inherit)
     """
+
     def __init__(self, pos: Vector2,
                  rotation: float,
                  image: pygame.Surface,
@@ -68,6 +69,8 @@ class BaseUIObject(GameObject):
         return self.get_real_pos()
 
     def blit(self, screen: pygame.Surface, apply_alpha=True) -> None:
+        if not self.enabled:
+            return
         pos = self.get_real_pos()
         screen.blit(self.alpha_converted() if apply_alpha else self.image, self.image.get_rect(center=(pos.x, pos.y)))
         for child in self.children.values():
@@ -76,6 +79,7 @@ class BaseUIObject(GameObject):
 
 class TextLabel(BaseUIObject):
     """Permet d'afficher un texte (et modifier!) facilement"""
+
     def __init__(self, pos: pygame.Vector2, rotation: float, font: pygame.font.Font,
                  text: str, color: tuple[int, int, int], name: str, antialias=True, anchor=NW):
         """
@@ -95,8 +99,8 @@ class TextLabel(BaseUIObject):
         self.color: tuple[int, int, int] = color
         self.antialias: bool = antialias
 
-    def set_text(self, text: str, color: typing.Optional[tuple[int, int, int]] = None,
-                 antialias: typing.Optional[bool] = None):
+    def set_text(self, text: str, color: Optional[tuple[int, int, int]] = None,
+                 antialias: Optional[bool] = None):
         """
         Fonction pour afficher un nouveau texte.
 
@@ -117,6 +121,7 @@ class FPS_Label(TextLabel):
     """
     Une classe pour juste afficher l'FPS du jeu.
     """
+
     def __init__(self, pos: pygame.Vector2):
         """
 
@@ -148,6 +153,7 @@ class HPBar(BaseUIObject):
         """
         La partie rouge de la barre
         """
+
         def __init__(self, prop: float, size):
             """
 
@@ -195,11 +201,12 @@ class Button(BaseUIObject):
                  name: str,
                  on_mouse_down_func=None,
                  on_mouse_up_func=None,
-                 text: typing.Optional[str] = None,
-                 font: typing.Optional[pygame.font.Font] = None,
-                 text_color: typing.Optional[tuple[int, int, int]] = None,
-                 on_click_sound: typing.Optional[pygame.mixer.Sound] = None,
-                 anchor=NW):
+                 text: Optional[str] = None,
+                 font: Optional[pygame.font.Font] = None,
+                 text_color: Optional[tuple[int, int, int]] = None,
+                 on_click_sound: Optional[pygame.mixer.Sound] = None,
+                 anchor=NW,
+                 simple_mouse_up=False):
         """
 
         :param pos: La position sur l'écran
@@ -212,6 +219,7 @@ class Button(BaseUIObject):
         :param font: La police
         :param text_color: La couleur du texte
         :param anchor: Un str qui permet de définir où est le (0, 0)
+        :param simple_mouse_up: si on détecte le mouse up event même si la souris n'est pas dans l'image
         """
         super().__init__(pos, rotation, image, name, anchor=anchor)
         self.mouse_down_f = on_mouse_down_func
@@ -220,6 +228,7 @@ class Button(BaseUIObject):
         self.clicking = False
         self.hovering = False
         self.sound = on_click_sound
+        self.simple_mouseup = simple_mouse_up
         if text is None:
             self.text = False
         else:
@@ -278,6 +287,7 @@ class MenuManager(GameObject):
     """
     La classe pour la gestion des menus
     """
+
     def __init__(self, name="MenuManager"):
         """
 
@@ -314,6 +324,68 @@ class MenuManager(GameObject):
         self.menus[self.current].blit(screen, apply_alpha)
 
 
+class Slider(BaseUIObject):
+    def __init__(self, pos: Vector2,
+                 rail_img: pygame.Surface,
+                 slideable_img: pygame.Surface,
+                 name: str,
+                 anchor=NW,
+                 init_value: float = 0,
+                 step: float = -1,
+                 on_slider_release_func: Optional[Callable[[float], None]] = None):
+        super().__init__(pos, 0, rail_img, name, anchor)
+
+        init_x = init_value * rail_img.get_width()
+        slideable = Button(Vector2(init_x, 0), 0, slideable_img, "slideable", on_mouse_down_func=self.button_unlock,
+                           on_mouse_up_func=self.button_lock, anchor=W, simple_mouse_up=True)
+        self.children.add_gameobject(slideable)
+        self.step = step
+        self.on_release = on_slider_release_func
+        self.button_locked = True
+        self.on_btn_press_mouse_pos = Vector2(0, 0)
+
+    def button_unlock(self):
+        self.button_locked = False
+        self.on_btn_press_mouse_pos = pygame.mouse.get_pos()
+
+    def button_lock(self):
+        self.button_locked = True
+        if self.on_release is not None:
+            self.on_release(self.children["slideable"].pos.x / (self.image.get_width()))
+
+    def early_update(self) -> None:
+        super().early_update()
+
+        if not self.button_locked:
+            btn_pos = tuple2Vec2(pygame.mouse.get_pos()) - self.get_real_pos()
+            btn_pos.x = min(max(self.image.get_width() / 2 + btn_pos.x, 0), self.image.get_width() + 1)
+            btn_pos.y = 0
+            step_px = self.step * self.image.get_width() if 0 <= self.step <= 1 else 1
+            btn_pos.x = (btn_pos.x // step_px) * step_px
+            self.children["slideable"].translate(btn_pos, additive=False)
 
 
+class CheckBox(Button):
+    def __init__(self, pos: Vector2,
+                 base_img: pygame.Surface,
+                 check_img: pygame.Surface,
+                 name: str,
+                 on_check_func: Optional[Callable[[bool], None]] = None,
+                 anchor=NW,
+                 default_state=False):
+        super().__init__(pos, 0, base_img, name, anchor=anchor, on_mouse_up_func=self.on_clicked)
+        check_obj = BaseUIObject(Vector2(0, 0), 0, check_img, "check", anchor=CENTER)
+        self.children.add_gameobject(check_obj)
+        self.on_click = on_check_func
+        self.state = default_state
+        self.children["check"].set_enabled(self.state)
+        self.last_click = 0
 
+    def on_clicked(self):
+        if pygame.time.get_ticks() - self.last_click < 100:
+            return
+        self.state = not self.state
+        self.children["check"].set_enabled(self.state)
+        if self.on_click is not None:
+            self.on_click(self.state)
+        self.last_click = pygame.time.get_ticks()
