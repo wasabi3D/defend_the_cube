@@ -131,7 +131,6 @@ class GameLoader(GameObject):
             root.add_gameObject(HPBar(Vector2(0, -20), S), immediate=True) \
                 .add_collidable_object(root.game_objects["player"])
 
-            inventory.add_obj_at_pos((2, 2), "frog", load_img("resources/test/frog.png"), 95)
             root.add_gameObject(GameRestarter(), immediate=True)
             root.add_gameObject(EnemySpawner(), immediate=True)
             root.add_gameObject(Timer(Vector2(-50, 30), sing.ROOT.global_fonts["arcade_font"]

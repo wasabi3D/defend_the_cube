@@ -232,28 +232,6 @@ class Inventory(GameObject):
         o1 = self.get_what_menu(pos)
         el = o1[0][o1[1]]
         return el
-        # if 0 <= pos[0] < self.objects[0].__len__() and 0 <= pos[1] < self.objects.__len__():
-        #     if self.objects[pos[1]][pos[0]] == self.empty_cell:
-        #         return
-        #     else:
-        #         return self.objects[pos[1]][pos[0]]
-        # elif 0 <= pos[0] < self.grid_size[0] and pos[1] == self.grid_size[1]:
-        #     if self.hotbar[pos[0]] == self.empty_cell:
-        #         return
-        #     else:
-        #         return self.hotbar[pos[0]]
-        # elif self.grid_size[0] <= pos[0] < self.grid_size[0] + 3 and 0 <= pos[1] < 3 and self.is_shown:
-        #     if self.crafting_station[0][pos[1]][pos[0] - self.grid_size[0]] == self.empty_cell:
-        #         return
-        #     else:
-        #         return self.crafting_station[0][pos[1]][pos[0] - self.grid_size[0]]
-        # elif pos[0] == self.grid_size[0] + 4 and pos[1] == 1:
-        #     if self.crafting_station[1][0] == self.empty_cell:
-        #         return
-        #     else:
-        #         return self.crafting_station[1][0]
-        # else:
-        #     raise IndexError("The position was out of the inventory capacity")
 
     def try_recipe(self):
         """fonction permettant de vérifier si on à la possibilité de crafter un objet"""
@@ -334,9 +312,10 @@ class Inventory(GameObject):
                 elif 0 <= craft_cell[0] < 3 > craft_cell[1] >= 0:
                     final_cos = craft_cell[0] + self.grid_size[0], craft_cell[1]
                 elif craft_cell == (4, 1) and any(mouse_but) and any(mouse_but):
-                    self.recuperate_recipe()
-                    self.is_pressed["bool"] = True
-                    self.is_pressed["crafted"] = True
+                    if self.crafting_station[1][0].get_name() != loc.EMPTY:
+                        self.recuperate_recipe()
+                        self.is_pressed["bool"] = True
+                        self.is_pressed["crafted"] = True
             if final_cos is not None:
                 # si on a eu des coordonées, on en arrivera ici
                 ol = self.get_what_menu(final_cos)  # ol pour "object list"
