@@ -1,4 +1,3 @@
-import multiprocessing.pool
 import threading
 import sys
 
@@ -87,7 +86,7 @@ class GameRestarter(GameObject):
 
     def restart(self):
         sing.ROOT.clear_objects()
-        main()
+        main(sing.ROOT.parameters)
 
 
 class GameLoader(GameObject):
@@ -168,7 +167,7 @@ def start_game():
     root.add_gameObject(GameLoader(), immediate=True)
 
 
-def main():
+def main(settings_param=None):
     load_font("resources/fonts/square-deal.ttf", 30, True, "title_font")
     load_font("resources/fonts/square-deal.ttf", 20, True, "menu_font")
     load_font("resources/fonts/arcade.ttf", 24, True, "arcade_font")
@@ -216,14 +215,14 @@ def main():
     volume_label = TextLabel(Vector2(-160, 105), 0, sing.ROOT.global_fonts["menu_font"], "Volume",
                              (190, 190, 190), "volume_label", anchor=N)
 
-    default_vol = 0.7
+    default_vol = 0.7 if settings_param is None else settings_param[VOLUME]
     sing.ROOT.set_parameter(VOLUME, default_vol)
     volume_slider = Slider(Vector2(0, 105), load_img("resources/UI/bar.png", (192, 8)),
                            load_img("resources/UI/circle.png"), "volume_slider",
                            on_slider_release_func=lambda b: sing.ROOT.modify_volume(sing.ROOT.parameters[VOLUME]),
                            anchor=N, step=0.05, init_value=default_vol)
 
-    fps_default = False
+    fps_default = False if settings_param is None else settings_param["FPS_LABEL"]
     sing.ROOT.set_parameter("FPS_LABEL", fps_default)
     fps_label = TextLabel(Vector2(-160, 145), 0, sing.ROOT.global_fonts["menu_font"], "Show FPS",
                           (190, 190, 190), "fps_label", anchor=N)
@@ -236,7 +235,7 @@ def main():
     seed_inp_label = TextLabel(Vector2(-160, 225), 0, sing.ROOT.global_fonts["menu_font"], "Custom seed",
                                (190, 190, 190), "seed_inp_label", anchor=N)
 
-    default = "123"
+    default = "123" if settings_param is None else settings_param[CUST_SEED]
     sing.ROOT.set_parameter(CUST_SEED, default)
     seed_box = TextBox(Vector2(0, 225), load_img("resources/UI/textbox.png", (192, 16)),
                        sing.ROOT.global_fonts["menu_font"], (100, 120, 200),
@@ -246,7 +245,7 @@ def main():
     seed_bool_label = TextLabel(Vector2(-160, 185), 0, sing.ROOT.global_fonts["menu_font"], "Randomize seed",
                                 (190, 190, 190), "seed_bool_label", anchor=N)
 
-    randomize = True
+    randomize = True if settings_param is None else settings_param[RAND_SEED]
     sing.ROOT.set_parameter(RAND_SEED, randomize)
 
     def on_check(b):
